@@ -3,841 +3,1086 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>CreditPath — Plataforma de Reparación de Crédito</title>
+<title>CreditPath — Monitor de Oficina</title>
 <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
 <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
 <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-<!-- Firebase SDKs -->
 <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
 <style>
-  :root {
-    --navy: #0A1628;
-    --navy-light: #132040;
-    --gold: #D4A843;
-    --gold-light: #F0C865;
-    --cream: #F8F5EE;
-    --cream-dark: #EDE9DF;
-    --green-credit: #2ECC71;
-    --red-credit: #E74C3C;
-    --yellow-credit: #F39C12;
-    --text-primary: #0A1628;
-    --text-secondary: #4A5568;
-    --text-muted: #718096;
-    --surface: #FFFFFF;
-    --surface-2: #F7FAFC;
-    --border: #E2E8F0;
-    --shadow: 0 1px 3px rgba(10,22,40,0.08), 0 4px 16px rgba(10,22,40,0.04);
-    --shadow-lg: 0 8px 32px rgba(10,22,40,0.12);
-    --radius: 12px;
-    --radius-sm: 8px;
-  }
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--cream); color: var(--text-primary); min-height: 100vh; }
-  button { cursor: pointer; border: none; outline: none; font-family: inherit; }
-  input, select, textarea { font-family: inherit; outline: none; border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 10px 14px; width: 100%; font-size: 14px; color: var(--text-primary); background: white; transition: border-color 0.2s; }
-  input:focus, select:focus, textarea:focus { border-color: var(--gold); box-shadow: 0 0 0 3px rgba(212,168,67,0.12); }
-  .hidden { display: none !important; }
+:root {
+  --navy:#0A1628;--navy2:#111F3A;--navy3:#1A2F52;
+  --gold:#D4A843;--gold2:#F0C865;
+  --green:#22C55E;--red:#EF4444;--yellow:#F59E0B;--blue:#3B82F6;--purple:#A855F7;
+  --t:#F1F5F9;--t2:#94A3B8;--t3:#64748B;
+  --b:rgba(255,255,255,0.08);--b2:rgba(255,255,255,0.04);
+  --s:rgba(255,255,255,0.04);--s2:rgba(255,255,255,0.07);
+  --r:12px;--rs:8px;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--navy);color:var(--t);min-height:100vh;}
+button{cursor:pointer;border:none;outline:none;font-family:inherit;}
+input,select,textarea{font-family:inherit;outline:none;font-size:14px;}
 
-  /* NAV */
-  .nav { background: var(--navy); padding: 0 32px; height: 60px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
-  .nav-logo { color: var(--gold); font-size: 22px; font-weight: 700; letter-spacing: -0.5px; }
-  .nav-logo span { color: white; font-weight: 400; }
-  .nav-right { display: flex; align-items: center; gap: 16px; }
-  .nav-demo-badge { background: rgba(212,168,67,0.15); border: 1px solid var(--gold); color: var(--gold); font-size: 12px; font-weight: 600; padding: 4px 10px; border-radius: 20px; }
-  .btn-nav { background: var(--gold); color: var(--navy); font-size: 14px; font-weight: 600; padding: 8px 20px; border-radius: var(--radius-sm); transition: background 0.2s, transform 0.1s; }
-  .btn-nav:hover { background: var(--gold-light); transform: scale(1.01); }
+/* LOGIN */
+.lw{min-height:100vh;display:flex;align-items:center;justify-content:center;}
+.lb{background:var(--navy2);border:1px solid var(--b);border-radius:16px;padding:44px 40px;width:380px;box-shadow:0 24px 64px rgba(0,0,0,0.4);}
+.ll{font-size:26px;font-weight:800;color:var(--t);text-align:center;margin-bottom:4px;}
+.ll span{color:var(--gold);}
+.lr{text-align:center;font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--gold);margin-bottom:28px;}
+.li{width:100%;background:var(--navy3);border:1px solid var(--b);border-radius:var(--rs);padding:12px 14px;color:var(--t);font-size:14px;margin-bottom:14px;transition:border-color 0.2s;}
+.li:focus{border-color:var(--gold);}
+.llab{font-size:12px;font-weight:600;color:var(--t2);margin-bottom:6px;display:block;text-transform:uppercase;letter-spacing:0.5px;}
+.lbtn{width:100%;background:var(--gold);color:var(--navy);font-size:15px;font-weight:700;padding:14px;border-radius:var(--rs);margin-top:6px;transition:background 0.15s;}
+.lbtn:hover{background:var(--gold2);}
+.lerr{background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);border-radius:var(--rs);padding:10px 14px;font-size:13px;color:#FCA5A5;margin-bottom:14px;}
 
-  /* SIDEBAR */
-  .layout { display: flex; min-height: calc(100vh - 60px); }
-  .sidebar { width: 220px; background: var(--navy); padding: 24px 0; flex-shrink: 0; }
-  .sidebar-section { padding: 8px 16px 4px; font-size: 10px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: rgba(255,255,255,0.3); margin-top: 12px; }
-  .sidebar-item { display: flex; align-items: center; gap: 10px; padding: 10px 20px; color: rgba(255,255,255,0.6); font-size: 14px; cursor: pointer; transition: all 0.15s; border-left: 3px solid transparent; }
-  .sidebar-item:hover { background: rgba(255,255,255,0.06); color: white; }
-  .sidebar-item.active { background: rgba(212,168,67,0.1); color: var(--gold); border-left-color: var(--gold); }
-  .sidebar-icon { font-size: 18px; width: 20px; text-align: center; }
-  .main { flex: 1; padding: 28px 32px; overflow-y: auto; background: var(--cream); }
+/* LAYOUT */
+.app{display:flex;min-height:100vh;}
+.sb{width:224px;background:var(--navy2);border-right:1px solid var(--b);display:flex;flex-direction:column;flex-shrink:0;}
+.sbt{padding:20px;border-bottom:1px solid var(--b);}
+.sbb2{font-size:18px;font-weight:800;color:var(--t);}
+.sbb2 span{color:var(--gold);}
+.sbo{font-size:11px;color:var(--t2);margin-top:4px;}
+.sbn{flex:1;padding:10px 0;overflow-y:auto;}
+.nss{font-size:10px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--t3);padding:12px 20px 4px;}
+.ni{display:flex;align-items:center;gap:10px;padding:9px 20px;font-size:13px;color:var(--t2);cursor:pointer;border-left:3px solid transparent;transition:all 0.15s;}
+.ni:hover{background:var(--s);color:var(--t);}
+.ni.active{background:rgba(212,168,67,0.08);color:var(--gold);border-left-color:var(--gold);}
+.nic{font-size:15px;width:18px;text-align:center;}
+.sbb{padding:16px 20px;border-top:1px solid var(--b);}
+.sob{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--t3);cursor:pointer;background:none;transition:color 0.15s;width:100%;}
+.sob:hover{color:var(--red);}
 
-  /* CARDS */
-  .card { background: white; border-radius: var(--radius); padding: 24px; box-shadow: var(--shadow); border: 1px solid var(--border); }
-  .card-title { font-size: 16px; font-weight: 600; color: var(--text-primary); margin-bottom: 4px; }
-  .card-subtitle { font-size: 13px; color: var(--text-muted); }
+/* MAIN */
+.mn{flex:1;overflow-y:auto;}
+.tb{height:56px;background:var(--navy2);border-bottom:1px solid var(--b);display:flex;align-items:center;justify-content:space-between;padding:0 28px;position:sticky;top:0;z-index:10;}
+.tbt{font-size:15px;font-weight:600;}
+.ct{padding:28px;}
 
-  /* STAT CARDS */
-  .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
-  .stat-card { background: white; border-radius: var(--radius); padding: 20px; box-shadow: var(--shadow); border: 1px solid var(--border); }
-  .stat-label { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); margin-bottom: 8px; }
-  .stat-value { font-size: 28px; font-weight: 700; color: var(--text-primary); line-height: 1; }
-  .stat-change { font-size: 12px; margin-top: 6px; }
-  .stat-change.up { color: #27AE60; }
-  .stat-change.down { color: var(--red-credit); }
+/* STATS */
+.sg{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px;}
+.sc{background:var(--navy2);border:1px solid var(--b);border-radius:var(--r);padding:20px;}
+.sl{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.8px;color:var(--t3);margin-bottom:10px;}
+.sv{font-size:28px;font-weight:800;line-height:1;}
+.sv.gold{color:var(--gold);}
+.sv.green{color:var(--green);}
+.sv.yellow{color:var(--yellow);}
+.sn{font-size:12px;color:var(--t3);margin-top:6px;}
 
-  /* GRID */
-  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 24px; }
-  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+/* CARD */
+.cd{background:var(--navy2);border:1px solid var(--b);border-radius:var(--r);padding:24px;margin-bottom:20px;}
+.cdh{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;}
+.cdt{font-size:14px;font-weight:600;}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px;}
 
-  /* TABLE */
-  .table-wrap { overflow-x: auto; }
-  table { width: 100%; border-collapse: collapse; font-size: 14px; }
-  th { text-align: left; padding: 12px 16px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); background: var(--surface-2); border-bottom: 1px solid var(--border); }
-  td { padding: 14px 16px; border-bottom: 1px solid var(--border); color: var(--text-primary); vertical-align: middle; }
-  tr:last-child td { border-bottom: none; }
-  tr:hover td { background: var(--surface-2); }
+/* KANBAN */
+.kb{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;}
+.kc{background:var(--s);border-radius:var(--rs);padding:12px;min-height:180px;}
+.kh{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:var(--t3);margin-bottom:10px;display:flex;justify-content:space-between;}
+.kk{background:var(--navy2);border:1px solid var(--b);border-radius:8px;padding:12px;margin-bottom:8px;cursor:pointer;transition:all 0.15s;}
+.kk:hover{border-color:var(--gold);transform:translateY(-1px);}
+.kn{font-size:13px;font-weight:600;}
+.km{font-size:11px;color:var(--t3);margin-top:3px;}
+.ks{font-size:12px;font-weight:700;margin-top:6px;}
 
-  /* BADGES */
-  .badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; }
-  .badge-green { background: #D4EDDA; color: #155724; }
-  .badge-yellow { background: #FFF3CD; color: #856404; }
-  .badge-red { background: #F8D7DA; color: #721C24; }
-  .badge-blue { background: #D1ECF1; color: #0C5460; }
-  .badge-purple { background: #E2D9F3; color: #4A2C8C; }
-  .badge-gold { background: rgba(212,168,67,0.15); color: #8B6914; }
+/* TABLE */
+.tw{overflow-x:auto;}
+table{width:100%;border-collapse:collapse;font-size:13px;}
+th{text-align:left;padding:10px 14px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:var(--t3);border-bottom:1px solid var(--b);}
+td{padding:13px 14px;border-bottom:1px solid var(--b2);vertical-align:middle;}
+tr:last-child td{border-bottom:none;}
+tr:hover td{background:var(--s);}
 
-  /* SCORE DIAL */
-  .dial-container { display: flex; flex-direction: column; align-items: center; padding: 24px 0 16px; }
-  .dial-svg { width: 180px; height: 100px; }
-  .score-number { font-size: 36px; font-weight: 800; color: var(--text-primary); line-height: 1; }
-  .score-label { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
+/* BADGES */
+.bgg{display:inline-flex;align-items:center;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:700;}
+.bg-green{background:rgba(34,197,94,0.1);color:var(--green);border:1px solid rgba(34,197,94,0.2);}
+.bg-yellow{background:rgba(245,158,11,0.1);color:var(--yellow);border:1px solid rgba(245,158,11,0.2);}
+.bg-red{background:rgba(239,68,68,0.1);color:var(--red);border:1px solid rgba(239,68,68,0.2);}
+.bg-blue{background:rgba(59,130,246,0.1);color:var(--blue);border:1px solid rgba(59,130,246,0.2);}
+.bg-purple{background:rgba(168,85,247,0.1);color:var(--purple);border:1px solid rgba(168,85,247,0.2);}
+.bg-gold{background:rgba(212,168,67,0.1);color:var(--gold);border:1px solid rgba(212,168,67,0.2);}
 
-  /* KANBAN */
-  .kanban { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
-  .kanban-col { background: var(--surface-2); border-radius: var(--radius-sm); padding: 12px; min-height: 200px; }
-  .kanban-header { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; }
-  .kanban-card { background: white; border-radius: 8px; padding: 12px; margin-bottom: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); border: 1px solid var(--border); cursor: pointer; transition: box-shadow 0.15s, transform 0.1s; }
-  .kanban-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.1); transform: translateY(-1px); }
-  .kanban-name { font-size: 13px; font-weight: 600; color: var(--text-primary); }
-  .kanban-meta { font-size: 11px; color: var(--text-muted); margin-top: 4px; }
-  .kanban-score { font-size: 11px; font-weight: 700; margin-top: 6px; }
+/* BUTTONS */
+.btn{padding:8px 16px;border-radius:var(--rs);font-size:13px;font-weight:600;transition:all 0.15s;display:inline-flex;align-items:center;gap:6px;}
+.btn-gold{background:var(--gold);color:var(--navy);}
+.btn-gold:hover{background:var(--gold2);}
+.btn-ghost{background:var(--s2);color:var(--t2);border:1px solid var(--b);}
+.btn-ghost:hover{color:var(--t);}
+.btn-sm{padding:6px 12px;font-size:12px;}
 
-  /* BUTTONS */
-  .btn { padding: 10px 18px; border-radius: var(--radius-sm); font-size: 14px; font-weight: 600; transition: all 0.15s; }
-  .btn-primary { background: var(--navy); color: white; }
-  .btn-primary:hover { background: var(--navy-light); }
-  .btn-gold { background: var(--gold); color: var(--navy); }
-  .btn-gold:hover { background: var(--gold-light); }
-  .btn-outline { background: transparent; color: var(--text-secondary); border: 1px solid var(--border); }
-  .btn-outline:hover { background: var(--surface-2); }
-  .btn-danger { background: #FEE2E2; color: #DC2626; }
-  .btn-danger:hover { background: #FECACA; }
-  .btn-sm { padding: 6px 12px; font-size: 12px; }
-  .btn-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+/* MODAL */
+.mbg{position:fixed;inset:0;background:rgba(0,0,0,0.65);z-index:200;display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px);}
+.md{background:var(--navy2);border:1px solid var(--b);border-radius:16px;padding:32px;width:100%;max-width:600px;max-height:88vh;overflow-y:auto;}
+.mdt{font-size:18px;font-weight:700;margin-bottom:4px;}
+.mds{font-size:13px;color:var(--t2);margin-bottom:20px;}
 
-  /* FORM */
-  .form-group { margin-bottom: 16px; }
-  .form-label { font-size: 13px; font-weight: 600; color: var(--text-secondary); margin-bottom: 6px; display: block; }
-  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+/* FORM */
+.fg{margin-bottom:14px;}
+.fl{font-size:12px;font-weight:600;color:var(--t2);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;display:block;}
+.fi{width:100%;background:var(--navy3);border:1px solid var(--b);border-radius:var(--rs);padding:11px 14px;color:var(--t);font-size:14px;transition:border-color 0.2s;}
+.fi:focus{border-color:var(--gold);outline:none;}
+.fr{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.fa{display:flex;gap:10px;justify-content:flex-end;margin-top:20px;}
 
-  /* TABS */
-  .tabs { display: flex; border-bottom: 1px solid var(--border); margin-bottom: 20px; gap: 0; }
-  .tab { padding: 10px 20px; font-size: 14px; font-weight: 500; color: var(--text-muted); cursor: pointer; border-bottom: 2px solid transparent; transition: all 0.15s; }
-  .tab:hover { color: var(--text-primary); }
-  .tab.active { color: var(--navy); border-bottom-color: var(--gold); font-weight: 600; }
+/* TIMELINE */
+.tl{position:relative;padding-left:20px;}
+.tl::before{content:'';position:absolute;left:6px;top:0;bottom:0;width:1px;background:var(--b);}
+.tli{position:relative;padding-bottom:16px;}
+.tld{position:absolute;left:-17px;top:3px;width:8px;height:8px;border-radius:50%;background:var(--gold);border:2px solid var(--navy2);}
+.tldt{font-size:11px;color:var(--t3);}
+.tlt{font-size:13px;color:var(--t);margin-top:2px;}
 
-  /* TIMELINE */
-  .timeline { position: relative; }
-  .timeline::before { content: ''; position: absolute; left: 20px; top: 0; bottom: 0; width: 1px; background: var(--border); }
-  .timeline-item { display: flex; gap: 16px; padding: 0 0 20px 0; position: relative; }
-  .timeline-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--gold); border: 2px solid white; box-shadow: 0 0 0 2px var(--gold); margin-top: 4px; flex-shrink: 0; position: relative; z-index: 1; margin-left: 17px; }
-  .timeline-content { flex: 1; }
-  .timeline-date { font-size: 11px; color: var(--text-muted); }
-  .timeline-text { font-size: 13px; color: var(--text-primary); margin-top: 2px; }
+/* SCORE */
+.dw{display:flex;flex-direction:column;align-items:center;padding:8px 0;}
+.sc-bad{color:var(--red);}
+.sc-fair{color:var(--yellow);}
+.sc-good{color:var(--blue);}
+.sc-ex{color:var(--green);}
 
-  /* LOGIN */
-  .login-page { min-height: 100vh; display: flex; align-items: center; justify-content: center; background: var(--navy); }
-  .login-card { background: white; border-radius: 16px; padding: 40px; width: 380px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); }
-  .login-logo { font-size: 28px; font-weight: 800; color: var(--navy); text-align: center; margin-bottom: 4px; }
-  .login-logo span { color: var(--gold); }
-  .login-sub { text-align: center; font-size: 13px; color: var(--text-muted); margin-bottom: 28px; }
-  .login-title { font-size: 16px; font-weight: 600; color: var(--text-primary); margin-bottom: 20px; }
-  .login-toggle { display: flex; background: var(--surface-2); border-radius: var(--radius-sm); padding: 4px; gap: 4px; margin-bottom: 24px; }
-  .login-toggle-btn { flex: 1; padding: 8px; border-radius: 6px; font-size: 13px; font-weight: 600; color: var(--text-muted); cursor: pointer; border: none; background: transparent; transition: all 0.15s; }
-  .login-toggle-btn.active { background: white; color: var(--navy); box-shadow: 0 1px 4px rgba(0,0,0,0.1); }
+/* HERRAMIENTAS */
+.hgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:24px;}
+.hcard{background:var(--navy2);border:1px solid var(--b);border-radius:var(--r);padding:22px;cursor:pointer;transition:all 0.2s;text-align:center;}
+.hcard:hover{border-color:var(--gold);background:rgba(212,168,67,0.05);transform:translateY(-2px);}
+.hicon{font-size:32px;margin-bottom:10px;}
+.htitle{font-size:14px;font-weight:700;color:var(--t);margin-bottom:4px;}
+.hdesc{font-size:12px;color:var(--t3);line-height:1.5;}
 
-  /* SUPERADMIN */
-  .office-card { background: white; border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; box-shadow: var(--shadow); }
-  .office-name { font-size: 16px; font-weight: 700; color: var(--text-primary); }
-  .office-meta { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
-  .office-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 16px; }
-  .office-stat { text-align: center; background: var(--surface-2); border-radius: 8px; padding: 10px 6px; }
-  .office-stat-val { font-size: 20px; font-weight: 700; color: var(--text-primary); }
-  .office-stat-lbl { font-size: 10px; color: var(--text-muted); margin-top: 2px; }
+/* PROMPT CARDS */
+.pgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;}
+.pcard{background:var(--navy3);border:1px solid var(--b);border-radius:var(--r);padding:18px;cursor:pointer;transition:all 0.15s;display:flex;align-items:flex-start;gap:12px;}
+.pcard:hover{border-color:var(--gold);background:rgba(212,168,67,0.05);}
+.picon{font-size:22px;flex-shrink:0;}
+.ptitle{font-size:13px;font-weight:700;color:var(--t);margin-bottom:3px;}
+.pdesc{font-size:11px;color:var(--t3);line-height:1.4;}
+.pcopy{margin-top:8px;font-size:11px;color:var(--gold);font-weight:600;}
 
-  /* DEMO BANNER */
-  .demo-banner { background: linear-gradient(135deg, var(--navy) 0%, #1a3a6e 100%); border-radius: var(--radius); padding: 20px 24px; color: white; display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
-  .demo-days { font-size: 36px; font-weight: 800; color: var(--gold); }
-  .demo-label { font-size: 14px; font-weight: 500; color: rgba(255,255,255,0.7); }
-  .demo-cta-text { font-size: 13px; color: rgba(255,255,255,0.6); margin-top: 4px; }
+/* DIRECTORIO */
+.dgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;}
+.dcard{background:var(--navy3);border:1px solid var(--b);border-radius:var(--r);padding:16px;}
+.dname{font-size:13px;font-weight:700;color:var(--t);margin-bottom:4px;}
+.ddesc{font-size:11px;color:var(--t3);line-height:1.4;margin-bottom:10px;}
+.dbtn{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:600;color:var(--gold);background:rgba(212,168,67,0.1);border:1px solid rgba(212,168,67,0.2);border-radius:6px;padding:4px 10px;cursor:pointer;transition:all 0.15s;}
+.dbtn:hover{background:rgba(212,168,67,0.2);}
 
-  /* RESPONSIVE */
-  @media (max-width: 900px) {
-    .stats-grid { grid-template-columns: 1fr 1fr; }
-    .kanban { grid-template-columns: 1fr 1fr; }
-    .sidebar { display: none; }
-  }
-  @media (max-width: 600px) {
-    .stats-grid { grid-template-columns: 1fr; }
-    .grid-2 { grid-template-columns: 1fr; }
-    .main { padding: 16px; }
-    .form-row { grid-template-columns: 1fr; }
-  }
+/* CARTA */
+.cbox{background:var(--navy3);border:1px solid var(--b);border-radius:var(--r);padding:20px;font-family:monospace;font-size:12px;color:var(--t2);line-height:1.8;white-space:pre-wrap;max-height:400px;overflow-y:auto;margin-bottom:16px;}
+
+/* STEPS */
+.steps{display:flex;gap:8px;margin-bottom:20px;}
+.step{flex:1;padding:9px;border-radius:8px;text-align:center;font-size:12px;font-weight:600;border:1px solid var(--b);color:var(--t3);background:var(--navy3);transition:all 0.15s;}
+.step.active{background:rgba(212,168,67,0.1);border-color:var(--gold);color:var(--gold);}
+.step.done{background:rgba(34,197,94,0.08);border-color:rgba(34,197,94,0.3);color:var(--green);}
+
+/* NOTA */
+.nota{background:var(--navy3);border-radius:8px;padding:12px 14px;margin-bottom:10px;}
+.nota-m{font-size:11px;color:var(--t3);margin-bottom:4px;}
+.nota-t{font-size:13px;color:var(--t);}
+
+/* TABS */
+.tabs{display:flex;border-bottom:1px solid var(--b);margin-bottom:20px;}
+.tab{padding:8px 18px;font-size:13px;font-weight:500;color:var(--t3);border-bottom:2px solid transparent;cursor:pointer;transition:all 0.15s;}
+.tab.active{color:var(--gold);border-bottom-color:var(--gold);font-weight:600;}
+
+.loading{display:flex;align-items:center;justify-content:center;height:200px;color:var(--t3);font-size:14px;}
+.empty{text-align:center;padding:40px;color:var(--t3);}
+.tip{background:rgba(212,168,67,0.08);border:1px solid rgba(212,168,67,0.2);border-radius:8px;padding:12px 16px;font-size:13px;color:var(--t2);line-height:1.6;margin-bottom:16px;}
+.tip strong{color:var(--gold);}
+.warn{background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.2);border-radius:8px;padding:12px 16px;font-size:13px;color:#FCA5A5;line-height:1.6;margin-bottom:16px;}
+
+@media(max-width:900px){
+  .sg{grid-template-columns:1fr 1fr;}
+  .kb{grid-template-columns:1fr 1fr;}
+  .g2{grid-template-columns:1fr;}
+  .hgrid{grid-template-columns:1fr 1fr;}
+  .pgrid{grid-template-columns:1fr;}
+  .dgrid{grid-template-columns:1fr 1fr;}
+  .sb{display:none;}
+}
 </style>
 </head>
 <body>
 <div id="root"></div>
 <script type="text/babel">
 
-// ─── Firebase config (reemplaza con tu config real) ───────────────────────
-const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "immigration-platform-11380.firebaseapp.com",
-  projectId: "immigration-platform-11380",
-  storageBucket: "immigration-platform-11380.appspot.com",
-  messagingSenderId: "YOUR_SENDER_ID",
-  appId: "YOUR_APP_ID"
+const firebaseConfig={
+  apiKey:"AIzaSyAnZXNV8tUCgUheOrI2p0due1Dj4S_tYCg",
+  authDomain:"immigration-platform-11380.firebaseapp.com",
+  projectId:"immigration-platform-11380",
+  storageBucket:"immigration-platform-11380.firebasestorage.app",
+  messagingSenderId:"682062748742",
+  appId:"1:682062748742:web:5b2466ddf7d8ae05a67e47",
+  measurementId:"G-3VXLEW9B2M"
 };
-// firebase.initializeApp(firebaseConfig);  // Descomenta cuando tengas las keys reales
+if(!firebase.apps.length)firebase.initializeApp(firebaseConfig);
+const auth=firebase.auth();
+const db=firebase.firestore();
 
-// ─── DATOS DEMO ────────────────────────────────────────────────────────────
-const DEMO_CLIENTS = [
-  { id: 1, nombre: "María García", score: 542, meta: 700, estado: "en_proceso", items: 7, pagado: "$150/mes", inicio: "2024-11-01", telefono: "(407) 555-0101", email: "maria@email.com", disputas: ["Colección médica $2,100", "Pago tardío Chase 2023", "Cuenta en colecciones Capital One"] },
-  { id: 2, nombre: "Carlos Rodríguez", score: 618, meta: 740, estado: "activo", items: 4, pagado: "$120/mes", inicio: "2024-10-15", telefono: "(321) 555-0202", email: "carlos@email.com", disputas: ["Consulta dura múltiple", "Balance alto Discover"] },
-  { id: 3, nombre: "Ana Martínez", score: 701, meta: 750, estado: "completado", items: 0, pagado: "$120/mes", inicio: "2024-07-01", telefono: "(407) 555-0303", email: "ana@email.com", disputas: [] },
-  { id: 4, nombre: "José López", score: 480, meta: 650, estado: "nuevo", items: 12, pagado: "Pendiente", inicio: "2024-12-01", telefono: "(321) 555-0404", email: "jose@email.com", disputas: ["Juicio civil $5,400", "3 cuentas en colecciones", "Reporte de fraude"] },
-  { id: 5, nombre: "Elena Torres", score: 590, meta: 700, estado: "en_proceso", items: 5, pagado: "$150/mes", inicio: "2024-09-20", telefono: "(407) 555-0505", email: "elena@email.com", disputas: ["Saldo viejo Sprint", "Pago tardío Banco América"] },
-  { id: 6, nombre: "Roberto Sánchez", score: 655, meta: 720, estado: "activo", items: 3, pagado: "$99/mes", inicio: "2024-11-10", telefono: "(321) 555-0606", email: "roberto@email.com", disputas: ["Limite alto tarjeta", "Consulta trabajo anterior"] },
+// ── HELPERS ────────────────────────────────────────────────────────────────
+const scColor=s=>s<580?'sc-bad':s<670?'sc-fair':s<740?'sc-good':'sc-ex';
+const scLabel=s=>s<580?'Malo':s<670?'Regular':s<740?'Bueno':'Excelente';
+const fm=n=>'$'+(n||0).toLocaleString('en-US');
+
+// ── PROMPTS DATA ───────────────────────────────────────────────────────────
+const PROMPTS=[
+{id:1,icon:'🔬',title:'Reparar Mi Crédito',desc:'Análisis forense completo + carta de disputa + Metro 2',tag:'Principal',
+prompt:`Act as a highly skilled credit report analyst, Metro 2 compliance expert, and bilingual dispute-letter writer (English and Spanish). I will provide my credit report(s) from one or more bureaus (Equifax, Experian, TransUnion). Perform a forensic-style review with maximum detail.
+
+STEP 1 — FULL CREDIT AUDIT:
+Identify ALL derogatory accounts, late payments, collections, charge-offs, repossessions, bankruptcies, public records, judgments. Flag Metro 2 format violations (🔴 METRO 2 VIOLATION), duplicate accounts (📋 MULTI-BUREAU), re-aged items past 7 years (⚠️ EXPIRED — DEMAND REMOVAL), unauthorized inquiries (🔍 UNAUTHORIZED).
+
+STEP 2 — PRIORITY SCORING:
+For each item assign: Impact Level (High/Medium/Low), Dispute Strength (Strong/Moderate/Weak), Expiration Date, Recommended Action. Sort highest to lowest impact.
+
+STEP 3 — DISPUTE LETTERS (one per bureau):
+Write separate letters for Equifax, Experian, TransUnion. Each must: cite FCRA §611 and §623, reference Metro 2 violations, demand deletion or correction within 30 days, include Certified Mail reference.
+
+STEP 4 — SPANISH VERSION:
+Translate the most important dispute letter into professional Spanish.
+
+STEP 5 — ACTION PACKAGE:
+Bureau mailing checklist, document checklist, summary of strongest dispute points, estimated score impact.
+
+Do not begin until I provide the credit report(s).`},
+
+{id:2,icon:'⚖️',title:'Records Públicos',desc:'Estrategia LexisNexis + carta de disputa para bancarrotas y gravámenes',tag:'Avanzado',
+prompt:`PASO CRÍTICO ANTES DE ENVIAR CUALQUIER CARTA:
+Llama a LexisNexis al 1-800-456-1244 y pide que bloqueen tu record público ANTES de disputar con los bureaus. Esto es esencial porque LexisNexis es la fuente que los bureaus consultan para verificar records públicos.
+
+---
+
+Act as an FCRA compliance expert specializing in public records disputes. I will provide my credit report. Your task:
+
+STEP 1 — IDENTIFY ALL PUBLIC RECORDS:
+- Bankruptcies (Chapter 7: 10 years; Chapter 13: 7 years)
+- Civil judgments
+- Tax liens
+- Child support
+- Foreclosures
+
+For each item: report exact date, calculate exact expiration date, assess if re-aged or inaccurate.
+
+STEP 2 — LEXISNEXIS BLOCK STRATEGY:
+Draft a formal written request to LexisNexis demanding removal of public records under FCRA §605 and §605B. Include their address: LexisNexis Consumer Center, P.O. Box 105108, Atlanta, GA 30348.
+
+STEP 3 — BUREAU DISPUTE LETTERS:
+Write dispute letters to all three bureaus citing that the public record cannot be verified independently without LexisNexis data, and demanding deletion if LexisNexis has blocked/removed the record.
+
+STEP 4 — FOLLOW-UP TIMELINE:
+Day 0: Call LexisNexis + send written block request.
+Day 7: Send dispute letters to all 3 bureaus.
+Day 37: Follow up if not resolved.
+Day 45: Escalate to CFPB if still unresolved.
+
+Do not begin until I upload my credit report.`},
+
+{id:3,icon:'🔍',title:'Borrar Inquiries',desc:'Disputa de consultas no autorizadas — hard pulls y unauthorized inquiries',tag:'Rápido',
+prompt:`Act as an FCRA compliance expert specializing in hard inquiry disputes.
+
+STEP 1 — IDENTIFY DISPUTABLE INQUIRIES:
+Review all hard inquiries and flag: unauthorized inquiries (no credit application submitted), inquiries older than 2 years (must be removed by law), duplicate inquiries from same creditor, inquiries with incorrect dates.
+
+DO NOT dispute: inquiries from accounts currently open and recognized, soft pulls, employer inquiries from jobs applied for.
+
+STEP 2 — PRIORITY LIST:
+Sort inquiries by: (1) unauthorized, (2) expired 2+ years, (3) duplicate. Estimate score impact of removing each.
+
+STEP 3 — DISPUTE LETTERS (one per bureau):
+For each bureau, write a dispute letter citing FCRA §604 — unauthorized access to credit file. Include exact inquiry name, date, and reason for dispute. Reference that no permissible purpose existed.
+
+STEP 4 — DIRECT CREDITOR LETTERS:
+Write letters to each creditor that made unauthorized inquiries demanding they instruct the bureaus to remove the inquiry.
+
+STEP 5 — PHONE SCRIPT:
+Provide a script to call each bureau and follow up after 30 days. Include: what to say, who to ask for (supervisor), what to demand if not resolved.
+
+IMPORTANT: If bureau does not respond within 30 days, the item must be removed automatically under FCRA. Include this demand in all letters.
+
+Do not begin until I provide my credit report.`},
+
+{id:4,icon:'💬',title:'Negociación de Deudas',desc:'Script completo para negociar al 20% + acuerdo pay-for-delete',tag:'Avanzado',
+prompt:`Act as a debt negotiation strategist. I will provide details about my debt(s). Your task:
+
+STEP 1 — DEBT ANALYSIS:
+Identify: original creditor vs. debt collector, age of debt (statute of limitations by state), whether debt is past the credit reporting period (7 years), likelihood of successful negotiation.
+
+STEP 2 — NEGOTIATION STRATEGY:
+Provide a step-by-step negotiation plan starting at 20% of balance. Include:
+- Opening offer strategy
+- Counter-offer ranges (20% → 30% → 40% maximum)
+- Pressure arguments (bankruptcy Chapter 7, statute of limitations)
+- Pay-for-delete demand (removal from all 3 bureaus as condition of payment)
+
+STEP 3 — PHONE SCRIPT (in Spanish):
+APERTURA: "Mi nombre es [NOMBRE] llamando sobre la cuenta [#]. Quiero resolver esta deuda pero primero debo explicarles mi situación."
+PRESIÓN BANCARROTA: "Estoy considerando Capítulo 7. Si eso ocurre, no recibirán nada. Prefiero resolver esto ahora."
+OFERTA: "Puedo ofrecer el 20% como pago único y final, pero SOLO si eliminan esta cuenta de los tres bureaus. Sin eliminación, no hay trato."
+CIERRE: "Necesito confirmación escrita antes de cualquier pago — por email o correo certificado — especificando el monto, que es pago total, y el compromiso de eliminar de Equifax, Experian y TransUnion."
+
+STEP 4 — PAY-FOR-DELETE AGREEMENT TEMPLATE:
+Draft a written agreement template the collector must sign before any payment is made.
+
+STEP 5 — GOLDEN RULES:
+⚠️ NEVER pay before receiving written agreement
+⚠️ ONLY pay by personal check — never card or wire transfer
+⚠️ Agreement MUST specify deletion from all 3 bureaus
+⚠️ Keep ALL documents — emails, letters, cancelled check
+⚠️ If they refuse deletion — NO DEAL
+
+Do not begin until I provide my debt details.`},
+
+{id:5,icon:'📄',title:'Segunda Carta de Disputa',desc:'Follow-up con Method of Verification demand para ítems no resueltos',tag:'Seguimiento',
+prompt:`MASTER PROMPT — Second Notice of Dispute Letter
+
+You are a consumer credit analyst and FCRA compliance writer. Draft a "Second Notice of Dispute & Method of Verification Demand" targeting remaining derogatory items after a first dispute round.
+
+INPUTS NEEDED (provide or upload):
+- Full name, current address, former addresses if applicable, DOB, last 4 SSN, phone, email
+- Report date, confirmation number, bureau(s) involved
+- Date of first dispute sent, date of bureau response (if any)
+- Remaining items: bureau (EX/EQ/TU), furnisher/collector, account # last 4, current status, reason code
+
+REASON CODES: not mine / identity mismatch / duplicate / re-aged DOFD / balance inaccurate / payment history mismatch / incorrect status after payoff / unverifiable / impermissible inquiry / obsolete (>7 yrs)
+
+OUTPUT — One letter per bureau:
+1. My contact block + bureau address
+2. Subject: "Second Notice of Dispute – Method of Verification Demand" + Report # + Date
+3. Opening paragraph referencing first dispute date and their response (or lack thereof)
+4. Issue Index (numbered) — for each item: furnisher, account ending ####, reported status, reason, quoted evidence from report, requested remedy (delete or correct), exhibits list
+5. Legal basis: FCRA §611(a)(6)(B)(iii) & §611(a)(7) — demand name, address, phone of each furnisher and exact records used to verify
+6. Demands within 30 days: updated report, written Method of Verification, notices to all furnishers
+7. Closing with Certified Mail reference
+8. Signature block + enclosures list
+
+STYLE: Professional, firm, no admission of debt. Redact account numbers to last 4.
+
+Do not begin until I provide the remaining items and upload documents.`},
+
+{id:6,icon:'✅',title:'Validación de Deuda',desc:'Paquete completo FDCPA §809 para detener cobros y exigir validación',tag:'Avanzado',
+prompt:`Act as an FDCPA/FCRA compliance analyst. I will upload documents from a debt collector. Generate a complete Debt Validation Package.
+
+INPUTS NEEDED: Full name, current address, DOB, last 4 SSN, collector name/address, date of first collector contact, state (important for Texas Cap. 392).
+
+OUTPUT PACKAGE (in Spanish, print-ready):
+
+A) EXECUTIVE SUMMARY (6-8 bullets): debts in validation, risks, key dates/deadlines.
+
+B) OPERATIONAL CHECKLIST Day 0-45:
+- Day 0: prepare DV letter, exhibits, certified mail
+- Day 1-10: monitor delivery, log RRN tracking number
+- Day 11-30: debt collection silence period — log any calls
+- Day 31-45: evaluate response; if insufficient, send follow-up + dispute to bureaus + CFPB complaint
+
+C) DEBT VALIDATION LETTER (FDCPA §809 / 15 U.S.C. §1692g):
+- My address block + collector address block
+- Subject: "Solicitud de Validación de Deuda y Cese de Cobranza"
+- Dispute within 30 days, demand collection cease until validated
+- Required: itemized balance breakdown, original creditor name/address, copy of original contract, chain of ownership/assignments, full accounting from origin to current balance
+- All responses in writing; prohibit phone calls
+- No admission of debt; account numbers last 4 only
+
+D) EXHIBITS LIST: map each document to letter reference (A1, A2...)
+
+E) FOLLOW-UP LETTER (30+ days / insufficient validation):
+Demand Method of Verification, warn about FCRA §623 reporting violations, request removal if not properly verified.
+
+F) TEXAS MODULE (if applicable):
+Texas Finance Code Cap. 392 — prohibited practices, corrections under §392.202, complaints to Texas AG/OCCC.
+
+G) EVIDENCE LOG TABLE:
+Columns: Date | Type | Description | Tracking # | Exhibit | Next Step/Deadline
+
+STYLE: Professional, firm, no debt admission. Certified Mail instruction on all letters.
+
+Do not begin until I upload all collector documents.`},
+
+{id:7,icon:'📊',title:'ITIN + Construir Crédito',desc:'Cómo obtener tu ITIN y usarlo para construir crédito desde cero',tag:'Básico',
+prompt:`Act as a bilingual financial advisor specializing in credit building for immigrants and ITIN holders in the United States.
+
+STEP 1 — ITIN GUIDE:
+Explain clearly: What is an ITIN, who needs it, how it differs from SSN. Provide step-by-step process for each method:
+1. W-7 form by mail (with documents required)
+2. In-person at a Certified Acceptance Agent (CAA)
+3. IRS offices (appointment required)
+4. American consulates abroad
+5. With tax return filing
+6. Through authorized tax preparer
+
+Documents needed: Passport (preferred), driver's license, birth certificate, national ID, USCIS immigration document.
+
+STEP 2 — CREDIT BUILDING WITH ITIN:
+Explain exactly how to start building credit with an ITIN:
+- Which banks and credit unions accept ITIN (list top 10)
+- Secured credit cards available with ITIN
+- Credit builder loans available with ITIN
+- Rent reporting services that work with ITIN
+- How long to build a 700+ score starting from zero
+
+STEP 3 — ITIN vs SSN SERVICES:
+Create a comparison table of all major credit-building services showing which accept ITIN only, SSN only, or both.
+
+STEP 4 — 12-MONTH CREDIT BUILDING ROADMAP:
+Month 1-3: Get ITIN, open bank account, get secured card
+Month 4-6: Add credit builder loan, report rent payments
+Month 7-9: Request credit limit increase, add authorized user tradeline
+Month 10-12: Apply for first unsecured card, review progress
+
+I will provide my specific situation for personalized advice.`},
+
+{id:8,icon:'🏛️',title:'Records Públicos — Bancarrota',desc:'Guía completa Capítulo 7 vs 13 e impacto en crédito',tag:'Información',
+prompt:null,link:'https://upsolve.org'},
 ];
 
-const KANBAN_COLS = [
-  { key: "nuevo", label: "Nuevos", color: "#718096" },
-  { key: "en_proceso", label: "En Proceso", color: "#D4A843" },
-  { key: "activo", label: "Activos", color: "#3B82F6" },
-  { key: "completado", label: "Completados", color: "#27AE60" },
+// ── DIRECTORIO ─────────────────────────────────────────────────────────────
+const DIRECTORIO={
+construccion:[
+  {n:'Self.inc',d:'Crédito constructor con reportes a 3 bureaus',tag:'ITIN y SSN',url:'https://self.inc'},
+  {n:'Kikoff',d:'Línea de $750 sin intereses — solo $5/mes',tag:'Solo SSN',url:'https://kikoff.com'},
+  {n:'Experian Boost',d:'Mejora score instantáneo agregando pagos de servicios',tag:'ITIN y SSN',url:'https://experian.com/boost'},
+  {n:'GrowCredit',d:'Construye crédito pagando Netflix, Spotify y más',tag:'ITIN y SSN',url:'https://growcredit.com'},
+  {n:'Bilt Rewards',d:'Gana puntos pagando renta y construye crédito',tag:'ITIN y SSN',url:'https://biltrewards.com'},
+  {n:'GetFlex',d:'Paga renta en cuotas y reporta a bureaus',tag:'ITIN y SSN',url:'https://getflex.com'},
+],
+tradelines:[
+  {n:'TradelineSupply.com',d:'Tradelines autorizadas 2-20+ años de historial',tag:'Solo SSN',url:'https://tradelinesupply.com'},
+  {n:'TradelineWorks.com',d:'Marketplace de tradelines con filtros de límite y edad',tag:'Solo SSN',url:'https://tradelineworks.com'},
+  {n:'PersonalTradelines.com',d:'Servicio personalizado con asesoría individual',tag:'Solo SSN',url:'https://personaltradelines.com'},
+],
+bancos:[
+  {n:'Majority',d:'Banco digital para inmigrantes — acepta ITIN',tag:'ITIN y SSN',url:'https://majority.com'},
+  {n:'Varo Bank',d:'Banco digital sin cuotas mensuales',tag:'ITIN y SSN',url:'https://varomoney.com'},
+  {n:'Chime',d:'Credit Builder con depósito de seguridad',tag:'Solo SSN',url:'https://chime.com'},
+],
+despues:[
+  {n:'Navy Federal CU',d:'La cooperativa más grande de EE.UU.',tag:'ITIN y SSN',url:'https://navyfederal.org'},
+  {n:'PenFed CU',d:'Tasas competitivas en tarjetas e hipotecas',tag:'ITIN y SSN',url:'https://penfed.org'},
+  {n:'CareCredit',d:'Financia gastos médicos y dentales',tag:'ITIN y SSN',url:'https://carecredit.com'},
+],
+emergencia:[
+  {n:'Oportun',d:'Préstamos para comunidad hispana sin SSN',tag:'ITIN y SSN',url:'https://oportun.com'},
+  {n:'Upstart',d:'Préstamos basados en educación e ingresos',tag:'Solo SSN',url:'https://upstart.com'},
+  {n:'LendingPoint',d:'Préstamos personales con mal crédito',tag:'Solo SSN',url:'https://lendingpoint.com'},
+],
+};
+
+// ── DEMO CLIENTES ──────────────────────────────────────────────────────────
+const DEMO=[
+  {id:'c1',nombre:'María García',tel:'(407) 555-0101',email:'maria@email.com',scoreActual:542,scoreMeta:700,estado:'en_proceso',items:7,pago:150,pagado:true,inicio:'2024-11-01',disputas:['Colección médica $2,100','Pago tardío Chase','Capital One en colecciones'],notas:[{f:'Dic 15',a:'Admin',t:'Carta enviada a Experian. Esperando respuesta 30 días.'}]},
+  {id:'c2',nombre:'Carlos Rodríguez',tel:'(321) 555-0202',email:'carlos@email.com',scoreActual:618,scoreMeta:740,estado:'activo',items:4,pago:120,pagado:true,inicio:'2024-10-15',disputas:['Consulta no autorizada','Balance alto Discover'],notas:[]},
+  {id:'c3',nombre:'Ana Martínez',tel:'(407) 555-0303',email:'ana@email.com',scoreActual:701,scoreMeta:750,estado:'completado',items:0,pago:120,pagado:true,inicio:'2024-07-01',disputas:[],notas:[{f:'Dic 01',a:'Admin',t:'¡Caso cerrado! Cliente alcanzó 701 pts.'}]},
+  {id:'c4',nombre:'José López',tel:'(321) 555-0404',email:'jose@email.com',scoreActual:480,scoreMeta:650,estado:'nuevo',items:12,pago:150,pagado:false,inicio:'2024-12-01',disputas:['Juicio civil $5,400','3 colecciones','Reporte de fraude'],notas:[]},
+  {id:'c5',nombre:'Elena Torres',tel:'(407) 555-0505',email:'elena@email.com',scoreActual:590,scoreMeta:700,estado:'en_proceso',items:5,pago:150,pagado:true,inicio:'2024-09-20',disputas:['Saldo viejo Sprint','Pago tardío Banco América'],notas:[]},
 ];
 
-const DEMO_OFFICES = [
-  { id: 1, nombre: "Crédito Nuevo Tampa", ciudad: "Tampa, FL", clientes: 48, activo: true, plan: "Pro", vence: "2025-02-01", ingresos: "$4,800/mes", staff: 3, demo: false },
-  { id: 2, nombre: "Fix Credit Miami", ciudad: "Miami, FL", clientes: 124, activo: true, plan: "Enterprise", vence: "2025-03-15", ingresos: "$12,400/mes", staff: 8, demo: false },
-  { id: 3, nombre: "Tu Crédito Houston", ciudad: "Houston, TX", clientes: 12, activo: true, plan: "Demo", vence: "2024-12-28", ingresos: "$0", staff: 1, demo: true },
-  { id: 4, nombre: "Crédito Limpio Orlando", ciudad: "Orlando, FL", clientes: 67, activo: true, plan: "Pro", vence: "2025-01-20", ingresos: "$6,700/mes", staff: 4, demo: false },
+const KCOLS=[
+  {key:'nuevo',label:'Nuevos',color:'#A855F7'},
+  {key:'en_proceso',label:'En Proceso',color:'#F59E0B'},
+  {key:'activo',label:'Activos',color:'#3B82F6'},
+  {key:'completado',label:'Completados',color:'#22C55E'},
 ];
+const EB={nuevo:{c:'bg-purple',l:'Nuevo'},en_proceso:{c:'bg-yellow',l:'En Proceso'},activo:{c:'bg-blue',l:'Activo'},completado:{c:'bg-green',l:'Completado'}};
 
-// ─── CREDIT SCORE DIAL ─────────────────────────────────────────────────────
-function CreditDial({ score, size = 180 }) {
-  const min = 300, max = 850;
-  const pct = (score - min) / (max - min);
-  const angle = -180 + pct * 180;
-  const cx = 90, cy = 88, r = 72;
-  const toXY = (deg, radius) => ({
-    x: cx + radius * Math.cos((deg * Math.PI) / 180),
-    y: cy + radius * Math.sin((deg * Math.PI) / 180)
-  });
-  const startAngle = -180, endAngle = 0;
-
-  // Arc segments
-  const arcPath = (a1, a2, r, fill) => {
-    const s = toXY(a1, r), e = toXY(a2, r);
-    const large = a2 - a1 > 180 ? 1 : 0;
-    return `<path d="M ${s.x} ${s.y} A ${r} ${r} 0 ${large} 1 ${e.x} ${e.y}" fill="none" stroke="${fill}" stroke-width="14" stroke-linecap="round"/>`;
-  };
-
-  const color = score < 580 ? "#E74C3C" : score < 670 ? "#F39C12" : score < 740 ? "#3B82F6" : "#27AE60";
-  const needle = toXY(angle - 90, 52);
-
-  const svgContent = `
-    <svg width="${size}" height="${size * 0.6}" viewBox="0 0 180 108" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M 18 88 A 72 72 0 0 1 162 88" fill="none" stroke="#E2E8F0" stroke-width="14" stroke-linecap="round"/>
-      <path d="M 18 88 A 72 72 0 0 1 ${toXY(angle, 72).x} ${toXY(angle, 72).y}" fill="none" stroke="${color}" stroke-width="14" stroke-linecap="round"/>
-      <line x1="${cx}" y1="${cy}" x2="${needle.x}" y2="${needle.y}" stroke="${color}" stroke-width="2.5" stroke-linecap="round"/>
-      <circle cx="${cx}" cy="${cy}" r="5" fill="${color}"/>
-      <text x="${cx}" y="108" text-anchor="middle" font-size="26" font-weight="800" fill="#0A1628" font-family="-apple-system,sans-serif">${score}</text>
-    </svg>`;
-
-  return React.createElement('div', {
-    className: 'dial-container',
-    dangerouslySetInnerHTML: { __html: svgContent }
-  });
+// ── SCORE DIAL ─────────────────────────────────────────────────────────────
+function Dial({score,size=160}){
+  const pct=Math.min(1,Math.max(0,(score-300)/550));
+  const ang=-180+pct*180;
+  const cx=80,cy=76,r=60;
+  const xy=(d,rd)=>({x:cx+rd*Math.cos(d*Math.PI/180),y:cy+rd*Math.sin(d*Math.PI/180)});
+  const end=xy(ang,r);
+  const large=ang>-90?1:0;
+  const color=score<580?'#EF4444':score<670?'#F59E0B':score<740?'#3B82F6':'#22C55E';
+  const needle=xy(ang-90,44);
+  return React.createElement('div',{className:'dw'},
+    React.createElement('svg',{width:size,height:size*0.58,viewBox:'0 0 160 93'},
+      React.createElement('path',{d:'M20 76 A60 60 0 0 1 140 76',fill:'none',stroke:'rgba(255,255,255,0.08)',strokeWidth:12,strokeLinecap:'round'}),
+      React.createElement('path',{d:`M20 76 A60 60 0 ${large} 1 ${end.x} ${end.y}`,fill:'none',stroke:color,strokeWidth:12,strokeLinecap:'round'}),
+      React.createElement('line',{x1:cx,y1:cy,x2:needle.x,y2:needle.y,stroke:color,strokeWidth:2,strokeLinecap:'round'}),
+      React.createElement('circle',{cx,cy,r:4,fill:color}),
+      React.createElement('text',{x:cx,y:93,textAnchor:'middle',fontSize:22,fontWeight:800,fill:'#F1F5F9',fontFamily:'-apple-system,sans-serif'},score)
+    )
+  );
 }
 
-// ─── SCORE BADGE ───────────────────────────────────────────────────────────
-function ScoreBadge({ score }) {
-  const color = score < 580 ? '#dc2626' : score < 670 ? '#d97706' : score < 740 ? '#2563eb' : '#16a34a';
-  const label = score < 580 ? 'Malo' : score < 670 ? 'Regular' : score < 740 ? 'Bueno' : 'Excelente';
-  return React.createElement('span', {
-    style: { color, fontWeight: 700, fontSize: 13 }
-  }, `${score} (${label})`);
-}
-
-// ─── ESTADO BADGE ──────────────────────────────────────────────────────────
-function EstadoBadge({ estado }) {
-  const map = {
-    nuevo: { cls: 'badge-purple', lbl: 'Nuevo' },
-    en_proceso: { cls: 'badge-yellow', lbl: 'En Proceso' },
-    activo: { cls: 'badge-blue', lbl: 'Activo' },
-    completado: { cls: 'badge-green', lbl: 'Completado' },
-  };
-  const { cls, lbl } = map[estado] || { cls: 'badge-blue', lbl: estado };
-  return React.createElement('span', { className: `badge ${cls}` }, lbl);
-}
-
-// ─── MODAL CLIENTE ─────────────────────────────────────────────────────────
-function ClientModal({ client, onClose }) {
-  if (!client) return null;
-  return React.createElement('div', {
-    style: { position: 'fixed', inset: 0, background: 'rgba(10,22,40,0.5)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 },
-    onClick: (e) => e.target === e.currentTarget && onClose()
-  },
-    React.createElement('div', { className: 'card', style: { width: '100%', maxWidth: 520, maxHeight: '85vh', overflowY: 'auto' } },
-      React.createElement('div', { style: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 } },
-        React.createElement('div', null,
-          React.createElement('div', { className: 'card-title' }, client.nombre),
-          React.createElement('div', { className: 'card-subtitle' }, client.email + ' · ' + client.telefono)
+// ── MODAL CLIENTE ──────────────────────────────────────────────────────────
+function ModalCliente({c,onClose,onNota}){
+  const [tab,setTab]=React.useState('resumen');
+  const [nota,setNota]=React.useState('');
+  const eb=EB[c.estado]||EB.nuevo;
+  return React.createElement('div',{className:'mbg',onClick:e=>e.target===e.currentTarget&&onClose()},
+    React.createElement('div',{className:'md'},
+      React.createElement('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:16}},
+        React.createElement('div',null,
+          React.createElement('div',{style:{fontSize:18,fontWeight:700}},c.nombre),
+          React.createElement('div',{style:{fontSize:13,color:'var(--t2)',marginTop:2}},c.email+' · '+c.tel)
         ),
-        React.createElement('button', { className: 'btn btn-outline btn-sm', onClick: onClose }, '✕')
+        React.createElement('button',{className:'btn btn-ghost btn-sm',onClick:onClose},'✕')
       ),
-      React.createElement(CreditDial, { score: client.score }),
-      React.createElement('div', { style: { textAlign: 'center', marginBottom: 20 } },
-        React.createElement('div', { style: { fontSize: 13, color: 'var(--text-muted)' } },
-          `Meta: ${client.meta} pts · Diferencia: +${client.meta - client.score} pts`
+      React.createElement('div',{className:'tabs'},
+        ['resumen','disputas','notas'].map(t=>React.createElement('div',{key:t,className:`tab ${tab===t?'active':''}`,onClick:()=>setTab(t)},t==='resumen'?'Resumen':t==='disputas'?'Disputas':'Notas'))
+      ),
+      tab==='resumen'&&React.createElement('div',null,
+        React.createElement(Dial,{score:c.scoreActual}),
+        React.createElement('div',{style:{textAlign:'center',marginBottom:16}},
+          React.createElement('span',{className:scColor(c.scoreActual),style:{fontWeight:700}},scLabel(c.scoreActual)),
+          React.createElement('span',{style:{color:'var(--t3)',fontSize:13}},` · Meta: ${c.scoreMeta} pts (+${c.scoreMeta-c.scoreActual})`)
+        ),
+        React.createElement('div',{style:{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:8,marginBottom:16}},
+          [{l:'Estado',v:React.createElement('span',{className:`bgg ${eb.c}`},eb.l)},{l:'Ítems',v:c.items},{l:'Pago',v:fm(c.pago)+'/mes'}]
+          .map(s=>React.createElement('div',{key:s.l,style:{background:'var(--navy3)',borderRadius:8,padding:'10px 8px',textAlign:'center'}},
+            React.createElement('div',{style:{fontSize:11,color:'var(--t3)',marginBottom:4,textTransform:'uppercase',letterSpacing:'0.5px'}},s.l),
+            React.createElement('div',{style:{fontWeight:700}},s.v)
+          ))
+        ),
+        React.createElement('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center',background:'var(--navy3)',borderRadius:8,padding:'10px 14px'}},
+          React.createElement('span',{style:{fontSize:13,color:'var(--t2)'}},'Pago del mes'),
+          c.pagado?React.createElement('span',{className:'bgg bg-green'},'✓ Pagado'):React.createElement('span',{className:'bgg bg-red'},'⚠ Pendiente')
         )
       ),
-      React.createElement('div', { className: 'grid-3', style: { marginBottom: 20 } },
-        [
-          { label: 'Inicio', val: client.inicio },
-          { label: 'Ítems', val: client.items },
-          { label: 'Pago', val: client.pagado },
-        ].map(s => React.createElement('div', { key: s.label, className: 'stat-card', style: { padding: 14 } },
-          React.createElement('div', { className: 'stat-label' }, s.label),
-          React.createElement('div', { style: { fontSize: 16, fontWeight: 700 } }, s.val)
-        ))
+      tab==='disputas'&&React.createElement('div',null,
+        React.createElement('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:14}},
+          React.createElement('span',{style:{fontSize:13,color:'var(--t2)'}},`${c.disputas.length} ítems en disputa`),
+          React.createElement('button',{className:'btn btn-gold btn-sm'},'+ Agregar')
+        ),
+        c.disputas.length===0
+          ?React.createElement('div',{className:'empty'},'✅ Sin disputas activas')
+          :c.disputas.map((d,i)=>React.createElement('div',{key:i,style:{display:'flex',justifyContent:'space-between',alignItems:'center',background:'var(--navy3)',borderRadius:8,padding:'12px 14px',marginBottom:8}},
+              React.createElement('span',{style:{fontSize:13}},'⚡ '+d),
+              React.createElement('span',{className:'bgg bg-yellow'},'En disputa')
+            )),
+        React.createElement('button',{className:'btn btn-gold',style:{width:'100%',marginTop:12,justifyContent:'center'}},'✉️ Generar Carta de Disputa')
       ),
-      React.createElement('div', { className: 'card-title', style: { marginBottom: 12 } }, 'Disputas activas'),
-      client.disputas.length === 0
-        ? React.createElement('p', { style: { color: 'var(--text-muted)', fontSize: 14 } }, '✅ Sin disputas activas')
-        : client.disputas.map((d, i) => React.createElement('div', {
-          key: i,
-          style: { padding: '10px 14px', background: 'var(--surface-2)', borderRadius: 8, marginBottom: 8, fontSize: 14 }
-        }, '⚡ ' + d)),
-      React.createElement('div', { className: 'timeline', style: { marginTop: 20 } },
-        React.createElement('div', { className: 'card-title', style: { marginBottom: 12 } }, 'Actividad reciente'),
-        [
-          { fecha: 'Dic 15, 2024', texto: 'Carta enviada a Experian — Colección médica' },
-          { fecha: 'Dic 10, 2024', texto: 'Documento de identidad verificado' },
-          { fecha: 'Dic 01, 2024', texto: 'Caso abierto — Consulta inicial completada' },
-        ].map((t, i) => React.createElement('div', { key: i, className: 'timeline-item' },
-          React.createElement('div', { className: 'timeline-dot' }),
-          React.createElement('div', { className: 'timeline-content' },
-            React.createElement('div', { className: 'timeline-date' }, t.fecha),
-            React.createElement('div', { className: 'timeline-text' }, t.texto)
-          )
-        ))
+      tab==='notas'&&React.createElement('div',null,
+        c.notas.length===0
+          ?React.createElement('div',{className:'empty',style:{paddingBottom:20}},'Sin notas aún')
+          :c.notas.map((n,i)=>React.createElement('div',{key:i,className:'nota'},
+              React.createElement('div',{className:'nota-m'},n.f+' · '+n.a),
+              React.createElement('div',{className:'nota-t'},n.t)
+            )),
+        React.createElement('textarea',{className:'fi',rows:3,placeholder:'Escribe una nota interna...',value:nota,onChange:e=>setNota(e.target.value),style:{resize:'vertical',marginTop:8}}),
+        React.createElement('button',{className:'btn btn-gold',style:{marginTop:8},onClick:()=>{if(nota.trim()){onNota(c.id,nota);setNota('');}}})
       )
     )
   );
 }
 
-// ─── VIEWS ─────────────────────────────────────────────────────────────────
-function DashboardView({ onSelectClient }) {
-  const total = DEMO_CLIENTS.length;
-  const activos = DEMO_CLIENTS.filter(c => c.estado === 'activo' || c.estado === 'en_proceso').length;
-  const completados = DEMO_CLIENTS.filter(c => c.estado === 'completado').length;
-  const avgScore = Math.round(DEMO_CLIENTS.reduce((s, c) => s + c.score, 0) / total);
+// ── CARTAS DE DISPUTA ──────────────────────────────────────────────────────
+function CartasView({clientes}){
+  const [step,setStep]=React.useState(1);
+  const [sel,setSel]=React.useState(null);
+  const [bureau,setBureau]=React.useState('equifax');
+  const [tipo,setTipo]=React.useState('general');
 
-  return React.createElement('div', null,
-    React.createElement('h1', { style: { fontSize: 22, fontWeight: 700, marginBottom: 6 } }, 'Panel Principal'),
-    React.createElement('p', { style: { color: 'var(--text-muted)', fontSize: 14, marginBottom: 24 } }, 'Resumen de tu oficina de reparación de crédito'),
+  const bureauAddr={
+    equifax:'Equifax Information Services LLC\nP.O. Box 740256\nAtlanta, GA 30374',
+    experian:'Experian\nP.O. Box 4500\nAllen, TX 75013',
+    transunion:'TransUnion LLC\nConsumer Dispute Center\nP.O. Box 2000\nChester, PA 19016'
+  };
 
-    React.createElement('div', { className: 'stats-grid' },
-      [
-        { label: 'Clientes Activos', val: activos, change: '+2 este mes', up: true },
-        { label: 'Completados', val: completados, change: '+1 esta semana', up: true },
-        { label: 'Score Promedio', val: avgScore, change: '+12 vs mes anterior', up: true },
-        { label: 'Ingresos / Mes', val: '$1,740', change: '-$99 vs anterior', up: false },
-      ].map(s => React.createElement('div', { key: s.label, className: 'stat-card' },
-        React.createElement('div', { className: 'stat-label' }, s.label),
-        React.createElement('div', { className: 'stat-value' }, s.val),
-        React.createElement('div', { className: `stat-change ${s.up ? 'up' : 'down'}` },
-          s.up ? '↑ ' : '↓ ', s.change
-        )
+  const generarCarta=()=>{
+    if(!sel)return '';
+    const b=bureau.charAt(0).toUpperCase()+bureau.slice(1);
+    const fecha=new Date().toLocaleDateString('es-US',{year:'numeric',month:'long',day:'numeric'});
+    const items=sel.disputas.map((d,i)=>`  ${i+1}. ${d} — Solicitamos investigación y eliminación inmediata`).join('\n');
+    return `[TU NOMBRE COMPLETO]
+[TU DIRECCIÓN]
+[CIUDAD, ESTADO ZIP]
+[TELÉFONO]
+[EMAIL]
+
+${fecha}
+
+${b}
+${bureauAddr[bureau]}
+
+RE: DISPUTA FORMAL DE CRÉDITO — FCRA §611
+Cliente: ${sel.nombre}
+Email: ${sel.email}
+
+Estimado Departamento de Disputas de ${b}:
+
+Por medio de la presente, ejerzo mis derechos bajo la Fair Credit Reporting Act (FCRA), 15 U.S.C. §1681 et seq., para disputar la exactitud e integridad de los siguientes ítems en mi reporte de crédito:
+
+ÍTEMS EN DISPUTA:
+${items||'  [Agregar ítems específicos]'}
+
+Bajo FCRA §611 (15 U.S.C. §1681i), tienen 30 días para investigar y responder. Si no pueden verificar la exactitud de los ítems disputados, están obligados a eliminarlos de mi reporte.
+
+Les exijo que:
+1. Investiguen todos los ítems listados
+2. Eliminen cualquier ítem que no pueda ser verificado
+3. Me envíen copia actualizada de mi reporte
+4. Notifiquen a todos los furnishers sobre las correcciones
+
+Esta carta es enviada por Correo Certificado con acuse de recibo.
+
+Atentamente,
+
+[FIRMA]
+${sel.nombre}
+
+Enclosures: Copia de ID, comprobante de dirección`;
+  };
+
+  return React.createElement('div',null,
+    React.createElement('div',{className:'steps'},
+      ['Seleccionar Cliente','Elegir Bureau','Generar Carta'].map((s,i)=>React.createElement('div',{key:i,className:`step ${step===i+1?'active':step>i+1?'done':''}`},`${i+1}. ${s}`))
+    ),
+
+    step===1&&React.createElement('div',{className:'cd'},
+      React.createElement('div',{className:'cdh'},React.createElement('span',{className:'cdt'},'Selecciona el cliente')),
+      clientes.map(c=>React.createElement('div',{key:c.id,onClick:()=>{setSel(c);setStep(2);},
+        style:{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'14px 16px',background:'var(--navy3)',borderRadius:8,marginBottom:8,cursor:'pointer',border:`1px solid ${sel?.id===c.id?'var(--gold)':'var(--b)'}`,transition:'all 0.15s'}},
+        React.createElement('div',null,
+          React.createElement('div',{style:{fontWeight:600}},c.nombre),
+          React.createElement('div',{style:{fontSize:12,color:'var(--t3)',marginTop:2}},`${c.disputas.length} ítems en disputa · Score: ${c.scoreActual}`)
+        ),
+        React.createElement('span',{className:`bgg ${(EB[c.estado]||EB.nuevo).c}`},(EB[c.estado]||EB.nuevo).l)
       ))
     ),
 
-    React.createElement('div', { className: 'grid-2' },
-      // Casos recientes
-      React.createElement('div', { className: 'card' },
-        React.createElement('div', { style: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 } },
-          React.createElement('div', { className: 'card-title' }, 'Clientes Recientes'),
-          React.createElement('button', { className: 'btn btn-gold btn-sm', style: { fontSize: 12 } }, '+ Agregar')
+    step===2&&React.createElement('div',{className:'cd'},
+      React.createElement('div',{className:'cdh'},React.createElement('span',{className:'cdt'},'Selecciona Bureau y Tipo')),
+      React.createElement('div',{className:'fg'},
+        React.createElement('label',{className:'fl'},'Bureau de Crédito'),
+        React.createElement('div',{style:{display:'flex',gap:8}},
+          ['equifax','experian','transunion'].map(b=>React.createElement('button',{key:b,
+            style:{flex:1,padding:'10px',borderRadius:8,border:`1px solid ${bureau===b?'var(--gold)':'var(--b)'}`,background:bureau===b?'rgba(212,168,67,0.1)':'var(--navy3)',color:bureau===b?'var(--gold)':'var(--t2)',fontWeight:600,fontSize:13,cursor:'pointer',transition:'all 0.15s'},
+            onClick:()=>setBureau(b)
+          },b.charAt(0).toUpperCase()+b.slice(1)))
+        )
+      ),
+      React.createElement('div',{className:'fg'},
+        React.createElement('label',{className:'fl'},'Tipo de Carta'),
+        ['general','inquiries','personal'].map(t=>React.createElement('div',{key:t,onClick:()=>setTipo(t),
+          style:{padding:'12px 16px',background:tipo===t?'rgba(212,168,67,0.08)':'var(--navy3)',border:`1px solid ${tipo===t?'var(--gold)':'var(--b)'}`,borderRadius:8,marginBottom:8,cursor:'pointer',transition:'all 0.15s'}},
+          React.createElement('div',{style:{fontWeight:600,fontSize:13,color:tipo===t?'var(--gold)':'var(--t)'}},
+            t==='general'?'📋 Carta de Disputa General':t==='inquiries'?'🔍 Carta de Inquiries No Autorizados':'👤 Carta de Información Personal'
+          ),
+          React.createElement('div',{style:{fontSize:12,color:'var(--t3)',marginTop:2}},
+            t==='general'?'Para cuentas negativas, colecciones, pagos tardíos':t==='inquiries'?'Para consultas de crédito no autorizadas':'Para errores en nombre, dirección o SSN'
+          )
+        ))
+      ),
+      React.createElement('div',{className:'fa'},
+        React.createElement('button',{className:'btn btn-ghost',onClick:()=>setStep(1)},'← Volver'),
+        React.createElement('button',{className:'btn btn-gold',onClick:()=>setStep(3)},'Generar Carta →')
+      )
+    ),
+
+    step===3&&React.createElement('div',null,
+      React.createElement('div',{className:'cd'},
+        React.createElement('div',{className:'cdh'},
+          React.createElement('span',{className:'cdt'},`Carta para ${bureau.charAt(0).toUpperCase()+bureau.slice(1)} — ${sel?.nombre}`),
+          React.createElement('div',{style:{display:'flex',gap:8}},
+            React.createElement('button',{className:'btn btn-ghost btn-sm',onClick:()=>{navigator.clipboard.writeText(generarCarta());alert('✅ Carta copiada al portapapeles')}},'📋 Copiar'),
+            React.createElement('button',{className:'btn btn-ghost btn-sm',onClick:()=>window.print()},'🖨️ Imprimir')
+          )
         ),
-        React.createElement('div', { className: 'table-wrap' },
-          React.createElement('table', null,
-            React.createElement('thead', null,
-              React.createElement('tr', null,
-                ['Cliente', 'Score', 'Estado', 'Acción'].map(h => React.createElement('th', { key: h }, h))
+        React.createElement('div',{className:'cbox'},generarCarta()),
+        React.createElement('div',{className:'tip'},
+          React.createElement('strong',null,'📮 Instrucciones de envío: '),
+          'Envía por Certified Mail con Return Receipt (acuse de recibo). Guarda el número de tracking. El bureau tiene 30 días para responder.'
+        ),
+        React.createElement('div',{className:'fa'},
+          React.createElement('button',{className:'btn btn-ghost',onClick:()=>setStep(2)},'← Volver'),
+          React.createElement('button',{className:'btn btn-gold',onClick:()=>{setStep(1);setSel(null);}},'✓ Nueva Carta')
+        )
+      )
+    )
+  );
+}
+
+// ── HERRAMIENTAS MAIN VIEW ─────────────────────────────────────────────────
+function HerramientasView({clientes}){
+  const [sub,setSub]=React.useState(null);
+  const [promptSel,setPromptSel]=React.useState(null);
+  const [dirTab,setDirTab]=React.useState('construccion');
+
+  if(sub==='prompts')return React.createElement('div',null,
+    React.createElement('div',{style:{display:'flex',alignItems:'center',gap:12,marginBottom:20}},
+      React.createElement('button',{className:'btn btn-ghost btn-sm',onClick:()=>{setSub(null);setPromptSel(null);}},'← Herramientas'),
+      React.createElement('h2',{style:{fontSize:18,fontWeight:700}},'🤖 Prompts de IA')
+    ),
+    promptSel
+      ?React.createElement('div',{className:'cd'},
+          React.createElement('div',{className:'cdh'},
+            React.createElement('span',{className:'cdt'},promptSel.icon+' '+promptSel.title),
+            React.createElement('button',{className:'btn btn-ghost btn-sm',onClick:()=>setPromptSel(null)},'← Volver')
+          ),
+          promptSel.link
+            ?React.createElement('div',null,
+                React.createElement('div',{className:'tip'},React.createElement('strong',null,'ℹ️ Bancarrota: '),'La bancarrota es un proceso legal serio. Te recomendamos usar Upsolve.org — es gratis, confiable y te guía paso a paso sin necesitar abogado.'),
+                React.createElement('div',{style:{marginBottom:16,fontSize:13,color:'var(--t2)',lineHeight:1.7}},
+                  'Upsolve ha ayudado a más de 250,000 familias a declararse en bancarrota sin pagar honorarios de abogado. El proceso toma aproximadamente 8-10 horas y es completamente gratuito.',
+                  React.createElement('br',null),React.createElement('br',null),
+                  '⚠️ Capítulo 7 permanece en tu crédito 10 años. Capítulo 13 permanece 7 años. Consulta con un abogado antes de proceder.'
+                ),
+                React.createElement('a',{href:'https://upsolve.org',target:'_blank',className:'btn btn-gold',style:{display:'inline-flex'}},'🔗 Ir a Upsolve.org →')
               )
-            ),
-            React.createElement('tbody', null,
-              DEMO_CLIENTS.slice(0, 4).map(c => React.createElement('tr', { key: c.id },
-                React.createElement('td', null, React.createElement('span', { style: { fontWeight: 600 } }, c.nombre)),
-                React.createElement('td', null, React.createElement(ScoreBadge, { score: c.score })),
-                React.createElement('td', null, React.createElement(EstadoBadge, { estado: c.estado })),
-                React.createElement('td', null,
-                  React.createElement('button', { className: 'btn btn-outline btn-sm', onClick: () => onSelectClient(c) }, 'Ver')
+            :React.createElement('div',null,
+                React.createElement('div',{className:'tip'},React.createElement('strong',null,'Cómo usar: '),'Copia este prompt, abre Claude.ai o ChatGPT en una nueva pestaña, pégalo y presiona Enter. Luego sube tu reporte de crédito cuando te lo pida.'),
+                React.createElement('div',{className:'cbox'},promptSel.prompt),
+                React.createElement('div',{style:{display:'flex',gap:8,marginTop:12}},
+                  React.createElement('button',{className:'btn btn-gold',onClick:()=>{navigator.clipboard.writeText(promptSel.prompt);alert('✅ Prompt copiado. Abre Claude.ai y pégalo.')}},'📋 Copiar Prompt'),
+                  React.createElement('a',{href:'https://claude.ai',target:'_blank',className:'btn btn-ghost'},'Abrir Claude.ai →')
                 )
+              )
+        )
+      :React.createElement('div',{className:'pgrid'},
+          PROMPTS.map(p=>React.createElement('div',{key:p.id,className:'pcard',onClick:()=>setPromptSel(p)},
+            React.createElement('div',{className:'picon'},p.icon),
+            React.createElement('div',{style:{flex:1}},
+              React.createElement('div',{className:'ptitle'},p.title),
+              React.createElement('div',{className:'pdesc'},p.desc),
+              React.createElement('div',{style:{marginTop:6}},React.createElement('span',{className:`bgg bg-${p.tag==='Principal'?'gold':p.tag==='Avanzado'?'red':p.tag==='Rápido'?'green':p.tag==='Seguimiento'?'blue':'purple'}`,style:{fontSize:10}},p.tag)),
+              React.createElement('div',{className:'pcopy'},p.link?'Ver guía →':'Ver prompt →')
+            )
+          ))
+        )
+  );
+
+  if(sub==='cartas')return React.createElement('div',null,
+    React.createElement('div',{style:{display:'flex',alignItems:'center',gap:12,marginBottom:20}},
+      React.createElement('button',{className:'btn btn-ghost btn-sm',onClick:()=>setSub(null)},'← Herramientas'),
+      React.createElement('h2',{style:{fontSize:18,fontWeight:700}},'✉️ Cartas de Disputa')
+    ),
+    React.createElement(CartasView,{clientes})
+  );
+
+  if(sub==='directorio')return React.createElement('div',null,
+    React.createElement('div',{style:{display:'flex',alignItems:'center',gap:12,marginBottom:20}},
+      React.createElement('button',{className:'btn btn-ghost btn-sm',onClick:()=>setSub(null)},'← Herramientas'),
+      React.createElement('h2',{style:{fontSize:18,fontWeight:700}},'🏦 Directorio de Servicios')
+    ),
+    React.createElement('div',{className:'tabs'},
+      [{k:'construccion',l:'🔨 Construcción'},{k:'tradelines',l:'📈 Tradelines'},{k:'bancos',l:'🏦 Bancos'},{k:'despues',l:'⭐ Después del Crédito'},{k:'emergencia',l:'🚨 Emergencia'}]
+      .map(t=>React.createElement('div',{key:t.k,className:`tab ${dirTab===t.k?'active':''}`,onClick:()=>setDirTab(t.k)},t.l))
+    ),
+    dirTab==='emergencia'&&React.createElement('div',{className:'warn'},'⚠️ Estos préstamos tienen intereses altos. Úsalos solo en emergencias. Siempre usa la opción de pre-calificación (soft check) primero — no afecta tu score.'),
+    React.createElement('div',{className:'dgrid'},
+      (DIRECTORIO[dirTab]||[]).map((s,i)=>React.createElement('div',{key:i,className:'dcard'},
+        React.createElement('div',{className:'dname'},s.n),
+        React.createElement('div',{className:'ddesc'},s.d),
+        React.createElement('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center'}},
+          React.createElement('span',{className:`bgg ${s.tag.includes('ITIN')?'bg-green':'bg-yellow'}`,style:{fontSize:10}},s.tag),
+          React.createElement('a',{href:s.url,target:'_blank',className:'dbtn'},'Visitar →')
+        )
+      ))
+    )
+  );
+
+  if(sub==='reportes')return React.createElement('div',null,
+    React.createElement('div',{style:{display:'flex',alignItems:'center',gap:12,marginBottom:20}},
+      React.createElement('button',{className:'btn btn-ghost btn-sm',onClick:()=>setSub(null)},'← Herramientas'),
+      React.createElement('h2',{style:{fontSize:18,fontWeight:700}},'📄 Obtener Reportes de Crédito')
+    ),
+    React.createElement('div',{className:'tip'},React.createElement('strong',null,'💡 Tip: '),'Tienes derecho a un reporte gratuito de cada bureau cada 12 meses por ley federal. AnnualCreditReport.com es el único sitio oficial autorizado por el gobierno.'),
+    React.createElement('div',{style:{display:'grid',gridTemplateColumns:'repeat(2,1fr)',gap:16}},
+      [
+        {n:'AnnualCreditReport.com',d:'Sitio oficial del gobierno — reporte gratis de los 3 bureaus cada 12 meses. Autorizado por la FTC, CFPB y los 3 bureaus.',icon:'🏛️',url:'https://annualcreditreport.com',tag:'OFICIAL — GRATIS'},
+        {n:'Equifax',d:'Reporte directo de Equifax. Crea una cuenta para monitoreo continuo.',icon:'📊',url:'https://equifax.com',tag:'Bureau Oficial'},
+        {n:'Experian',d:'Reporte de Experian con score FICO incluido. Opción gratuita disponible.',icon:'📊',url:'https://experian.com',tag:'Bureau Oficial'},
+        {n:'TransUnion',d:'Reporte de TransUnion con monitoreo de alertas incluido.',icon:'📊',url:'https://transunion.com',tag:'Bureau Oficial'},
+        {n:'Credit Karma',d:'Scores de Equifax y TransUnion gratis. Actualización semanal. No oficial pero útil para monitoreo.',icon:'📱',url:'https://creditkarma.com',tag:'Gratis — No Oficial'},
+        {n:'myFICO',d:'Score FICO oficial — el mismo que usan los prestamistas. Desde $19.95/mes.',icon:'💳',url:'https://myfico.com',tag:'Score Oficial — Pago'},
+      ].map((s,i)=>React.createElement('div',{key:i,className:'dcard'},
+        React.createElement('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:8}},
+          React.createElement('div',{className:'dname'},s.icon+' '+s.n),
+          React.createElement('span',{className:'bgg bg-gold',style:{fontSize:10}},s.tag)
+        ),
+        React.createElement('div',{className:'ddesc'},s.d),
+        React.createElement('a',{href:s.url,target:'_blank',className:'dbtn'},'Ir al sitio →')
+      ))
+    )
+  );
+
+  // Main herramientas menu
+  return React.createElement('div',null,
+    React.createElement('div',{className:'hgrid'},
+      [
+        {id:'prompts',icon:'🤖',t:'Prompts de IA',d:'8 prompts especializados para reparar crédito, disputar records, validar deudas y más'},
+        {id:'cartas',icon:'✉️',t:'Cartas de Disputa',d:'Genera cartas profesionales para los 3 bureaus con datos del cliente precargados'},
+        {id:'directorio',icon:'🏦',t:'Directorio de Servicios',d:'Servicios de construcción de crédito, tradelines, bancos y préstamos — con filtro ITIN/SSN'},
+        {id:'reportes',icon:'📄',t:'Obtener Reportes',d:'Links directos a los 3 bureaus y AnnualCreditReport.com — el sitio oficial gratuito'},
+      ].map(h=>React.createElement('div',{key:h.id,className:'hcard',onClick:()=>setSub(h.id)},
+        React.createElement('div',{className:'hicon'},h.icon),
+        React.createElement('div',{className:'htitle'},h.t),
+        React.createElement('div',{className:'hdesc'},h.d)
+      ))
+    )
+  );
+}
+
+// ── PANEL VIEW ─────────────────────────────────────────────────────────────
+function PanelView({clientes,onVer,onNuevo}){
+  const act=clientes.filter(c=>c.estado==='activo'||c.estado==='en_proceso');
+  const cobrado=clientes.filter(c=>c.pagado).reduce((s,c)=>s+(c.pago||0),0);
+  const pend=clientes.filter(c=>!c.pagado).reduce((s,c)=>s+(c.pago||0),0);
+  const avg=clientes.length?Math.round(clientes.reduce((s,c)=>s+c.scoreActual,0)/clientes.length):0;
+  return React.createElement('div',null,
+    React.createElement('div',{className:'sg'},
+      [{l:'Clientes Activos',v:act.length,c:'',n:`de ${clientes.length} total`},{l:'Score Promedio',v:avg,c:'',n:scLabel(avg)},{l:'Cobrado Este Mes',v:fm(cobrado),c:'green',n:'pagos recibidos'},{l:'Por Cobrar',v:fm(pend),c:pend>0?'yellow':'',n:`${clientes.filter(c=>!c.pagado).length} pendientes`}]
+      .map(s=>React.createElement('div',{key:s.l,className:'sc'},React.createElement('div',{className:'sl'},s.l),React.createElement('div',{className:`sv ${s.c}`},s.v),React.createElement('div',{className:'sn'},s.n)))
+    ),
+    React.createElement('div',{className:'g2'},
+      React.createElement('div',{className:'cd'},
+        React.createElement('div',{className:'cdh'},React.createElement('span',{className:'cdt'},'Clientes Recientes'),React.createElement('button',{className:'btn btn-gold btn-sm',onClick:onNuevo},'+ Nuevo')),
+        React.createElement('table',null,
+          React.createElement('thead',null,React.createElement('tr',null,['Cliente','Score','Estado',''].map(h=>React.createElement('th',{key:h},h)))),
+          React.createElement('tbody',null,clientes.slice(0,5).map(c=>React.createElement('tr',{key:c.id},
+            React.createElement('td',null,React.createElement('span',{style:{fontWeight:600}},c.nombre)),
+            React.createElement('td',null,React.createElement('span',{className:scColor(c.scoreActual),style:{fontWeight:700}},c.scoreActual)),
+            React.createElement('td',null,React.createElement('span',{className:`bgg ${(EB[c.estado]||EB.nuevo).c}`},(EB[c.estado]||EB.nuevo).l)),
+            React.createElement('td',null,React.createElement('button',{className:'btn btn-ghost btn-sm',onClick:()=>onVer(c)},'Ver'))
+          )))
+        )
+      ),
+      React.createElement('div',{className:'cd'},
+        React.createElement('div',{className:'cdh'},React.createElement('span',{className:'cdt'},'Actividad Reciente')),
+        React.createElement('div',{className:'tl'},
+          [['Hoy 10:30am','María García — Carta enviada a Experian'],['Hoy 9:00am','José López — Nuevo cliente agregado'],['Ayer 4pm','Ana Martínez — ¡Score alcanzó 701! Caso cerrado'],['Ayer 2pm','Pago recibido — Carlos Rodríguez $120'],['Dic 13','Elena Torres — Respuesta de Equifax recibida']]
+          .map((t,i)=>React.createElement('div',{key:i,className:'tli'},React.createElement('div',{className:'tld'}),React.createElement('div',{className:'tldt'},t[0]),React.createElement('div',{className:'tlt'},t[1])))
+        )
+      )
+    )
+  );
+}
+
+// ── KANBAN VIEW ────────────────────────────────────────────────────────────
+function KanbanView({clientes,onVer}){
+  return React.createElement('div',{className:'kb'},
+    KCOLS.map(col=>{
+      const cs=clientes.filter(c=>c.estado===col.key);
+      return React.createElement('div',{key:col.key,className:'kc'},
+        React.createElement('div',{className:'kh'},
+          React.createElement('span',{style:{color:col.color}},col.label),
+          React.createElement('span',{style:{background:col.color,color:'white',borderRadius:12,padding:'1px 8px',fontSize:11}},cs.length)
+        ),
+        cs.length===0?React.createElement('div',{style:{textAlign:'center',padding:20,color:'var(--t3)',fontSize:12}},'Sin casos'):
+        cs.map(c=>React.createElement('div',{key:c.id,className:'kk',onClick:()=>onVer(c)},
+          React.createElement('div',{className:'kn'},c.nombre),
+          React.createElement('div',{className:'km'},`${c.items} ítems · ${fm(c.pago)}/mes`),
+          React.createElement('div',{className:`ks ${scColor(c.scoreActual)}`},`${c.scoreActual} → ${c.scoreMeta}`)
+        ))
+      );
+    })
+  );
+}
+
+// ── CLIENTES VIEW ──────────────────────────────────────────────────────────
+function ClientesView({clientes,onVer,onNuevo}){
+  const [buscar,setBuscar]=React.useState('');
+  const fil=clientes.filter(c=>c.nombre.toLowerCase().includes(buscar.toLowerCase()));
+  return React.createElement('div',null,
+    React.createElement('div',{style:{display:'flex',gap:10,marginBottom:20,alignItems:'center'}},
+      React.createElement('input',{className:'fi',style:{maxWidth:240},placeholder:'🔍 Buscar...',value:buscar,onChange:e=>setBuscar(e.target.value)}),
+      React.createElement('button',{className:'btn btn-gold',style:{marginLeft:'auto'},onClick:onNuevo},'+ Nuevo Cliente')
+    ),
+    React.createElement('div',{className:'cd'},
+      React.createElement('div',{className:'tw'},
+        React.createElement('table',null,
+          React.createElement('thead',null,React.createElement('tr',null,['Cliente','Teléfono','Score','Meta','Estado','Pago','Mes','Acciones'].map(h=>React.createElement('th',{key:h},h)))),
+          React.createElement('tbody',null,fil.map(c=>{
+            const eb=EB[c.estado]||EB.nuevo;
+            return React.createElement('tr',{key:c.id},
+              React.createElement('td',null,React.createElement('span',{style:{fontWeight:600}},c.nombre)),
+              React.createElement('td',null,React.createElement('span',{style:{color:'var(--t3)',fontSize:12}},c.tel)),
+              React.createElement('td',null,React.createElement('span',{className:scColor(c.scoreActual),style:{fontWeight:700}},c.scoreActual)),
+              React.createElement('td',null,React.createElement('span',{style:{color:'var(--green)',fontWeight:600}},c.scoreMeta)),
+              React.createElement('td',null,React.createElement('span',{className:`bgg ${eb.c}`},eb.l)),
+              React.createElement('td',null,fm(c.pago)),
+              React.createElement('td',null,c.pagado?React.createElement('span',{className:'bgg bg-green'},'✓ Pagado'):React.createElement('span',{className:'bgg bg-red'},'Pendiente')),
+              React.createElement('td',null,React.createElement('div',{style:{display:'flex',gap:6}},
+                React.createElement('button',{className:'btn btn-ghost btn-sm',onClick:()=>onVer(c)},'Ver Caso'),
+                React.createElement('button',{className:'btn btn-ghost btn-sm'},'✉️ Carta')
               ))
-            )
-          )
-        )
-      ),
-
-      // Actividad
-      React.createElement('div', { className: 'card' },
-        React.createElement('div', { className: 'card-title', style: { marginBottom: 16 } }, 'Actividad Reciente'),
-        React.createElement('div', { className: 'timeline' },
-          [
-            { fecha: 'Hace 2 horas', texto: 'María García — Carta enviada a TransUnion' },
-            { fecha: 'Hace 5 horas', texto: 'Nuevo cliente: José López — Consulta inicial' },
-            { fecha: 'Ayer 3:20pm', texto: 'Ana Martínez alcanzó 701 pts — ¡Caso cerrado!' },
-            { fecha: 'Ayer 10:00am', texto: 'Pago recibido de Carlos Rodríguez — $120' },
-            { fecha: 'Dic 13', texto: 'Elena Torres — Respuesta de Equifax recibida' },
-          ].map((t, i) => React.createElement('div', { key: i, className: 'timeline-item' },
-            React.createElement('div', { className: 'timeline-dot' }),
-            React.createElement('div', { className: 'timeline-content' },
-              React.createElement('div', { className: 'timeline-date' }, t.fecha),
-              React.createElement('div', { className: 'timeline-text' }, t.texto)
-            )
-          ))
+            );
+          }))
         )
       )
     )
   );
 }
 
-function CasosView({ onSelectClient }) {
-  return React.createElement('div', null,
-    React.createElement('div', { style: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 } },
-      React.createElement('div', null,
-        React.createElement('h1', { style: { fontSize: 22, fontWeight: 700, marginBottom: 4 } }, 'Monitor de Casos'),
-        React.createElement('p', { style: { color: 'var(--text-muted)', fontSize: 14 } }, 'Vista Kanban de todos tus clientes')
-      ),
-      React.createElement('button', { className: 'btn btn-gold' }, '+ Nuevo Cliente')
+// ── COBROS VIEW ────────────────────────────────────────────────────────────
+function CobrosView({clientes}){
+  const cobrado=clientes.filter(c=>c.pagado).reduce((s,c)=>s+(c.pago||0),0);
+  const pend=clientes.filter(c=>!c.pagado).reduce((s,c)=>s+(c.pago||0),0);
+  return React.createElement('div',null,
+    React.createElement('div',{className:'sg',style:{gridTemplateColumns:'repeat(3,1fr)'}},
+      [{l:'Cobrado Este Mes',v:fm(cobrado),c:'green'},{l:'Por Cobrar',v:fm(pend),c:'yellow'},{l:'MRR Esperado',v:fm(cobrado+pend),c:'gold'}]
+      .map(s=>React.createElement('div',{key:s.l,className:'sc'},React.createElement('div',{className:'sl'},s.l),React.createElement('div',{className:`sv ${s.c}`},s.v)))
     ),
-    React.createElement('div', { className: 'kanban' },
-      KANBAN_COLS.map(col => {
-        const colClients = DEMO_CLIENTS.filter(c => c.estado === col.key);
-        return React.createElement('div', { key: col.key, className: 'kanban-col' },
-          React.createElement('div', { className: 'kanban-header' },
-            React.createElement('span', { style: { color: col.color } }, col.label),
-            React.createElement('span', { style: { background: col.color, color: 'white', borderRadius: 12, padding: '2px 8px', fontSize: 11 } }, colClients.length)
-          ),
-          colClients.map(c => React.createElement('div', {
-            key: c.id, className: 'kanban-card', onClick: () => onSelectClient(c)
-          },
-            React.createElement('div', { className: 'kanban-name' }, c.nombre),
-            React.createElement('div', { className: 'kanban-meta' }, c.items + ' ítems · ' + c.pagado),
-            React.createElement('div', { className: 'kanban-score', style: { color: col.color } },
-              `Score: ${c.score} → ${c.meta}`
-            )
-          ))
-        );
-      })
-    )
-  );
-}
-
-function ClientesView({ onSelectClient }) {
-  const [search, setSearch] = React.useState('');
-  const filtered = DEMO_CLIENTS.filter(c => c.nombre.toLowerCase().includes(search.toLowerCase()));
-  return React.createElement('div', null,
-    React.createElement('div', { style: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 } },
-      React.createElement('h1', { style: { fontSize: 22, fontWeight: 700 } }, 'Clientes'),
-      React.createElement('div', { style: { display: 'flex', gap: 8 } },
-        React.createElement('input', { placeholder: '🔍 Buscar cliente...', value: search, onChange: e => setSearch(e.target.value), style: { width: 220 } }),
-        React.createElement('button', { className: 'btn btn-gold' }, '+ Agregar Cliente')
-      )
-    ),
-    React.createElement('div', { className: 'card' },
-      React.createElement('div', { className: 'table-wrap' },
-        React.createElement('table', null,
-          React.createElement('thead', null,
-            React.createElement('tr', null,
-              ['Nombre', 'Teléfono', 'Score', 'Meta', 'Estado', 'Ítems', 'Pago', 'Acciones'].map(h => React.createElement('th', { key: h }, h))
-            )
-          ),
-          React.createElement('tbody', null,
-            filtered.map(c => React.createElement('tr', { key: c.id },
-              React.createElement('td', null, React.createElement('span', { style: { fontWeight: 600 } }, c.nombre)),
-              React.createElement('td', null, React.createElement('span', { style: { color: 'var(--text-muted)', fontSize: 13 } }, c.telefono)),
-              React.createElement('td', null, React.createElement(ScoreBadge, { score: c.score })),
-              React.createElement('td', null, React.createElement('span', { style: { color: '#27AE60', fontWeight: 600 } }, c.meta)),
-              React.createElement('td', null, React.createElement(EstadoBadge, { estado: c.estado })),
-              React.createElement('td', null, React.createElement('span', { className: 'badge badge-yellow' }, c.items + ' ítems')),
-              React.createElement('td', null, React.createElement('span', { style: { fontSize: 13, fontWeight: 600 } }, c.pagado)),
-              React.createElement('td', null,
-                React.createElement('div', { className: 'btn-row' },
-                  React.createElement('button', { className: 'btn btn-outline btn-sm', onClick: () => onSelectClient(c) }, 'Ver Caso'),
-                  React.createElement('button', { className: 'btn btn-outline btn-sm' }, 'Carta')
-                )
-              )
-            ))
-          )
-        )
+    React.createElement('div',{className:'cd'},
+      React.createElement('div',{className:'cdh'},React.createElement('span',{className:'cdt'},'Pagos — Este Mes')),
+      React.createElement('table',null,
+        React.createElement('thead',null,React.createElement('tr',null,['Cliente','Monto','Estado','Acción'].map(h=>React.createElement('th',{key:h},h)))),
+        React.createElement('tbody',null,clientes.map(c=>React.createElement('tr',{key:c.id},
+          React.createElement('td',null,React.createElement('span',{style:{fontWeight:600}},c.nombre)),
+          React.createElement('td',null,fm(c.pago)+'/mes'),
+          React.createElement('td',null,c.pagado?React.createElement('span',{className:'bgg bg-green'},'✓ Pagado'):React.createElement('span',{className:'bgg bg-red'},'Pendiente')),
+          React.createElement('td',null,React.createElement('button',{className:'btn btn-ghost btn-sm'},c.pagado?'🧾 Recibo':'📧 Recordatorio'))
+        )))
       )
     )
   );
 }
 
-function NuevoClienteView({ onBack }) {
-  const [step, setStep] = React.useState(1);
-  const [form, setForm] = React.useState({ nombre: '', apellido: '', email: '', telefono: '', dob: '', ssn: '', direccion: '', ciudad: '', estado: 'FL', zip: '', scoreActual: '', scoreMeta: '' });
-  const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
-  const inp = (label, key, type='text', placeholder='') => React.createElement('div', { className: 'form-group' },
-    React.createElement('label', { className: 'form-label' }, label),
-    React.createElement('input', { type, placeholder, value: form[key], onChange: e => set(key, e.target.value) })
-  );
-
-  return React.createElement('div', null,
-    React.createElement('div', { style: { display: 'flex', alignItems: 'center', gap: 12, marginBottom: 24 } },
-      React.createElement('button', { className: 'btn btn-outline btn-sm', onClick: onBack }, '← Volver'),
-      React.createElement('h1', { style: { fontSize: 22, fontWeight: 700 } }, 'Agregar Nuevo Cliente')
-    ),
-    React.createElement('div', { style: { display: 'flex', gap: 8, marginBottom: 28 } },
-      ['Información Personal', 'Datos de Crédito', 'Acuerdo de Servicio'].map((s, i) => React.createElement('div', {
-        key: i,
-        style: {
-          flex: 1, padding: '10px 16px', borderRadius: 8, textAlign: 'center', fontSize: 13, fontWeight: 600,
-          background: step === i + 1 ? 'var(--navy)' : step > i + 1 ? '#D4EDDA' : 'var(--border)',
-          color: step === i + 1 ? 'white' : step > i + 1 ? '#155724' : 'var(--text-muted)'
-        }
-      }, `${i + 1}. ${s}`))
-    ),
-    React.createElement('div', { className: 'card' },
-      step === 1 && React.createElement('div', null,
-        React.createElement('div', { className: 'form-row' }, inp('Nombre', 'nombre', 'text', 'Ej: María'), inp('Apellido', 'apellido', 'text', 'Ej: García')),
-        React.createElement('div', { className: 'form-row' }, inp('Email', 'email', 'email', 'maria@email.com'), inp('Teléfono', 'telefono', 'tel', '(407) 555-0000')),
-        React.createElement('div', { className: 'form-row' }, inp('Fecha de Nacimiento', 'dob', 'date'), inp('SSN (últimos 4)', 'ssn', 'text', 'XXXX')),
-        inp('Dirección', 'direccion', 'text', '123 Main St'),
-        React.createElement('div', { className: 'form-row' }, inp('Ciudad', 'ciudad', 'text', 'Orlando'), inp('Estado/ZIP', 'zip', 'text', '32801'))
+// ── PORTAL CLIENTE PREVIEW ─────────────────────────────────────────────────
+function PortalView({clientes}){
+  const c=clientes[0];
+  return React.createElement('div',null,
+    React.createElement('div',{className:'tip'},React.createElement('strong',null,'👁️ Vista previa: '),'Así ve el cliente su portal cuando entra con sus credenciales.'),
+    React.createElement('div',{className:'g2'},
+      React.createElement('div',{className:'cd'},
+        React.createElement('div',{className:'cdt',style:{marginBottom:8}},'Tu Puntaje de Crédito'),
+        React.createElement(Dial,{score:c.scoreActual}),
+        React.createElement('div',{style:{textAlign:'center',marginTop:8,fontSize:13,color:'var(--t2)'}},`Meta: ${c.scoreMeta} pts`)
       ),
-      step === 2 && React.createElement('div', null,
-        React.createElement('div', { className: 'form-row' }, inp('Score Actual (si conoce)', 'scoreActual', 'number', 'Ej: 540'), inp('Score Meta', 'scoreMeta', 'number', 'Ej: 700')),
-        React.createElement('div', { className: 'form-group' },
-          React.createElement('label', { className: 'form-label' }, 'Problemas de Crédito Identificados'),
-          React.createElement('textarea', { rows: 4, placeholder: 'Ej: Colecciones médicas, pagos tardíos, juicios civiles...' })
-        ),
-        React.createElement('div', { className: 'form-group' },
-          React.createElement('label', { className: 'form-label' }, 'Plan de Pago'),
-          React.createElement('select', null,
-            React.createElement('option', null, 'Básico — $99/mes'),
-            React.createElement('option', null, 'Estándar — $120/mes'),
-            React.createElement('option', null, 'Pro — $150/mes'),
-            React.createElement('option', null, 'Personalizado')
-          )
-        )
-      ),
-      step === 3 && React.createElement('div', null,
-        React.createElement('div', { style: { background: 'var(--surface-2)', borderRadius: 8, padding: 20, marginBottom: 16, fontSize: 13, lineHeight: 1.7, color: 'var(--text-secondary)' } },
-          React.createElement('strong', null, 'ACUERDO DE SERVICIO — CreditPath\n\n'),
-          React.createElement('p', null, 'Al firmar este acuerdo, el cliente autoriza a la oficina a disputar ítems inexactos, obsoletos o no verificables en su reporte de crédito según la FCRA (Fair Credit Reporting Act).\n\nLa oficina NO garantiza resultados específicos. Los cambios en el puntaje de crédito dependen de la respuesta de los bureaus crediticios.\n\nEl cliente tiene derecho a cancelar en cualquier momento dentro de los primeros 3 días hábiles sin cargo.'),
-        ),
-        React.createElement('div', { className: 'form-group' }, inp('Firma del Cliente (nombre completo)', 'firma', 'text', 'Escribe tu nombre completo')),
-        React.createElement('div', { style: { display: 'flex', gap: 8, alignItems: 'center', marginBottom: 12 } },
-          React.createElement('input', { type: 'checkbox', id: 'acepta', style: { width: 'auto' } }),
-          React.createElement('label', { htmlFor: 'acepta', style: { fontSize: 13, color: 'var(--text-secondary)', cursor: 'pointer' } }, 'Acepto los términos del servicio y autorizo el inicio del proceso de reparación de crédito.')
-        )
-      ),
-      React.createElement('div', { style: { display: 'flex', justifyContent: 'space-between', marginTop: 24 } },
-        React.createElement('button', { className: 'btn btn-outline', onClick: () => step > 1 ? setStep(s => s - 1) : onBack }, step > 1 ? '← Anterior' : 'Cancelar'),
-        React.createElement('button', { className: 'btn btn-gold', onClick: () => step < 3 ? setStep(s => s + 1) : alert('✅ Cliente creado exitosamente en Firebase') },
-          step < 3 ? 'Siguiente →' : '✅ Crear Cliente'
-        )
-      )
-    )
-  );
-}
-
-function CobrosView() {
-  return React.createElement('div', null,
-    React.createElement('h1', { style: { fontSize: 22, fontWeight: 700, marginBottom: 6 } }, 'Cobros y Pagos'),
-    React.createElement('p', { style: { color: 'var(--text-muted)', fontSize: 14, marginBottom: 24 } }, 'Gestiona los pagos mensuales de tus clientes'),
-    React.createElement('div', { className: 'stats-grid' },
-      [
-        { label: 'Ingresos Este Mes', val: '$1,740', change: 'de $1,839 esperado' },
-        { label: 'Pendientes', val: '$99', change: '1 cliente debe' },
-        { label: 'Clientes al Día', val: '5/6', change: '83% puntualidad' },
-        { label: 'MRR', val: '$1,740', change: 'ingresos recurrentes' },
-      ].map(s => React.createElement('div', { key: s.label, className: 'stat-card' },
-        React.createElement('div', { className: 'stat-label' }, s.label),
-        React.createElement('div', { className: 'stat-value' }, s.val),
-        React.createElement('div', { className: 'stat-change up' }, s.change)
-      ))
-    ),
-    React.createElement('div', { className: 'card' },
-      React.createElement('div', { className: 'card-title', style: { marginBottom: 16 } }, 'Estado de Pagos Diciembre 2024'),
-      React.createElement('table', null,
-        React.createElement('thead', null,
-          React.createElement('tr', null,
-            ['Cliente', 'Plan', 'Monto', 'Fecha Límite', 'Estado', 'Acción'].map(h => React.createElement('th', { key: h }, h))
-          )
-        ),
-        React.createElement('tbody', null,
-          DEMO_CLIENTS.map(c => React.createElement('tr', { key: c.id },
-            React.createElement('td', null, React.createElement('span', { style: { fontWeight: 600 } }, c.nombre)),
-            React.createElement('td', null, 'Mensual'),
-            React.createElement('td', null, React.createElement('span', { style: { fontWeight: 700 } }, c.pagado)),
-            React.createElement('td', null, 'Dic 30, 2024'),
-            React.createElement('td', null,
-              c.pagado === 'Pendiente'
-                ? React.createElement('span', { className: 'badge badge-red' }, 'Pendiente')
-                : React.createElement('span', { className: 'badge badge-green' }, 'Pagado ✓')
-            ),
-            React.createElement('td', null,
-              React.createElement('button', { className: 'btn btn-outline btn-sm' },
-                c.pagado === 'Pendiente' ? '📧 Recordatorio' : '🧾 Recibo'
-              )
-            )
-          ))
-        )
-      )
-    )
-  );
-}
-
-function SuperadminView() {
-  return React.createElement('div', null,
-    React.createElement('div', { style: { display: 'flex', alignItems: 'center', gap: 12, marginBottom: 6 } },
-      React.createElement('h1', { style: { fontSize: 22, fontWeight: 700 } }, 'Superadmin'),
-      React.createElement('span', { className: 'badge badge-purple' }, 'CreditPath HQ')
-    ),
-    React.createElement('p', { style: { color: 'var(--text-muted)', fontSize: 14, marginBottom: 24 } }, 'Gestión global de todas las oficinas de reparación de crédito'),
-    React.createElement('div', { className: 'stats-grid', style: { marginBottom: 24 } },
-      [
-        { label: 'Oficinas Activas', val: '4', change: '+1 demo activa' },
-        { label: 'Clientes Totales', val: '251', change: 'en todas las oficinas' },
-        { label: 'MRR Total', val: '$23,900', change: 'ingresos plataforma' },
-        { label: 'Demos Activos', val: '1', change: 'vence en 7 días' },
-      ].map(s => React.createElement('div', { key: s.label, className: 'stat-card' },
-        React.createElement('div', { className: 'stat-label' }, s.label),
-        React.createElement('div', { className: 'stat-value' }, s.val),
-        React.createElement('div', { className: 'stat-change up' }, s.change)
-      ))
-    ),
-    React.createElement('div', { style: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 24 } },
-      DEMO_OFFICES.map(o => React.createElement('div', { key: o.id, className: 'office-card' },
-        React.createElement('div', { style: { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' } },
-          React.createElement('div', null,
-            React.createElement('div', { className: 'office-name' }, o.nombre),
-            React.createElement('div', { className: 'office-meta' }, o.ciudad + ' · ' + o.staff + ' staff')
-          ),
-          o.demo
-            ? React.createElement('span', { className: 'badge badge-yellow' }, '⏳ Demo')
-            : React.createElement('span', { className: 'badge badge-green' }, '✓ ' + o.plan)
-        ),
-        React.createElement('div', { className: 'office-stats' },
-          [
-            { val: o.clientes, lbl: 'Clientes' },
-            { val: o.ingresos, lbl: 'MRR' },
-            { val: o.vence.slice(5), lbl: 'Vence' },
-          ].map(s => React.createElement('div', { key: s.lbl, className: 'office-stat' },
-            React.createElement('div', { className: 'office-stat-val' }, s.val),
-            React.createElement('div', { className: 'office-stat-lbl' }, s.lbl)
-          ))
-        ),
-        React.createElement('div', { className: 'btn-row', style: { marginTop: 14 } },
-          React.createElement('button', { className: 'btn btn-outline btn-sm' }, 'Ver Oficina'),
-          o.demo
-            ? React.createElement('button', { className: 'btn btn-gold btn-sm' }, '↑ Convertir')
-            : React.createElement('button', { className: 'btn btn-outline btn-sm' }, 'Facturación'),
-          React.createElement('button', { className: 'btn btn-danger btn-sm' }, 'Suspender')
-        )
-      ))
-    ),
-    React.createElement('div', { className: 'card' },
-      React.createElement('div', { style: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 } },
-        React.createElement('div', { className: 'card-title' }, 'Crear Nueva Oficina'),
-        React.createElement('span', { className: 'badge badge-gold' }, '15 días gratis')
-      ),
-      React.createElement('div', { className: 'form-row', style: { marginBottom: 12 } },
-        React.createElement('div', { className: 'form-group', style: { margin: 0 } },
-          React.createElement('label', { className: 'form-label' }, 'Nombre de la Oficina'),
-          React.createElement('input', { placeholder: 'Ej: Crédito Nuevo Dallas' })
-        ),
-        React.createElement('div', { className: 'form-group', style: { margin: 0 } },
-          React.createElement('label', { className: 'form-label' }, 'Email del Administrador'),
-          React.createElement('input', { type: 'email', placeholder: 'admin@oficina.com' })
-        )
-      ),
-      React.createElement('div', { className: 'form-row', style: { marginBottom: 16 } },
-        React.createElement('div', { className: 'form-group', style: { margin: 0 } },
-          React.createElement('label', { className: 'form-label' }, 'Ciudad'),
-          React.createElement('input', { placeholder: 'Dallas, TX' })
-        ),
-        React.createElement('div', { className: 'form-group', style: { margin: 0 } },
-          React.createElement('label', { className: 'form-label' }, 'Plan'),
-          React.createElement('select', null,
-            React.createElement('option', null, 'Demo — 15 días gratis'),
-            React.createElement('option', null, 'Básico — $99/mes'),
-            React.createElement('option', null, 'Pro — $199/mes'),
-            React.createElement('option', null, 'Enterprise — $399/mes')
-          )
-        )
-      ),
-      React.createElement('button', { className: 'btn btn-gold', onClick: () => alert('✅ Oficina creada. Email enviado con credenciales.') }, '🏢 Crear Oficina + Enviar Acceso')
-    )
-  );
-}
-
-function PortalClienteView() {
-  const client = DEMO_CLIENTS[0];
-  return React.createElement('div', null,
-    React.createElement('div', { className: 'demo-banner' },
-      React.createElement('div', null,
-        React.createElement('div', { style: { fontSize: 13, color: 'rgba(255,255,255,0.6)', marginBottom: 4 } }, 'Tu progreso de crédito'),
-        React.createElement('div', { style: { fontSize: 20, fontWeight: 700, color: 'white' } }, client.nombre)
-      ),
-      React.createElement('div', { style: { textAlign: 'center' } },
-        React.createElement('div', { className: 'demo-days' }, `${client.meta - client.score}`),
-        React.createElement('div', { className: 'demo-label' }, 'puntos para tu meta')
-      ),
-      React.createElement('button', { className: 'btn btn-gold' }, '📱 Descargar App')
-    ),
-    React.createElement('div', { className: 'grid-2', style: { marginBottom: 24 } },
-      React.createElement('div', { className: 'card' },
-        React.createElement('div', { className: 'card-title', style: { marginBottom: 0 } }, 'Tu Puntaje de Crédito'),
-        React.createElement(CreditDial, { score: client.score }),
-        React.createElement('div', { style: { textAlign: 'center', marginTop: 8 } },
-          React.createElement('p', { style: { fontSize: 13, color: 'var(--text-muted)' } }, `Meta: ${client.meta} pts`)
-        )
-      ),
-      React.createElement('div', { className: 'card' },
-        React.createElement('div', { className: 'card-title', style: { marginBottom: 16 } }, 'Estado de tu Caso'),
-        [
-          { label: 'Ítems en Disputa', val: client.items, icon: '⚡' },
-          { label: 'Cartas Enviadas', val: 3, icon: '✉️' },
-          { label: 'Respuestas Recibidas', val: 1, icon: '📬' },
-          { label: 'Próximo Pago', val: 'Dic 30', icon: '💳' },
-        ].map(s => React.createElement('div', { key: s.label, style: { display: 'flex', justifyContent: 'space-between', padding: '10px 0', borderBottom: '1px solid var(--border)' } },
-          React.createElement('span', { style: { fontSize: 14, color: 'var(--text-secondary)' } }, s.icon + ' ' + s.label),
-          React.createElement('span', { style: { fontSize: 14, fontWeight: 700 } }, s.val)
+      React.createElement('div',{className:'cd'},
+        React.createElement('div',{className:'cdt',style:{marginBottom:16}},'Estado de Tu Caso'),
+        [{l:'Ítems en Disputa',v:c.items},{l:'Cartas Enviadas',v:3},{l:'Respuestas',v:1},{l:'Próximo Pago',v:'Dic 30'}]
+        .map(s=>React.createElement('div',{key:s.l,style:{display:'flex',justifyContent:'space-between',padding:'10px 0',borderBottom:'1px solid var(--b)'}},
+          React.createElement('span',{style:{fontSize:14,color:'var(--t2)'}},s.l),
+          React.createElement('span',{style:{fontWeight:700}},s.v)
         ))
       )
-    ),
-    React.createElement('div', { className: 'card' },
-      React.createElement('div', { className: 'card-title', style: { marginBottom: 16 } }, 'Mis Disputas Activas'),
-      client.disputas.map((d, i) => React.createElement('div', { key: i, style: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 16px', background: 'var(--surface-2)', borderRadius: 8, marginBottom: 8 } },
-        React.createElement('span', { style: { fontSize: 14 } }, '⚡ ' + d),
-        React.createElement('span', { className: 'badge badge-yellow' }, 'En proceso')
-      )),
-      React.createElement('div', { style: { marginTop: 16, padding: 16, background: '#F0FFF4', borderRadius: 8, border: '1px solid #C6F6D5' } },
-        React.createElement('p', { style: { fontSize: 13, color: '#276749' } }, '📌 Tip: Sigue pagando todas tus cuentas actuales a tiempo. Es el factor más importante para subir tu puntaje.')
+    )
+  );
+}
+
+// ── MODAL NUEVO CLIENTE ────────────────────────────────────────────────────
+function ModalNuevo({onClose,onSave}){
+  const [step,setStep]=React.useState(1);
+  const [f,setF]=React.useState({nombre:'',apellido:'',email:'',tel:'',scoreActual:'',scoreMeta:'',pago:150,disputas:''});
+  const set=(k,v)=>setF(p=>({...p,[k]:v}));
+  const inp=(l,k,t='text',ph='')=>React.createElement('div',{className:'fg'},React.createElement('label',{className:'fl'},l),React.createElement('input',{className:'fi',type:t,placeholder:ph,value:f[k],onChange:e=>set(k,e.target.value)}));
+  return React.createElement('div',{className:'mbg',onClick:e=>e.target===e.currentTarget&&onClose()},
+    React.createElement('div',{className:'md'},
+      React.createElement('div',{className:'mdt'},'+ Nuevo Cliente'),
+      React.createElement('div',{className:'mds'},'Registra un nuevo cliente de reparación de crédito'),
+      React.createElement('div',{className:'steps'},['Datos Personales','Crédito','Acuerdo'].map((s,i)=>React.createElement('div',{key:i,className:`step ${step===i+1?'active':step>i+1?'done':''}`},`${i+1}. ${s}`))),
+      step===1&&React.createElement('div',null,
+        React.createElement('div',{className:'fr'},inp('Nombre','nombre','text','María'),inp('Apellido','apellido','text','García')),
+        React.createElement('div',{className:'fr'},inp('Email','email','email','maria@email.com'),inp('Teléfono','tel','tel','(407) 555-0000'))
+      ),
+      step===2&&React.createElement('div',null,
+        React.createElement('div',{className:'fr'},inp('Score Actual','scoreActual','number','540'),inp('Score Meta','scoreMeta','number','700')),
+        React.createElement('div',{className:'fg'},React.createElement('label',{className:'fl'},'Plan de Pago'),React.createElement('select',{className:'fi',value:f.pago,onChange:e=>set('pago',e.target.value)},React.createElement('option',{value:99},'Básico — $99/mes'),React.createElement('option',{value:120},'Estándar — $120/mes'),React.createElement('option',{value:150},'Pro — $150/mes'))),
+        React.createElement('div',{className:'fg'},React.createElement('label',{className:'fl'},'Ítems a Disputar (uno por línea)'),React.createElement('textarea',{className:'fi',rows:4,placeholder:'Colección médica $2,100\nPago tardío Chase...',value:f.disputas,onChange:e=>set('disputas',e.target.value),style:{resize:'vertical'}}))
+      ),
+      step===3&&React.createElement('div',null,
+        React.createElement('div',{style:{background:'var(--navy3)',borderRadius:8,padding:16,fontSize:13,lineHeight:1.7,color:'var(--t2)',marginBottom:16}},
+          React.createElement('strong',{style:{color:'var(--t)',display:'block',marginBottom:8}},'ACUERDO DE SERVICIO — CreditPath'),
+          'Al firmar, el cliente autoriza a la oficina a disputar ítems inexactos bajo la FCRA. La oficina NO garantiza resultados. El cliente puede cancelar en los primeros 3 días hábiles sin cargo.'
+        ),
+        inp('Firma del cliente (nombre completo)','firma','text','Escribe tu nombre completo'),
+        React.createElement('div',{style:{display:'flex',gap:8,alignItems:'center',marginTop:8}},
+          React.createElement('input',{type:'checkbox',id:'ac',style:{width:'auto',cursor:'pointer'}}),
+          React.createElement('label',{htmlFor:'ac',style:{fontSize:13,color:'var(--t2)',cursor:'pointer'}},'Acepto los términos y autorizo el proceso de reparación de crédito.')
+        )
+      ),
+      React.createElement('div',{className:'fa'},
+        React.createElement('button',{className:'btn btn-ghost',onClick:()=>step>1?setStep(s=>s-1):onClose()},step>1?'← Anterior':'Cancelar'),
+        React.createElement('button',{className:'btn btn-gold',onClick:()=>step<3?setStep(s=>s+1):onSave()},step<3?'Siguiente →':'✓ Crear Cliente')
       )
     )
   );
 }
 
-// ─── APP PRINCIPAL ─────────────────────────────────────────────────────────
-function App() {
-  const [page, setPage] = React.useState('dashboard');
-  const [role, setRole] = React.useState('office'); // 'office' | 'superadmin' | 'client' | 'login'
-  const [selectedClient, setSelectedClient] = React.useState(null);
-  const [loginMode, setLoginMode] = React.useState('oficina');
-  const [loginUser, setLoginUser] = React.useState('');
-  const [loginPass, setLoginPass] = React.useState('');
-  const [loggedIn, setLoggedIn] = React.useState(true); // Demo: empieza logueado
+// ── APP ────────────────────────────────────────────────────────────────────
+function App(){
+  const [user,setUser]=React.useState(null);
+  const [checking,setChecking]=React.useState(true);
+  const [email,setEmail]=React.useState('');
+  const [pass,setPass]=React.useState('');
+  const [err,setErr]=React.useState('');
+  const [loading,setLoading]=React.useState(false);
+  const [page,setPage]=React.useState('panel');
+  const [clientes,setClientes]=React.useState(DEMO);
+  const [clienteSel,setClienteSel]=React.useState(null);
+  const [showNuevo,setShowNuevo]=React.useState(false);
 
-  const handleLogin = () => {
-    if (loginMode === 'superadmin') setRole('superadmin');
-    else if (loginMode === 'cliente') { setRole('client'); setPage('portal'); }
-    else { setRole('office'); setPage('dashboard'); }
-    setLoggedIn(true);
+  React.useEffect(()=>{
+    const unsub=auth.onAuthStateChanged(u=>{setUser(u);setChecking(false);});
+    return unsub;
+  },[]);
+
+  const handleLogin=async()=>{
+    if(!email||!pass){setErr('Completa todos los campos');return;}
+    setLoading(true);setErr('');
+    try{const c=await auth.signInWithEmailAndPassword(email,pass);setUser(c.user);}
+    catch(e){setErr('Email o contraseña incorrectos.');}
+    setLoading(false);
   };
 
-  if (!loggedIn) {
-    return React.createElement('div', { className: 'login-page' },
-      React.createElement('div', { className: 'login-card' },
-        React.createElement('div', { className: 'login-logo' }, 'Credit', React.createElement('span', null, 'Path')),
-        React.createElement('div', { className: 'login-sub' }, 'Plataforma de Reparación de Crédito'),
-        React.createElement('div', { className: 'login-toggle' },
-          ['oficina', 'cliente', 'superadmin'].map(m => React.createElement('button', {
-            key: m, className: `login-toggle-btn ${loginMode === m ? 'active' : ''}`,
-            onClick: () => setLoginMode(m)
-          }, m === 'oficina' ? '🏢 Oficina' : m === 'cliente' ? '👤 Cliente' : '⚙️ Admin'))
-        ),
-        React.createElement('div', { className: 'form-group' },
-          React.createElement('label', { className: 'form-label' }, 'Email'),
-          React.createElement('input', { type: 'email', placeholder: 'tu@email.com', value: loginUser, onChange: e => setLoginUser(e.target.value) })
-        ),
-        React.createElement('div', { className: 'form-group' },
-          React.createElement('label', { className: 'form-label' }, 'Contraseña'),
-          React.createElement('input', { type: 'password', placeholder: '••••••••', value: loginPass, onChange: e => setLoginPass(e.target.value) })
-        ),
-        React.createElement('button', { className: 'btn btn-gold', style: { width: '100%', padding: 14, fontSize: 15 }, onClick: handleLogin }, 'Iniciar Sesión'),
-        React.createElement('div', { style: { textAlign: 'center', marginTop: 16, fontSize: 13, color: 'var(--text-muted)' } },
-          '¿Sin cuenta? ', React.createElement('a', { href: '#', style: { color: 'var(--navy)', fontWeight: 600 }, onClick: e => { e.preventDefault(); alert('Contacta a CreditPath para acceso de demo de 15 días') } }, 'Solicitar demo gratis →')
-        )
-      )
-    );
-  }
+  const handleNota=(id,nota)=>setClientes(p=>p.map(c=>c.id===id?{...c,notas:[...(c.notas||[]),{f:'Hoy',a:'Admin',t:nota}]}:c));
 
-  const navItems = role === 'superadmin' ? [
-    { key: 'superadmin', icon: '⚙️', label: 'Panel Admin' },
-    { key: 'oficinas', icon: '🏢', label: 'Oficinas' },
-    { key: 'cobros', icon: '💰', label: 'Facturación' },
-  ] : role === 'client' ? [
-    { key: 'portal', icon: '📊', label: 'Mi Crédito' },
-  ] : [
-    { key: 'dashboard', icon: '📊', label: 'Panel' },
-    { key: 'casos', icon: '📋', label: 'Monitor Casos' },
-    { key: 'clientes', icon: '👥', label: 'Clientes' },
-    { key: 'nuevo_cliente', icon: '➕', label: 'Nuevo Cliente' },
-    { key: 'cobros', icon: '💰', label: 'Cobros' },
-    { key: 'portal', icon: '👤', label: 'Portal Cliente' },
-    { key: 'superadmin', icon: '⚙️', label: 'Superadmin' },
+  if(checking)return React.createElement('div',{className:'loading'},'⏳ Verificando...');
+
+  if(!user)return React.createElement('div',{className:'lw'},
+    React.createElement('div',{className:'lb'},
+      React.createElement('div',{className:'ll'},'Credit',React.createElement('span',null,'Path')),
+      React.createElement('div',{className:'lr'},'Sistema de Oficina'),
+      err&&React.createElement('div',{className:'lerr'},err),
+      React.createElement('label',{className:'llab'},'Email'),
+      React.createElement('input',{className:'li',type:'email',placeholder:'tu@email.com',value:email,onChange:e=>setEmail(e.target.value),onKeyDown:e=>e.key==='Enter'&&handleLogin()}),
+      React.createElement('label',{className:'llab'},'Contraseña'),
+      React.createElement('input',{className:'li',type:'password',placeholder:'••••••••',value:pass,onChange:e=>setPass(e.target.value),onKeyDown:e=>e.key==='Enter'&&handleLogin()}),
+      React.createElement('button',{className:'lbtn',onClick:handleLogin,disabled:loading},loading?'Entrando...':'Iniciar Sesión')
+    )
+  );
+
+  const nav=[
+    {k:'panel',i:'📊',l:'Panel'},
+    {k:'kanban',i:'📋',l:'Monitor Casos'},
+    {k:'clientes',i:'👥',l:'Clientes'},
+    {k:'nuevo',i:'➕',l:'Nuevo Cliente'},
+    {k:'cobros',i:'💰',l:'Cobros'},
+    {k:'herramientas',i:'🛠️',l:'Herramientas'},
+    {k:'portal',i:'👤',l:'Portal Cliente'},
   ];
 
-  const roleLabel = role === 'superadmin' ? 'CreditPath HQ' : role === 'client' ? 'Portal Cliente' : 'Oficina';
+  const titles={panel:'Panel Principal',kanban:'Monitor de Casos',clientes:'Clientes',nuevo:'Nuevo Cliente',cobros:'Cobros',herramientas:'Herramientas',portal:'Portal Cliente'};
 
-  return React.createElement('div', null,
-    React.createElement('nav', { className: 'nav' },
-      React.createElement('span', { className: 'nav-logo' }, 'Credit', React.createElement('span', null, 'Path')),
-      React.createElement('div', { className: 'nav-right' },
-        React.createElement('span', { className: 'nav-demo-badge' }, '⏳ Demo — 14 días restantes'),
-        React.createElement('span', { style: { color: 'rgba(255,255,255,0.5)', fontSize: 13 } }, roleLabel),
-        React.createElement('button', { className: 'btn-nav', onClick: () => setLoggedIn(false) }, 'Salir')
+  return React.createElement('div',{className:'app'},
+    React.createElement('div',{className:'sb'},
+      React.createElement('div',{className:'sbt'},
+        React.createElement('div',{className:'sbb2'},'Credit',React.createElement('span',null,'Path')),
+        React.createElement('div',{className:'sbo'},'Mi Oficina')
+      ),
+      React.createElement('div',{className:'sbn'},
+        React.createElement('div',{className:'nss'},'Menú'),
+        nav.map(item=>React.createElement('div',{key:item.k,className:`ni ${page===item.k?'active':''}`,onClick:()=>setPage(item.k)},
+          React.createElement('span',{className:'nic'},item.i),
+          React.createElement('span',null,item.l)
+        ))
+      ),
+      React.createElement('div',{className:'sbb'},
+        React.createElement('button',{className:'sob',onClick:()=>auth.signOut()},'→ Cerrar Sesión')
       )
     ),
-    React.createElement('div', { className: 'layout' },
-      React.createElement('div', { className: 'sidebar' },
-        React.createElement('div', { className: 'sidebar-section' }, 'Menú'),
-        navItems.map(item => React.createElement('div', {
-          key: item.key,
-          className: `sidebar-item ${page === item.key ? 'active' : ''}`,
-          onClick: () => setPage(item.key)
-        },
-          React.createElement('span', { className: 'sidebar-icon' }, item.icon),
-          React.createElement('span', null, item.label)
-        )),
-        React.createElement('div', { className: 'sidebar-section', style: { marginTop: 'auto' } }, 'Demo'),
-        React.createElement('div', { style: { padding: '12px 20px' } },
-          React.createElement('div', { style: { background: 'rgba(212,168,67,0.1)', borderRadius: 8, padding: 12 } },
-            React.createElement('div', { style: { color: 'var(--gold)', fontSize: 20, fontWeight: 800 } }, '14'),
-            React.createElement('div', { style: { color: 'rgba(255,255,255,0.5)', fontSize: 11 } }, 'días de demo'),
-            React.createElement('button', { className: 'btn btn-gold', style: { width: '100%', marginTop: 8, fontSize: 12 }, onClick: () => alert('¡Gracias! Te contactaremos para activar tu cuenta.') }, 'Activar Plan')
-          )
+    React.createElement('div',{className:'mn'},
+      React.createElement('div',{className:'tb'},
+        React.createElement('span',{className:'tbt'},titles[page]||''),
+        React.createElement('div',{style:{display:'flex',gap:8}},
+          React.createElement('button',{className:'btn btn-ghost btn-sm',onClick:()=>setPage('herramientas')},'🛠️ Herramientas'),
+          React.createElement('button',{className:'btn btn-gold btn-sm',onClick:()=>setShowNuevo(true)},'+ Nuevo Cliente')
         )
       ),
-      React.createElement('div', { className: 'main' },
-        page === 'dashboard' && React.createElement(DashboardView, { onSelectClient: c => { setSelectedClient(c); } }),
-        page === 'casos' && React.createElement(CasosView, { onSelectClient: c => setSelectedClient(c) }),
-        page === 'clientes' && React.createElement(ClientesView, { onSelectClient: c => setSelectedClient(c) }),
-        page === 'nuevo_cliente' && React.createElement(NuevoClienteView, { onBack: () => setPage('clientes') }),
-        page === 'cobros' && React.createElement(CobrosView, null),
-        page === 'portal' && React.createElement(PortalClienteView, null),
-        page === 'superadmin' && React.createElement(SuperadminView, null),
-        page === 'oficinas' && React.createElement(SuperadminView, null),
-        selectedClient && React.createElement(ClientModal, { client: selectedClient, onClose: () => setSelectedClient(null) })
+      React.createElement('div',{className:'ct'},
+        page==='panel'&&React.createElement(PanelView,{clientes,onVer:setClienteSel,onNuevo:()=>setShowNuevo(true)}),
+        page==='kanban'&&React.createElement(KanbanView,{clientes,onVer:setClienteSel}),
+        page==='clientes'&&React.createElement(ClientesView,{clientes,onVer:setClienteSel,onNuevo:()=>setShowNuevo(true)}),
+        page==='cobros'&&React.createElement(CobrosView,{clientes}),
+        page==='herramientas'&&React.createElement(HerramientasView,{clientes}),
+        page==='portal'&&React.createElement(PortalView,{clientes}),
+        page==='nuevo'&&React.createElement('div',null,React.createElement(ModalNuevo,{onClose:()=>setPage('clientes'),onSave:()=>{alert('✅ Cliente creado');setPage('clientes');}}))
       )
-    )
+    ),
+    clienteSel&&React.createElement(ModalCliente,{c:clienteSel,onClose:()=>setClienteSel(null),onNota:handleNota}),
+    showNuevo&&React.createElement(ModalNuevo,{onClose:()=>setShowNuevo(false),onSave:()=>{alert('✅ Cliente creado');setShowNuevo(false);}})
   );
 }
 
