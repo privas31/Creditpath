@@ -1,0 +1,847 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>CreditPath — Plataforma de Reparación de Crédito</title>
+<script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<!-- Firebase SDKs -->
+<script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
+<style>
+  :root {
+    --navy: #0A1628;
+    --navy-light: #132040;
+    --gold: #D4A843;
+    --gold-light: #F0C865;
+    --cream: #F8F5EE;
+    --cream-dark: #EDE9DF;
+    --green-credit: #2ECC71;
+    --red-credit: #E74C3C;
+    --yellow-credit: #F39C12;
+    --text-primary: #0A1628;
+    --text-secondary: #4A5568;
+    --text-muted: #718096;
+    --surface: #FFFFFF;
+    --surface-2: #F7FAFC;
+    --border: #E2E8F0;
+    --shadow: 0 1px 3px rgba(10,22,40,0.08), 0 4px 16px rgba(10,22,40,0.04);
+    --shadow-lg: 0 8px 32px rgba(10,22,40,0.12);
+    --radius: 12px;
+    --radius-sm: 8px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--cream); color: var(--text-primary); min-height: 100vh; }
+  button { cursor: pointer; border: none; outline: none; font-family: inherit; }
+  input, select, textarea { font-family: inherit; outline: none; border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 10px 14px; width: 100%; font-size: 14px; color: var(--text-primary); background: white; transition: border-color 0.2s; }
+  input:focus, select:focus, textarea:focus { border-color: var(--gold); box-shadow: 0 0 0 3px rgba(212,168,67,0.12); }
+  .hidden { display: none !important; }
+
+  /* NAV */
+  .nav { background: var(--navy); padding: 0 32px; height: 60px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
+  .nav-logo { color: var(--gold); font-size: 22px; font-weight: 700; letter-spacing: -0.5px; }
+  .nav-logo span { color: white; font-weight: 400; }
+  .nav-right { display: flex; align-items: center; gap: 16px; }
+  .nav-demo-badge { background: rgba(212,168,67,0.15); border: 1px solid var(--gold); color: var(--gold); font-size: 12px; font-weight: 600; padding: 4px 10px; border-radius: 20px; }
+  .btn-nav { background: var(--gold); color: var(--navy); font-size: 14px; font-weight: 600; padding: 8px 20px; border-radius: var(--radius-sm); transition: background 0.2s, transform 0.1s; }
+  .btn-nav:hover { background: var(--gold-light); transform: scale(1.01); }
+
+  /* SIDEBAR */
+  .layout { display: flex; min-height: calc(100vh - 60px); }
+  .sidebar { width: 220px; background: var(--navy); padding: 24px 0; flex-shrink: 0; }
+  .sidebar-section { padding: 8px 16px 4px; font-size: 10px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: rgba(255,255,255,0.3); margin-top: 12px; }
+  .sidebar-item { display: flex; align-items: center; gap: 10px; padding: 10px 20px; color: rgba(255,255,255,0.6); font-size: 14px; cursor: pointer; transition: all 0.15s; border-left: 3px solid transparent; }
+  .sidebar-item:hover { background: rgba(255,255,255,0.06); color: white; }
+  .sidebar-item.active { background: rgba(212,168,67,0.1); color: var(--gold); border-left-color: var(--gold); }
+  .sidebar-icon { font-size: 18px; width: 20px; text-align: center; }
+  .main { flex: 1; padding: 28px 32px; overflow-y: auto; background: var(--cream); }
+
+  /* CARDS */
+  .card { background: white; border-radius: var(--radius); padding: 24px; box-shadow: var(--shadow); border: 1px solid var(--border); }
+  .card-title { font-size: 16px; font-weight: 600; color: var(--text-primary); margin-bottom: 4px; }
+  .card-subtitle { font-size: 13px; color: var(--text-muted); }
+
+  /* STAT CARDS */
+  .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
+  .stat-card { background: white; border-radius: var(--radius); padding: 20px; box-shadow: var(--shadow); border: 1px solid var(--border); }
+  .stat-label { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); margin-bottom: 8px; }
+  .stat-value { font-size: 28px; font-weight: 700; color: var(--text-primary); line-height: 1; }
+  .stat-change { font-size: 12px; margin-top: 6px; }
+  .stat-change.up { color: #27AE60; }
+  .stat-change.down { color: var(--red-credit); }
+
+  /* GRID */
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 24px; }
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+
+  /* TABLE */
+  .table-wrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  th { text-align: left; padding: 12px 16px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); background: var(--surface-2); border-bottom: 1px solid var(--border); }
+  td { padding: 14px 16px; border-bottom: 1px solid var(--border); color: var(--text-primary); vertical-align: middle; }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: var(--surface-2); }
+
+  /* BADGES */
+  .badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; }
+  .badge-green { background: #D4EDDA; color: #155724; }
+  .badge-yellow { background: #FFF3CD; color: #856404; }
+  .badge-red { background: #F8D7DA; color: #721C24; }
+  .badge-blue { background: #D1ECF1; color: #0C5460; }
+  .badge-purple { background: #E2D9F3; color: #4A2C8C; }
+  .badge-gold { background: rgba(212,168,67,0.15); color: #8B6914; }
+
+  /* SCORE DIAL */
+  .dial-container { display: flex; flex-direction: column; align-items: center; padding: 24px 0 16px; }
+  .dial-svg { width: 180px; height: 100px; }
+  .score-number { font-size: 36px; font-weight: 800; color: var(--text-primary); line-height: 1; }
+  .score-label { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
+
+  /* KANBAN */
+  .kanban { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+  .kanban-col { background: var(--surface-2); border-radius: var(--radius-sm); padding: 12px; min-height: 200px; }
+  .kanban-header { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; }
+  .kanban-card { background: white; border-radius: 8px; padding: 12px; margin-bottom: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); border: 1px solid var(--border); cursor: pointer; transition: box-shadow 0.15s, transform 0.1s; }
+  .kanban-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.1); transform: translateY(-1px); }
+  .kanban-name { font-size: 13px; font-weight: 600; color: var(--text-primary); }
+  .kanban-meta { font-size: 11px; color: var(--text-muted); margin-top: 4px; }
+  .kanban-score { font-size: 11px; font-weight: 700; margin-top: 6px; }
+
+  /* BUTTONS */
+  .btn { padding: 10px 18px; border-radius: var(--radius-sm); font-size: 14px; font-weight: 600; transition: all 0.15s; }
+  .btn-primary { background: var(--navy); color: white; }
+  .btn-primary:hover { background: var(--navy-light); }
+  .btn-gold { background: var(--gold); color: var(--navy); }
+  .btn-gold:hover { background: var(--gold-light); }
+  .btn-outline { background: transparent; color: var(--text-secondary); border: 1px solid var(--border); }
+  .btn-outline:hover { background: var(--surface-2); }
+  .btn-danger { background: #FEE2E2; color: #DC2626; }
+  .btn-danger:hover { background: #FECACA; }
+  .btn-sm { padding: 6px 12px; font-size: 12px; }
+  .btn-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+
+  /* FORM */
+  .form-group { margin-bottom: 16px; }
+  .form-label { font-size: 13px; font-weight: 600; color: var(--text-secondary); margin-bottom: 6px; display: block; }
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+  /* TABS */
+  .tabs { display: flex; border-bottom: 1px solid var(--border); margin-bottom: 20px; gap: 0; }
+  .tab { padding: 10px 20px; font-size: 14px; font-weight: 500; color: var(--text-muted); cursor: pointer; border-bottom: 2px solid transparent; transition: all 0.15s; }
+  .tab:hover { color: var(--text-primary); }
+  .tab.active { color: var(--navy); border-bottom-color: var(--gold); font-weight: 600; }
+
+  /* TIMELINE */
+  .timeline { position: relative; }
+  .timeline::before { content: ''; position: absolute; left: 20px; top: 0; bottom: 0; width: 1px; background: var(--border); }
+  .timeline-item { display: flex; gap: 16px; padding: 0 0 20px 0; position: relative; }
+  .timeline-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--gold); border: 2px solid white; box-shadow: 0 0 0 2px var(--gold); margin-top: 4px; flex-shrink: 0; position: relative; z-index: 1; margin-left: 17px; }
+  .timeline-content { flex: 1; }
+  .timeline-date { font-size: 11px; color: var(--text-muted); }
+  .timeline-text { font-size: 13px; color: var(--text-primary); margin-top: 2px; }
+
+  /* LOGIN */
+  .login-page { min-height: 100vh; display: flex; align-items: center; justify-content: center; background: var(--navy); }
+  .login-card { background: white; border-radius: 16px; padding: 40px; width: 380px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); }
+  .login-logo { font-size: 28px; font-weight: 800; color: var(--navy); text-align: center; margin-bottom: 4px; }
+  .login-logo span { color: var(--gold); }
+  .login-sub { text-align: center; font-size: 13px; color: var(--text-muted); margin-bottom: 28px; }
+  .login-title { font-size: 16px; font-weight: 600; color: var(--text-primary); margin-bottom: 20px; }
+  .login-toggle { display: flex; background: var(--surface-2); border-radius: var(--radius-sm); padding: 4px; gap: 4px; margin-bottom: 24px; }
+  .login-toggle-btn { flex: 1; padding: 8px; border-radius: 6px; font-size: 13px; font-weight: 600; color: var(--text-muted); cursor: pointer; border: none; background: transparent; transition: all 0.15s; }
+  .login-toggle-btn.active { background: white; color: var(--navy); box-shadow: 0 1px 4px rgba(0,0,0,0.1); }
+
+  /* SUPERADMIN */
+  .office-card { background: white; border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; box-shadow: var(--shadow); }
+  .office-name { font-size: 16px; font-weight: 700; color: var(--text-primary); }
+  .office-meta { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+  .office-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 16px; }
+  .office-stat { text-align: center; background: var(--surface-2); border-radius: 8px; padding: 10px 6px; }
+  .office-stat-val { font-size: 20px; font-weight: 700; color: var(--text-primary); }
+  .office-stat-lbl { font-size: 10px; color: var(--text-muted); margin-top: 2px; }
+
+  /* DEMO BANNER */
+  .demo-banner { background: linear-gradient(135deg, var(--navy) 0%, #1a3a6e 100%); border-radius: var(--radius); padding: 20px 24px; color: white; display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
+  .demo-days { font-size: 36px; font-weight: 800; color: var(--gold); }
+  .demo-label { font-size: 14px; font-weight: 500; color: rgba(255,255,255,0.7); }
+  .demo-cta-text { font-size: 13px; color: rgba(255,255,255,0.6); margin-top: 4px; }
+
+  /* RESPONSIVE */
+  @media (max-width: 900px) {
+    .stats-grid { grid-template-columns: 1fr 1fr; }
+    .kanban { grid-template-columns: 1fr 1fr; }
+    .sidebar { display: none; }
+  }
+  @media (max-width: 600px) {
+    .stats-grid { grid-template-columns: 1fr; }
+    .grid-2 { grid-template-columns: 1fr; }
+    .main { padding: 16px; }
+    .form-row { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+
+// ─── Firebase config (reemplaza con tu config real) ───────────────────────
+const firebaseConfig = {
+  apiKey: "YOUR_API_KEY",
+  authDomain: "immigration-platform-11380.firebaseapp.com",
+  projectId: "immigration-platform-11380",
+  storageBucket: "immigration-platform-11380.appspot.com",
+  messagingSenderId: "YOUR_SENDER_ID",
+  appId: "YOUR_APP_ID"
+};
+// firebase.initializeApp(firebaseConfig);  // Descomenta cuando tengas las keys reales
+
+// ─── DATOS DEMO ────────────────────────────────────────────────────────────
+const DEMO_CLIENTS = [
+  { id: 1, nombre: "María García", score: 542, meta: 700, estado: "en_proceso", items: 7, pagado: "$150/mes", inicio: "2024-11-01", telefono: "(407) 555-0101", email: "maria@email.com", disputas: ["Colección médica $2,100", "Pago tardío Chase 2023", "Cuenta en colecciones Capital One"] },
+  { id: 2, nombre: "Carlos Rodríguez", score: 618, meta: 740, estado: "activo", items: 4, pagado: "$120/mes", inicio: "2024-10-15", telefono: "(321) 555-0202", email: "carlos@email.com", disputas: ["Consulta dura múltiple", "Balance alto Discover"] },
+  { id: 3, nombre: "Ana Martínez", score: 701, meta: 750, estado: "completado", items: 0, pagado: "$120/mes", inicio: "2024-07-01", telefono: "(407) 555-0303", email: "ana@email.com", disputas: [] },
+  { id: 4, nombre: "José López", score: 480, meta: 650, estado: "nuevo", items: 12, pagado: "Pendiente", inicio: "2024-12-01", telefono: "(321) 555-0404", email: "jose@email.com", disputas: ["Juicio civil $5,400", "3 cuentas en colecciones", "Reporte de fraude"] },
+  { id: 5, nombre: "Elena Torres", score: 590, meta: 700, estado: "en_proceso", items: 5, pagado: "$150/mes", inicio: "2024-09-20", telefono: "(407) 555-0505", email: "elena@email.com", disputas: ["Saldo viejo Sprint", "Pago tardío Banco América"] },
+  { id: 6, nombre: "Roberto Sánchez", score: 655, meta: 720, estado: "activo", items: 3, pagado: "$99/mes", inicio: "2024-11-10", telefono: "(321) 555-0606", email: "roberto@email.com", disputas: ["Limite alto tarjeta", "Consulta trabajo anterior"] },
+];
+
+const KANBAN_COLS = [
+  { key: "nuevo", label: "Nuevos", color: "#718096" },
+  { key: "en_proceso", label: "En Proceso", color: "#D4A843" },
+  { key: "activo", label: "Activos", color: "#3B82F6" },
+  { key: "completado", label: "Completados", color: "#27AE60" },
+];
+
+const DEMO_OFFICES = [
+  { id: 1, nombre: "Crédito Nuevo Tampa", ciudad: "Tampa, FL", clientes: 48, activo: true, plan: "Pro", vence: "2025-02-01", ingresos: "$4,800/mes", staff: 3, demo: false },
+  { id: 2, nombre: "Fix Credit Miami", ciudad: "Miami, FL", clientes: 124, activo: true, plan: "Enterprise", vence: "2025-03-15", ingresos: "$12,400/mes", staff: 8, demo: false },
+  { id: 3, nombre: "Tu Crédito Houston", ciudad: "Houston, TX", clientes: 12, activo: true, plan: "Demo", vence: "2024-12-28", ingresos: "$0", staff: 1, demo: true },
+  { id: 4, nombre: "Crédito Limpio Orlando", ciudad: "Orlando, FL", clientes: 67, activo: true, plan: "Pro", vence: "2025-01-20", ingresos: "$6,700/mes", staff: 4, demo: false },
+];
+
+// ─── CREDIT SCORE DIAL ─────────────────────────────────────────────────────
+function CreditDial({ score, size = 180 }) {
+  const min = 300, max = 850;
+  const pct = (score - min) / (max - min);
+  const angle = -180 + pct * 180;
+  const cx = 90, cy = 88, r = 72;
+  const toXY = (deg, radius) => ({
+    x: cx + radius * Math.cos((deg * Math.PI) / 180),
+    y: cy + radius * Math.sin((deg * Math.PI) / 180)
+  });
+  const startAngle = -180, endAngle = 0;
+
+  // Arc segments
+  const arcPath = (a1, a2, r, fill) => {
+    const s = toXY(a1, r), e = toXY(a2, r);
+    const large = a2 - a1 > 180 ? 1 : 0;
+    return `<path d="M ${s.x} ${s.y} A ${r} ${r} 0 ${large} 1 ${e.x} ${e.y}" fill="none" stroke="${fill}" stroke-width="14" stroke-linecap="round"/>`;
+  };
+
+  const color = score < 580 ? "#E74C3C" : score < 670 ? "#F39C12" : score < 740 ? "#3B82F6" : "#27AE60";
+  const needle = toXY(angle - 90, 52);
+
+  const svgContent = `
+    <svg width="${size}" height="${size * 0.6}" viewBox="0 0 180 108" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M 18 88 A 72 72 0 0 1 162 88" fill="none" stroke="#E2E8F0" stroke-width="14" stroke-linecap="round"/>
+      <path d="M 18 88 A 72 72 0 0 1 ${toXY(angle, 72).x} ${toXY(angle, 72).y}" fill="none" stroke="${color}" stroke-width="14" stroke-linecap="round"/>
+      <line x1="${cx}" y1="${cy}" x2="${needle.x}" y2="${needle.y}" stroke="${color}" stroke-width="2.5" stroke-linecap="round"/>
+      <circle cx="${cx}" cy="${cy}" r="5" fill="${color}"/>
+      <text x="${cx}" y="108" text-anchor="middle" font-size="26" font-weight="800" fill="#0A1628" font-family="-apple-system,sans-serif">${score}</text>
+    </svg>`;
+
+  return React.createElement('div', {
+    className: 'dial-container',
+    dangerouslySetInnerHTML: { __html: svgContent }
+  });
+}
+
+// ─── SCORE BADGE ───────────────────────────────────────────────────────────
+function ScoreBadge({ score }) {
+  const color = score < 580 ? '#dc2626' : score < 670 ? '#d97706' : score < 740 ? '#2563eb' : '#16a34a';
+  const label = score < 580 ? 'Malo' : score < 670 ? 'Regular' : score < 740 ? 'Bueno' : 'Excelente';
+  return React.createElement('span', {
+    style: { color, fontWeight: 700, fontSize: 13 }
+  }, `${score} (${label})`);
+}
+
+// ─── ESTADO BADGE ──────────────────────────────────────────────────────────
+function EstadoBadge({ estado }) {
+  const map = {
+    nuevo: { cls: 'badge-purple', lbl: 'Nuevo' },
+    en_proceso: { cls: 'badge-yellow', lbl: 'En Proceso' },
+    activo: { cls: 'badge-blue', lbl: 'Activo' },
+    completado: { cls: 'badge-green', lbl: 'Completado' },
+  };
+  const { cls, lbl } = map[estado] || { cls: 'badge-blue', lbl: estado };
+  return React.createElement('span', { className: `badge ${cls}` }, lbl);
+}
+
+// ─── MODAL CLIENTE ─────────────────────────────────────────────────────────
+function ClientModal({ client, onClose }) {
+  if (!client) return null;
+  return React.createElement('div', {
+    style: { position: 'fixed', inset: 0, background: 'rgba(10,22,40,0.5)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 },
+    onClick: (e) => e.target === e.currentTarget && onClose()
+  },
+    React.createElement('div', { className: 'card', style: { width: '100%', maxWidth: 520, maxHeight: '85vh', overflowY: 'auto' } },
+      React.createElement('div', { style: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 } },
+        React.createElement('div', null,
+          React.createElement('div', { className: 'card-title' }, client.nombre),
+          React.createElement('div', { className: 'card-subtitle' }, client.email + ' · ' + client.telefono)
+        ),
+        React.createElement('button', { className: 'btn btn-outline btn-sm', onClick: onClose }, '✕')
+      ),
+      React.createElement(CreditDial, { score: client.score }),
+      React.createElement('div', { style: { textAlign: 'center', marginBottom: 20 } },
+        React.createElement('div', { style: { fontSize: 13, color: 'var(--text-muted)' } },
+          `Meta: ${client.meta} pts · Diferencia: +${client.meta - client.score} pts`
+        )
+      ),
+      React.createElement('div', { className: 'grid-3', style: { marginBottom: 20 } },
+        [
+          { label: 'Inicio', val: client.inicio },
+          { label: 'Ítems', val: client.items },
+          { label: 'Pago', val: client.pagado },
+        ].map(s => React.createElement('div', { key: s.label, className: 'stat-card', style: { padding: 14 } },
+          React.createElement('div', { className: 'stat-label' }, s.label),
+          React.createElement('div', { style: { fontSize: 16, fontWeight: 700 } }, s.val)
+        ))
+      ),
+      React.createElement('div', { className: 'card-title', style: { marginBottom: 12 } }, 'Disputas activas'),
+      client.disputas.length === 0
+        ? React.createElement('p', { style: { color: 'var(--text-muted)', fontSize: 14 } }, '✅ Sin disputas activas')
+        : client.disputas.map((d, i) => React.createElement('div', {
+          key: i,
+          style: { padding: '10px 14px', background: 'var(--surface-2)', borderRadius: 8, marginBottom: 8, fontSize: 14 }
+        }, '⚡ ' + d)),
+      React.createElement('div', { className: 'timeline', style: { marginTop: 20 } },
+        React.createElement('div', { className: 'card-title', style: { marginBottom: 12 } }, 'Actividad reciente'),
+        [
+          { fecha: 'Dic 15, 2024', texto: 'Carta enviada a Experian — Colección médica' },
+          { fecha: 'Dic 10, 2024', texto: 'Documento de identidad verificado' },
+          { fecha: 'Dic 01, 2024', texto: 'Caso abierto — Consulta inicial completada' },
+        ].map((t, i) => React.createElement('div', { key: i, className: 'timeline-item' },
+          React.createElement('div', { className: 'timeline-dot' }),
+          React.createElement('div', { className: 'timeline-content' },
+            React.createElement('div', { className: 'timeline-date' }, t.fecha),
+            React.createElement('div', { className: 'timeline-text' }, t.texto)
+          )
+        ))
+      )
+    )
+  );
+}
+
+// ─── VIEWS ─────────────────────────────────────────────────────────────────
+function DashboardView({ onSelectClient }) {
+  const total = DEMO_CLIENTS.length;
+  const activos = DEMO_CLIENTS.filter(c => c.estado === 'activo' || c.estado === 'en_proceso').length;
+  const completados = DEMO_CLIENTS.filter(c => c.estado === 'completado').length;
+  const avgScore = Math.round(DEMO_CLIENTS.reduce((s, c) => s + c.score, 0) / total);
+
+  return React.createElement('div', null,
+    React.createElement('h1', { style: { fontSize: 22, fontWeight: 700, marginBottom: 6 } }, 'Panel Principal'),
+    React.createElement('p', { style: { color: 'var(--text-muted)', fontSize: 14, marginBottom: 24 } }, 'Resumen de tu oficina de reparación de crédito'),
+
+    React.createElement('div', { className: 'stats-grid' },
+      [
+        { label: 'Clientes Activos', val: activos, change: '+2 este mes', up: true },
+        { label: 'Completados', val: completados, change: '+1 esta semana', up: true },
+        { label: 'Score Promedio', val: avgScore, change: '+12 vs mes anterior', up: true },
+        { label: 'Ingresos / Mes', val: '$1,740', change: '-$99 vs anterior', up: false },
+      ].map(s => React.createElement('div', { key: s.label, className: 'stat-card' },
+        React.createElement('div', { className: 'stat-label' }, s.label),
+        React.createElement('div', { className: 'stat-value' }, s.val),
+        React.createElement('div', { className: `stat-change ${s.up ? 'up' : 'down'}` },
+          s.up ? '↑ ' : '↓ ', s.change
+        )
+      ))
+    ),
+
+    React.createElement('div', { className: 'grid-2' },
+      // Casos recientes
+      React.createElement('div', { className: 'card' },
+        React.createElement('div', { style: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 } },
+          React.createElement('div', { className: 'card-title' }, 'Clientes Recientes'),
+          React.createElement('button', { className: 'btn btn-gold btn-sm', style: { fontSize: 12 } }, '+ Agregar')
+        ),
+        React.createElement('div', { className: 'table-wrap' },
+          React.createElement('table', null,
+            React.createElement('thead', null,
+              React.createElement('tr', null,
+                ['Cliente', 'Score', 'Estado', 'Acción'].map(h => React.createElement('th', { key: h }, h))
+              )
+            ),
+            React.createElement('tbody', null,
+              DEMO_CLIENTS.slice(0, 4).map(c => React.createElement('tr', { key: c.id },
+                React.createElement('td', null, React.createElement('span', { style: { fontWeight: 600 } }, c.nombre)),
+                React.createElement('td', null, React.createElement(ScoreBadge, { score: c.score })),
+                React.createElement('td', null, React.createElement(EstadoBadge, { estado: c.estado })),
+                React.createElement('td', null,
+                  React.createElement('button', { className: 'btn btn-outline btn-sm', onClick: () => onSelectClient(c) }, 'Ver')
+                )
+              ))
+            )
+          )
+        )
+      ),
+
+      // Actividad
+      React.createElement('div', { className: 'card' },
+        React.createElement('div', { className: 'card-title', style: { marginBottom: 16 } }, 'Actividad Reciente'),
+        React.createElement('div', { className: 'timeline' },
+          [
+            { fecha: 'Hace 2 horas', texto: 'María García — Carta enviada a TransUnion' },
+            { fecha: 'Hace 5 horas', texto: 'Nuevo cliente: José López — Consulta inicial' },
+            { fecha: 'Ayer 3:20pm', texto: 'Ana Martínez alcanzó 701 pts — ¡Caso cerrado!' },
+            { fecha: 'Ayer 10:00am', texto: 'Pago recibido de Carlos Rodríguez — $120' },
+            { fecha: 'Dic 13', texto: 'Elena Torres — Respuesta de Equifax recibida' },
+          ].map((t, i) => React.createElement('div', { key: i, className: 'timeline-item' },
+            React.createElement('div', { className: 'timeline-dot' }),
+            React.createElement('div', { className: 'timeline-content' },
+              React.createElement('div', { className: 'timeline-date' }, t.fecha),
+              React.createElement('div', { className: 'timeline-text' }, t.texto)
+            )
+          ))
+        )
+      )
+    )
+  );
+}
+
+function CasosView({ onSelectClient }) {
+  return React.createElement('div', null,
+    React.createElement('div', { style: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 } },
+      React.createElement('div', null,
+        React.createElement('h1', { style: { fontSize: 22, fontWeight: 700, marginBottom: 4 } }, 'Monitor de Casos'),
+        React.createElement('p', { style: { color: 'var(--text-muted)', fontSize: 14 } }, 'Vista Kanban de todos tus clientes')
+      ),
+      React.createElement('button', { className: 'btn btn-gold' }, '+ Nuevo Cliente')
+    ),
+    React.createElement('div', { className: 'kanban' },
+      KANBAN_COLS.map(col => {
+        const colClients = DEMO_CLIENTS.filter(c => c.estado === col.key);
+        return React.createElement('div', { key: col.key, className: 'kanban-col' },
+          React.createElement('div', { className: 'kanban-header' },
+            React.createElement('span', { style: { color: col.color } }, col.label),
+            React.createElement('span', { style: { background: col.color, color: 'white', borderRadius: 12, padding: '2px 8px', fontSize: 11 } }, colClients.length)
+          ),
+          colClients.map(c => React.createElement('div', {
+            key: c.id, className: 'kanban-card', onClick: () => onSelectClient(c)
+          },
+            React.createElement('div', { className: 'kanban-name' }, c.nombre),
+            React.createElement('div', { className: 'kanban-meta' }, c.items + ' ítems · ' + c.pagado),
+            React.createElement('div', { className: 'kanban-score', style: { color: col.color } },
+              `Score: ${c.score} → ${c.meta}`
+            )
+          ))
+        );
+      })
+    )
+  );
+}
+
+function ClientesView({ onSelectClient }) {
+  const [search, setSearch] = React.useState('');
+  const filtered = DEMO_CLIENTS.filter(c => c.nombre.toLowerCase().includes(search.toLowerCase()));
+  return React.createElement('div', null,
+    React.createElement('div', { style: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 } },
+      React.createElement('h1', { style: { fontSize: 22, fontWeight: 700 } }, 'Clientes'),
+      React.createElement('div', { style: { display: 'flex', gap: 8 } },
+        React.createElement('input', { placeholder: '🔍 Buscar cliente...', value: search, onChange: e => setSearch(e.target.value), style: { width: 220 } }),
+        React.createElement('button', { className: 'btn btn-gold' }, '+ Agregar Cliente')
+      )
+    ),
+    React.createElement('div', { className: 'card' },
+      React.createElement('div', { className: 'table-wrap' },
+        React.createElement('table', null,
+          React.createElement('thead', null,
+            React.createElement('tr', null,
+              ['Nombre', 'Teléfono', 'Score', 'Meta', 'Estado', 'Ítems', 'Pago', 'Acciones'].map(h => React.createElement('th', { key: h }, h))
+            )
+          ),
+          React.createElement('tbody', null,
+            filtered.map(c => React.createElement('tr', { key: c.id },
+              React.createElement('td', null, React.createElement('span', { style: { fontWeight: 600 } }, c.nombre)),
+              React.createElement('td', null, React.createElement('span', { style: { color: 'var(--text-muted)', fontSize: 13 } }, c.telefono)),
+              React.createElement('td', null, React.createElement(ScoreBadge, { score: c.score })),
+              React.createElement('td', null, React.createElement('span', { style: { color: '#27AE60', fontWeight: 600 } }, c.meta)),
+              React.createElement('td', null, React.createElement(EstadoBadge, { estado: c.estado })),
+              React.createElement('td', null, React.createElement('span', { className: 'badge badge-yellow' }, c.items + ' ítems')),
+              React.createElement('td', null, React.createElement('span', { style: { fontSize: 13, fontWeight: 600 } }, c.pagado)),
+              React.createElement('td', null,
+                React.createElement('div', { className: 'btn-row' },
+                  React.createElement('button', { className: 'btn btn-outline btn-sm', onClick: () => onSelectClient(c) }, 'Ver Caso'),
+                  React.createElement('button', { className: 'btn btn-outline btn-sm' }, 'Carta')
+                )
+              )
+            ))
+          )
+        )
+      )
+    )
+  );
+}
+
+function NuevoClienteView({ onBack }) {
+  const [step, setStep] = React.useState(1);
+  const [form, setForm] = React.useState({ nombre: '', apellido: '', email: '', telefono: '', dob: '', ssn: '', direccion: '', ciudad: '', estado: 'FL', zip: '', scoreActual: '', scoreMeta: '' });
+  const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
+  const inp = (label, key, type='text', placeholder='') => React.createElement('div', { className: 'form-group' },
+    React.createElement('label', { className: 'form-label' }, label),
+    React.createElement('input', { type, placeholder, value: form[key], onChange: e => set(key, e.target.value) })
+  );
+
+  return React.createElement('div', null,
+    React.createElement('div', { style: { display: 'flex', alignItems: 'center', gap: 12, marginBottom: 24 } },
+      React.createElement('button', { className: 'btn btn-outline btn-sm', onClick: onBack }, '← Volver'),
+      React.createElement('h1', { style: { fontSize: 22, fontWeight: 700 } }, 'Agregar Nuevo Cliente')
+    ),
+    React.createElement('div', { style: { display: 'flex', gap: 8, marginBottom: 28 } },
+      ['Información Personal', 'Datos de Crédito', 'Acuerdo de Servicio'].map((s, i) => React.createElement('div', {
+        key: i,
+        style: {
+          flex: 1, padding: '10px 16px', borderRadius: 8, textAlign: 'center', fontSize: 13, fontWeight: 600,
+          background: step === i + 1 ? 'var(--navy)' : step > i + 1 ? '#D4EDDA' : 'var(--border)',
+          color: step === i + 1 ? 'white' : step > i + 1 ? '#155724' : 'var(--text-muted)'
+        }
+      }, `${i + 1}. ${s}`))
+    ),
+    React.createElement('div', { className: 'card' },
+      step === 1 && React.createElement('div', null,
+        React.createElement('div', { className: 'form-row' }, inp('Nombre', 'nombre', 'text', 'Ej: María'), inp('Apellido', 'apellido', 'text', 'Ej: García')),
+        React.createElement('div', { className: 'form-row' }, inp('Email', 'email', 'email', 'maria@email.com'), inp('Teléfono', 'telefono', 'tel', '(407) 555-0000')),
+        React.createElement('div', { className: 'form-row' }, inp('Fecha de Nacimiento', 'dob', 'date'), inp('SSN (últimos 4)', 'ssn', 'text', 'XXXX')),
+        inp('Dirección', 'direccion', 'text', '123 Main St'),
+        React.createElement('div', { className: 'form-row' }, inp('Ciudad', 'ciudad', 'text', 'Orlando'), inp('Estado/ZIP', 'zip', 'text', '32801'))
+      ),
+      step === 2 && React.createElement('div', null,
+        React.createElement('div', { className: 'form-row' }, inp('Score Actual (si conoce)', 'scoreActual', 'number', 'Ej: 540'), inp('Score Meta', 'scoreMeta', 'number', 'Ej: 700')),
+        React.createElement('div', { className: 'form-group' },
+          React.createElement('label', { className: 'form-label' }, 'Problemas de Crédito Identificados'),
+          React.createElement('textarea', { rows: 4, placeholder: 'Ej: Colecciones médicas, pagos tardíos, juicios civiles...' })
+        ),
+        React.createElement('div', { className: 'form-group' },
+          React.createElement('label', { className: 'form-label' }, 'Plan de Pago'),
+          React.createElement('select', null,
+            React.createElement('option', null, 'Básico — $99/mes'),
+            React.createElement('option', null, 'Estándar — $120/mes'),
+            React.createElement('option', null, 'Pro — $150/mes'),
+            React.createElement('option', null, 'Personalizado')
+          )
+        )
+      ),
+      step === 3 && React.createElement('div', null,
+        React.createElement('div', { style: { background: 'var(--surface-2)', borderRadius: 8, padding: 20, marginBottom: 16, fontSize: 13, lineHeight: 1.7, color: 'var(--text-secondary)' } },
+          React.createElement('strong', null, 'ACUERDO DE SERVICIO — CreditPath\n\n'),
+          React.createElement('p', null, 'Al firmar este acuerdo, el cliente autoriza a la oficina a disputar ítems inexactos, obsoletos o no verificables en su reporte de crédito según la FCRA (Fair Credit Reporting Act).\n\nLa oficina NO garantiza resultados específicos. Los cambios en el puntaje de crédito dependen de la respuesta de los bureaus crediticios.\n\nEl cliente tiene derecho a cancelar en cualquier momento dentro de los primeros 3 días hábiles sin cargo.'),
+        ),
+        React.createElement('div', { className: 'form-group' }, inp('Firma del Cliente (nombre completo)', 'firma', 'text', 'Escribe tu nombre completo')),
+        React.createElement('div', { style: { display: 'flex', gap: 8, alignItems: 'center', marginBottom: 12 } },
+          React.createElement('input', { type: 'checkbox', id: 'acepta', style: { width: 'auto' } }),
+          React.createElement('label', { htmlFor: 'acepta', style: { fontSize: 13, color: 'var(--text-secondary)', cursor: 'pointer' } }, 'Acepto los términos del servicio y autorizo el inicio del proceso de reparación de crédito.')
+        )
+      ),
+      React.createElement('div', { style: { display: 'flex', justifyContent: 'space-between', marginTop: 24 } },
+        React.createElement('button', { className: 'btn btn-outline', onClick: () => step > 1 ? setStep(s => s - 1) : onBack }, step > 1 ? '← Anterior' : 'Cancelar'),
+        React.createElement('button', { className: 'btn btn-gold', onClick: () => step < 3 ? setStep(s => s + 1) : alert('✅ Cliente creado exitosamente en Firebase') },
+          step < 3 ? 'Siguiente →' : '✅ Crear Cliente'
+        )
+      )
+    )
+  );
+}
+
+function CobrosView() {
+  return React.createElement('div', null,
+    React.createElement('h1', { style: { fontSize: 22, fontWeight: 700, marginBottom: 6 } }, 'Cobros y Pagos'),
+    React.createElement('p', { style: { color: 'var(--text-muted)', fontSize: 14, marginBottom: 24 } }, 'Gestiona los pagos mensuales de tus clientes'),
+    React.createElement('div', { className: 'stats-grid' },
+      [
+        { label: 'Ingresos Este Mes', val: '$1,740', change: 'de $1,839 esperado' },
+        { label: 'Pendientes', val: '$99', change: '1 cliente debe' },
+        { label: 'Clientes al Día', val: '5/6', change: '83% puntualidad' },
+        { label: 'MRR', val: '$1,740', change: 'ingresos recurrentes' },
+      ].map(s => React.createElement('div', { key: s.label, className: 'stat-card' },
+        React.createElement('div', { className: 'stat-label' }, s.label),
+        React.createElement('div', { className: 'stat-value' }, s.val),
+        React.createElement('div', { className: 'stat-change up' }, s.change)
+      ))
+    ),
+    React.createElement('div', { className: 'card' },
+      React.createElement('div', { className: 'card-title', style: { marginBottom: 16 } }, 'Estado de Pagos Diciembre 2024'),
+      React.createElement('table', null,
+        React.createElement('thead', null,
+          React.createElement('tr', null,
+            ['Cliente', 'Plan', 'Monto', 'Fecha Límite', 'Estado', 'Acción'].map(h => React.createElement('th', { key: h }, h))
+          )
+        ),
+        React.createElement('tbody', null,
+          DEMO_CLIENTS.map(c => React.createElement('tr', { key: c.id },
+            React.createElement('td', null, React.createElement('span', { style: { fontWeight: 600 } }, c.nombre)),
+            React.createElement('td', null, 'Mensual'),
+            React.createElement('td', null, React.createElement('span', { style: { fontWeight: 700 } }, c.pagado)),
+            React.createElement('td', null, 'Dic 30, 2024'),
+            React.createElement('td', null,
+              c.pagado === 'Pendiente'
+                ? React.createElement('span', { className: 'badge badge-red' }, 'Pendiente')
+                : React.createElement('span', { className: 'badge badge-green' }, 'Pagado ✓')
+            ),
+            React.createElement('td', null,
+              React.createElement('button', { className: 'btn btn-outline btn-sm' },
+                c.pagado === 'Pendiente' ? '📧 Recordatorio' : '🧾 Recibo'
+              )
+            )
+          ))
+        )
+      )
+    )
+  );
+}
+
+function SuperadminView() {
+  return React.createElement('div', null,
+    React.createElement('div', { style: { display: 'flex', alignItems: 'center', gap: 12, marginBottom: 6 } },
+      React.createElement('h1', { style: { fontSize: 22, fontWeight: 700 } }, 'Superadmin'),
+      React.createElement('span', { className: 'badge badge-purple' }, 'CreditPath HQ')
+    ),
+    React.createElement('p', { style: { color: 'var(--text-muted)', fontSize: 14, marginBottom: 24 } }, 'Gestión global de todas las oficinas de reparación de crédito'),
+    React.createElement('div', { className: 'stats-grid', style: { marginBottom: 24 } },
+      [
+        { label: 'Oficinas Activas', val: '4', change: '+1 demo activa' },
+        { label: 'Clientes Totales', val: '251', change: 'en todas las oficinas' },
+        { label: 'MRR Total', val: '$23,900', change: 'ingresos plataforma' },
+        { label: 'Demos Activos', val: '1', change: 'vence en 7 días' },
+      ].map(s => React.createElement('div', { key: s.label, className: 'stat-card' },
+        React.createElement('div', { className: 'stat-label' }, s.label),
+        React.createElement('div', { className: 'stat-value' }, s.val),
+        React.createElement('div', { className: 'stat-change up' }, s.change)
+      ))
+    ),
+    React.createElement('div', { style: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 24 } },
+      DEMO_OFFICES.map(o => React.createElement('div', { key: o.id, className: 'office-card' },
+        React.createElement('div', { style: { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' } },
+          React.createElement('div', null,
+            React.createElement('div', { className: 'office-name' }, o.nombre),
+            React.createElement('div', { className: 'office-meta' }, o.ciudad + ' · ' + o.staff + ' staff')
+          ),
+          o.demo
+            ? React.createElement('span', { className: 'badge badge-yellow' }, '⏳ Demo')
+            : React.createElement('span', { className: 'badge badge-green' }, '✓ ' + o.plan)
+        ),
+        React.createElement('div', { className: 'office-stats' },
+          [
+            { val: o.clientes, lbl: 'Clientes' },
+            { val: o.ingresos, lbl: 'MRR' },
+            { val: o.vence.slice(5), lbl: 'Vence' },
+          ].map(s => React.createElement('div', { key: s.lbl, className: 'office-stat' },
+            React.createElement('div', { className: 'office-stat-val' }, s.val),
+            React.createElement('div', { className: 'office-stat-lbl' }, s.lbl)
+          ))
+        ),
+        React.createElement('div', { className: 'btn-row', style: { marginTop: 14 } },
+          React.createElement('button', { className: 'btn btn-outline btn-sm' }, 'Ver Oficina'),
+          o.demo
+            ? React.createElement('button', { className: 'btn btn-gold btn-sm' }, '↑ Convertir')
+            : React.createElement('button', { className: 'btn btn-outline btn-sm' }, 'Facturación'),
+          React.createElement('button', { className: 'btn btn-danger btn-sm' }, 'Suspender')
+        )
+      ))
+    ),
+    React.createElement('div', { className: 'card' },
+      React.createElement('div', { style: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 } },
+        React.createElement('div', { className: 'card-title' }, 'Crear Nueva Oficina'),
+        React.createElement('span', { className: 'badge badge-gold' }, '15 días gratis')
+      ),
+      React.createElement('div', { className: 'form-row', style: { marginBottom: 12 } },
+        React.createElement('div', { className: 'form-group', style: { margin: 0 } },
+          React.createElement('label', { className: 'form-label' }, 'Nombre de la Oficina'),
+          React.createElement('input', { placeholder: 'Ej: Crédito Nuevo Dallas' })
+        ),
+        React.createElement('div', { className: 'form-group', style: { margin: 0 } },
+          React.createElement('label', { className: 'form-label' }, 'Email del Administrador'),
+          React.createElement('input', { type: 'email', placeholder: 'admin@oficina.com' })
+        )
+      ),
+      React.createElement('div', { className: 'form-row', style: { marginBottom: 16 } },
+        React.createElement('div', { className: 'form-group', style: { margin: 0 } },
+          React.createElement('label', { className: 'form-label' }, 'Ciudad'),
+          React.createElement('input', { placeholder: 'Dallas, TX' })
+        ),
+        React.createElement('div', { className: 'form-group', style: { margin: 0 } },
+          React.createElement('label', { className: 'form-label' }, 'Plan'),
+          React.createElement('select', null,
+            React.createElement('option', null, 'Demo — 15 días gratis'),
+            React.createElement('option', null, 'Básico — $99/mes'),
+            React.createElement('option', null, 'Pro — $199/mes'),
+            React.createElement('option', null, 'Enterprise — $399/mes')
+          )
+        )
+      ),
+      React.createElement('button', { className: 'btn btn-gold', onClick: () => alert('✅ Oficina creada. Email enviado con credenciales.') }, '🏢 Crear Oficina + Enviar Acceso')
+    )
+  );
+}
+
+function PortalClienteView() {
+  const client = DEMO_CLIENTS[0];
+  return React.createElement('div', null,
+    React.createElement('div', { className: 'demo-banner' },
+      React.createElement('div', null,
+        React.createElement('div', { style: { fontSize: 13, color: 'rgba(255,255,255,0.6)', marginBottom: 4 } }, 'Tu progreso de crédito'),
+        React.createElement('div', { style: { fontSize: 20, fontWeight: 700, color: 'white' } }, client.nombre)
+      ),
+      React.createElement('div', { style: { textAlign: 'center' } },
+        React.createElement('div', { className: 'demo-days' }, `${client.meta - client.score}`),
+        React.createElement('div', { className: 'demo-label' }, 'puntos para tu meta')
+      ),
+      React.createElement('button', { className: 'btn btn-gold' }, '📱 Descargar App')
+    ),
+    React.createElement('div', { className: 'grid-2', style: { marginBottom: 24 } },
+      React.createElement('div', { className: 'card' },
+        React.createElement('div', { className: 'card-title', style: { marginBottom: 0 } }, 'Tu Puntaje de Crédito'),
+        React.createElement(CreditDial, { score: client.score }),
+        React.createElement('div', { style: { textAlign: 'center', marginTop: 8 } },
+          React.createElement('p', { style: { fontSize: 13, color: 'var(--text-muted)' } }, `Meta: ${client.meta} pts`)
+        )
+      ),
+      React.createElement('div', { className: 'card' },
+        React.createElement('div', { className: 'card-title', style: { marginBottom: 16 } }, 'Estado de tu Caso'),
+        [
+          { label: 'Ítems en Disputa', val: client.items, icon: '⚡' },
+          { label: 'Cartas Enviadas', val: 3, icon: '✉️' },
+          { label: 'Respuestas Recibidas', val: 1, icon: '📬' },
+          { label: 'Próximo Pago', val: 'Dic 30', icon: '💳' },
+        ].map(s => React.createElement('div', { key: s.label, style: { display: 'flex', justifyContent: 'space-between', padding: '10px 0', borderBottom: '1px solid var(--border)' } },
+          React.createElement('span', { style: { fontSize: 14, color: 'var(--text-secondary)' } }, s.icon + ' ' + s.label),
+          React.createElement('span', { style: { fontSize: 14, fontWeight: 700 } }, s.val)
+        ))
+      )
+    ),
+    React.createElement('div', { className: 'card' },
+      React.createElement('div', { className: 'card-title', style: { marginBottom: 16 } }, 'Mis Disputas Activas'),
+      client.disputas.map((d, i) => React.createElement('div', { key: i, style: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 16px', background: 'var(--surface-2)', borderRadius: 8, marginBottom: 8 } },
+        React.createElement('span', { style: { fontSize: 14 } }, '⚡ ' + d),
+        React.createElement('span', { className: 'badge badge-yellow' }, 'En proceso')
+      )),
+      React.createElement('div', { style: { marginTop: 16, padding: 16, background: '#F0FFF4', borderRadius: 8, border: '1px solid #C6F6D5' } },
+        React.createElement('p', { style: { fontSize: 13, color: '#276749' } }, '📌 Tip: Sigue pagando todas tus cuentas actuales a tiempo. Es el factor más importante para subir tu puntaje.')
+      )
+    )
+  );
+}
+
+// ─── APP PRINCIPAL ─────────────────────────────────────────────────────────
+function App() {
+  const [page, setPage] = React.useState('dashboard');
+  const [role, setRole] = React.useState('office'); // 'office' | 'superadmin' | 'client' | 'login'
+  const [selectedClient, setSelectedClient] = React.useState(null);
+  const [loginMode, setLoginMode] = React.useState('oficina');
+  const [loginUser, setLoginUser] = React.useState('');
+  const [loginPass, setLoginPass] = React.useState('');
+  const [loggedIn, setLoggedIn] = React.useState(true); // Demo: empieza logueado
+
+  const handleLogin = () => {
+    if (loginMode === 'superadmin') setRole('superadmin');
+    else if (loginMode === 'cliente') { setRole('client'); setPage('portal'); }
+    else { setRole('office'); setPage('dashboard'); }
+    setLoggedIn(true);
+  };
+
+  if (!loggedIn) {
+    return React.createElement('div', { className: 'login-page' },
+      React.createElement('div', { className: 'login-card' },
+        React.createElement('div', { className: 'login-logo' }, 'Credit', React.createElement('span', null, 'Path')),
+        React.createElement('div', { className: 'login-sub' }, 'Plataforma de Reparación de Crédito'),
+        React.createElement('div', { className: 'login-toggle' },
+          ['oficina', 'cliente', 'superadmin'].map(m => React.createElement('button', {
+            key: m, className: `login-toggle-btn ${loginMode === m ? 'active' : ''}`,
+            onClick: () => setLoginMode(m)
+          }, m === 'oficina' ? '🏢 Oficina' : m === 'cliente' ? '👤 Cliente' : '⚙️ Admin'))
+        ),
+        React.createElement('div', { className: 'form-group' },
+          React.createElement('label', { className: 'form-label' }, 'Email'),
+          React.createElement('input', { type: 'email', placeholder: 'tu@email.com', value: loginUser, onChange: e => setLoginUser(e.target.value) })
+        ),
+        React.createElement('div', { className: 'form-group' },
+          React.createElement('label', { className: 'form-label' }, 'Contraseña'),
+          React.createElement('input', { type: 'password', placeholder: '••••••••', value: loginPass, onChange: e => setLoginPass(e.target.value) })
+        ),
+        React.createElement('button', { className: 'btn btn-gold', style: { width: '100%', padding: 14, fontSize: 15 }, onClick: handleLogin }, 'Iniciar Sesión'),
+        React.createElement('div', { style: { textAlign: 'center', marginTop: 16, fontSize: 13, color: 'var(--text-muted)' } },
+          '¿Sin cuenta? ', React.createElement('a', { href: '#', style: { color: 'var(--navy)', fontWeight: 600 }, onClick: e => { e.preventDefault(); alert('Contacta a CreditPath para acceso de demo de 15 días') } }, 'Solicitar demo gratis →')
+        )
+      )
+    );
+  }
+
+  const navItems = role === 'superadmin' ? [
+    { key: 'superadmin', icon: '⚙️', label: 'Panel Admin' },
+    { key: 'oficinas', icon: '🏢', label: 'Oficinas' },
+    { key: 'cobros', icon: '💰', label: 'Facturación' },
+  ] : role === 'client' ? [
+    { key: 'portal', icon: '📊', label: 'Mi Crédito' },
+  ] : [
+    { key: 'dashboard', icon: '📊', label: 'Panel' },
+    { key: 'casos', icon: '📋', label: 'Monitor Casos' },
+    { key: 'clientes', icon: '👥', label: 'Clientes' },
+    { key: 'nuevo_cliente', icon: '➕', label: 'Nuevo Cliente' },
+    { key: 'cobros', icon: '💰', label: 'Cobros' },
+    { key: 'portal', icon: '👤', label: 'Portal Cliente' },
+    { key: 'superadmin', icon: '⚙️', label: 'Superadmin' },
+  ];
+
+  const roleLabel = role === 'superadmin' ? 'CreditPath HQ' : role === 'client' ? 'Portal Cliente' : 'Oficina';
+
+  return React.createElement('div', null,
+    React.createElement('nav', { className: 'nav' },
+      React.createElement('span', { className: 'nav-logo' }, 'Credit', React.createElement('span', null, 'Path')),
+      React.createElement('div', { className: 'nav-right' },
+        React.createElement('span', { className: 'nav-demo-badge' }, '⏳ Demo — 14 días restantes'),
+        React.createElement('span', { style: { color: 'rgba(255,255,255,0.5)', fontSize: 13 } }, roleLabel),
+        React.createElement('button', { className: 'btn-nav', onClick: () => setLoggedIn(false) }, 'Salir')
+      )
+    ),
+    React.createElement('div', { className: 'layout' },
+      React.createElement('div', { className: 'sidebar' },
+        React.createElement('div', { className: 'sidebar-section' }, 'Menú'),
+        navItems.map(item => React.createElement('div', {
+          key: item.key,
+          className: `sidebar-item ${page === item.key ? 'active' : ''}`,
+          onClick: () => setPage(item.key)
+        },
+          React.createElement('span', { className: 'sidebar-icon' }, item.icon),
+          React.createElement('span', null, item.label)
+        )),
+        React.createElement('div', { className: 'sidebar-section', style: { marginTop: 'auto' } }, 'Demo'),
+        React.createElement('div', { style: { padding: '12px 20px' } },
+          React.createElement('div', { style: { background: 'rgba(212,168,67,0.1)', borderRadius: 8, padding: 12 } },
+            React.createElement('div', { style: { color: 'var(--gold)', fontSize: 20, fontWeight: 800 } }, '14'),
+            React.createElement('div', { style: { color: 'rgba(255,255,255,0.5)', fontSize: 11 } }, 'días de demo'),
+            React.createElement('button', { className: 'btn btn-gold', style: { width: '100%', marginTop: 8, fontSize: 12 }, onClick: () => alert('¡Gracias! Te contactaremos para activar tu cuenta.') }, 'Activar Plan')
+          )
+        )
+      ),
+      React.createElement('div', { className: 'main' },
+        page === 'dashboard' && React.createElement(DashboardView, { onSelectClient: c => { setSelectedClient(c); } }),
+        page === 'casos' && React.createElement(CasosView, { onSelectClient: c => setSelectedClient(c) }),
+        page === 'clientes' && React.createElement(ClientesView, { onSelectClient: c => setSelectedClient(c) }),
+        page === 'nuevo_cliente' && React.createElement(NuevoClienteView, { onBack: () => setPage('clientes') }),
+        page === 'cobros' && React.createElement(CobrosView, null),
+        page === 'portal' && React.createElement(PortalClienteView, null),
+        page === 'superadmin' && React.createElement(SuperadminView, null),
+        page === 'oficinas' && React.createElement(SuperadminView, null),
+        selectedClient && React.createElement(ClientModal, { client: selectedClient, onClose: () => setSelectedClient(null) })
+      )
+    )
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(React.createElement(App));
+</script>
+</body>
+</html>
