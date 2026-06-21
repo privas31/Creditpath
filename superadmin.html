@@ -591,7 +591,7 @@ function App() {
   };
 
   const handleEntrar = (o) => {
-    alert(`Entrando al monitor de: ${o.nombre}\n\n(Próximamente: redirige a oficina.html?id=${o.id})`);
+    window.open(`https://privas31.github.io/Creditpath/creditpath.html?oficina=${o.id}&nombre=${encodeURIComponent(o.nombre)}`, '_blank');
   };
 
   if (checking) return React.createElement('div', { className: 'loading' }, '⏳ Verificando sesión...');
