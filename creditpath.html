@@ -546,12 +546,11 @@ function Dial({score,lang='es'}){
         fill:'#1E293B'
       }),
       React.createElement('circle',{cx,cy,r:10,fill:'#1E293B'}),
-      React.createElement('circle',{cx,cy,r:6,fill:'#fff'}),
-      // Score number
-      React.createElement('text',{x:cx,y:112,textAnchor:'middle',fontSize:26,fontWeight:800,fill:'#0A1628',fontFamily:'-apple-system,sans-serif'},score)
+      React.createElement('circle',{cx,cy,r:6,fill:'#fff'})
     ),
-    React.createElement('div',{style:{fontSize:13,fontWeight:700,color,marginTop:2}},zone),
-    React.createElement('div',{style:{fontSize:11,color:'#718096',marginTop:2}},'300 — Poor · 580 — Fair · 670 — Good · 740 — Very Good · 800 — Exceptional')
+    React.createElement('div',{style:{fontSize:36,fontWeight:800,color,lineHeight:1,marginTop:6,letterSpacing:'-1px'}},score),
+    React.createElement('div',{style:{fontSize:13,fontWeight:700,color,marginTop:4}},zone),
+    React.createElement('div',{style:{fontSize:10,color:'#718096',marginTop:4}},'300 Poor · 580 Fair · 670 Good · 740 Very Good · 800 Exceptional')
   );
 }
 
@@ -624,6 +623,8 @@ function CartasView({clientes,lang,oficinaNombre}){
   const [sel,setSel]=React.useState(null);
   const [bureau,setBureau]=React.useState('equifax');
   const [cartaNum,setCartaNum]=React.useState(1);
+  const [fechaEnvio,setFechaEnvio]=React.useState(new Date().toISOString().slice(0,10));
+  const [tracking,setTracking]=React.useState('');
   const t=T[lang];
 
   const bureauAddr={
@@ -787,6 +788,16 @@ ${sel.nombre}`;
             React.createElement('div',{className:'carta-opt-desc'},c.td),
             React.createElement('div',{style:{fontSize:10,color:'var(--t3)',marginTop:4}},c.tag)
           ))
+        )
+      ),
+      React.createElement('div',{className:'fr'},
+        React.createElement('div',{className:'fg'},
+          React.createElement('label',{className:'fl'},'📅 '+(lang==='es'?'Fecha de Envío':'Send Date')),
+          React.createElement('input',{className:'fi',type:'date',value:fechaEnvio,onChange:e=>setFechaEnvio(e.target.value)})
+        ),
+        React.createElement('div',{className:'fg'},
+          React.createElement('label',{className:'fl'},'📮 '+(lang==='es'?'Número de Tracking (Certified Mail)':'Tracking # (Certified Mail)')),
+          React.createElement('input',{className:'fi',type:'text',placeholder:'9400111899223367XXXXXX',value:tracking,onChange:e=>setTracking(e.target.value)})
         )
       ),
       React.createElement('div',{className:'fa'},
@@ -1038,6 +1049,24 @@ function CobrosView({clientes,lang}){
   const t=T[lang];
   const cobrado=clientes.filter(c=>c.pagado).reduce((s,c)=>s+(c.pago||0),0);
   const pend=clientes.filter(c=>!c.pagado).reduce((s,c)=>s+(c.pago||0),0);
+
+  const planLabel=(tipo,l)=>{
+    const map={
+      mensual:{es:'📅 Mensualidad Fija',en:'📅 Fixed Monthly'},
+      disputa:{es:'⚡ Por Disputa',en:'⚡ Per Dispute'},
+      resultado:{es:'🎯 Por Mancha Eliminada',en:'🎯 Per Removed Item'},
+      personalizado:{es:'✏️ Personalizado',en:'✏️ Custom'},
+    };
+    return (map[tipo]||map.mensual)[l]||tipo;
+  };
+
+  const planDesc=(tipo,pago,l)=>{
+    if(tipo==='mensual')return l==='es'?`$${pago}/mes fijo`:`$${pago}/mo fixed`;
+    if(tipo==='disputa')return l==='es'?`$${pago} por ítem disputado`:`$${pago} per disputed item`;
+    if(tipo==='resultado')return l==='es'?`$${pago} por mancha borrada`:`$${pago} per removed item`;
+    return `$${pago}`;
+  };
+
   return React.createElement('div',null,
     React.createElement('div',{className:'sg',style:{gridTemplateColumns:'repeat(3,1fr)'}},
       [{l:t.cobradoTotal,v:fm(cobrado),c:'green'},{l:t.porCobrarTotal,v:fm(pend),c:'yellow'},{l:t.mrrEsperado,v:fm(cobrado+pend),c:'gold'}]
@@ -1046,11 +1075,20 @@ function CobrosView({clientes,lang}){
     React.createElement('div',{className:'cd'},
       React.createElement('div',{className:'cdh'},React.createElement('span',{className:'cdt'},t.pagosMes)),
       React.createElement('table',null,
-        React.createElement('thead',null,React.createElement('tr',null,['Client','Plan','Fee','Status','Action'].map(h=>React.createElement('th',{key:h},h)))),
+        React.createElement('thead',null,React.createElement('tr',null,
+          [lang==='es'?'Cliente':'Client',lang==='es'?'Tipo de Cobro':'Billing Type',lang==='es'?'Detalle':'Detail',lang==='es'?'Estado':'Status',lang==='es'?'Acción':'Action'].map(h=>React.createElement('th',{key:h},h))
+        )),
         React.createElement('tbody',null,clientes.map(c=>React.createElement('tr',{key:c.id},
-          React.createElement('td',null,React.createElement('span',{style:{fontWeight:600}},c.nombre)),
-          React.createElement('td',null,React.createElement('span',{className:'bgg bg-gold',style:{fontSize:10}},c.planTipo||'mensual')),
-          React.createElement('td',null,fm(c.pago)+'/mo'),
+          React.createElement('td',null,
+            React.createElement('div',{style:{fontWeight:600}},c.nombre),
+            React.createElement('div',{style:{fontSize:11,color:'var(--t3)'}},c.email)
+          ),
+          React.createElement('td',null,
+            React.createElement('span',{className:'bgg bg-gold',style:{fontSize:11}},planLabel(c.planTipo,lang))
+          ),
+          React.createElement('td',null,
+            React.createElement('span',{style:{fontSize:13,fontWeight:600}},planDesc(c.planTipo,c.pago,lang))
+          ),
           React.createElement('td',null,c.pagado?React.createElement('span',{className:'bgg bg-green'},t.pagado):React.createElement('span',{className:'bgg bg-red'},t.pendiente)),
           React.createElement('td',null,React.createElement('button',{className:'btn btn-ghost btn-sm'},c.pagado?t.recibo:t.recordatorio))
         )))
@@ -1234,7 +1272,7 @@ function App(){
       React.createElement('div',{className:'tb'},
         React.createElement('span',{className:'tbt'},nav.find(n=>n.k===page)?.l||''),
         React.createElement('div',{style:{display:'flex',gap:8,alignItems:'center'}},
-          React.createElement('button',{className:'btn-lang',onClick:()=>setLang(l=>l==='es'?'en':'es')},lang==='es'?'🇺🇸 EN':'🇲🇽 ES'),
+          React.createElement('button',{className:'btn-lang',onClick:()=>setLang(l=>l==='es'?'en':'es')},lang==='es'?'EN':'ES'),
           React.createElement('button',{className:'btn btn-ghost btn-sm',onClick:()=>setPage('herramientas')},'🛠️ '+t.herramientas),
           React.createElement('button',{className:'btn btn-gold btn-sm',onClick:()=>setShowNuevo(true)},'+ '+t.nuevo)
         )
