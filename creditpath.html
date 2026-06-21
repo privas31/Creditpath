@@ -1202,6 +1202,13 @@ function App(){
   const [lang,setLang]=React.useState('es');
   const [oficinaNombre,setOficinaNombre]=React.useState('');
 
+  // Lee parámetros de URL si viene del superadmin
+  React.useEffect(()=>{
+    const params=new URLSearchParams(window.location.search);
+    const nombreUrl=params.get('nombre');
+    if(nombreUrl)setOficinaNombre(decodeURIComponent(nombreUrl));
+  },[]);
+
   React.useEffect(()=>{
     const unsub=auth.onAuthStateChanged(async u=>{
       setUser(u);
