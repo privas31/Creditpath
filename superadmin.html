@@ -1,0 +1,662 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>CreditPath — Super Admin</title>
+<script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
+<style>
+  :root {
+    --navy: #0A1628;
+    --navy-2: #111F3A;
+    --navy-3: #1A2F52;
+    --gold: #D4A843;
+    --gold-light: #F0C865;
+    --green: #22C55E;
+    --green-dim: #16A34A;
+    --red: #EF4444;
+    --yellow: #F59E0B;
+    --blue: #3B82F6;
+    --text: #F1F5F9;
+    --text-2: #94A3B8;
+    --text-3: #64748B;
+    --border: rgba(255,255,255,0.08);
+    --border-2: rgba(255,255,255,0.04);
+    --surface: rgba(255,255,255,0.04);
+    --surface-2: rgba(255,255,255,0.07);
+    --radius: 12px;
+    --radius-sm: 8px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--navy); color: var(--text); min-height: 100vh; }
+  button { cursor: pointer; border: none; outline: none; font-family: inherit; }
+  input, select { font-family: inherit; outline: none; font-size: 14px; }
+
+  /* LOGIN */
+  .login-wrap { min-height: 100vh; display: flex; align-items: center; justify-content: center; background: var(--navy); }
+  .login-box { background: var(--navy-2); border: 1px solid var(--border); border-radius: 16px; padding: 44px 40px; width: 380px; box-shadow: 0 24px 64px rgba(0,0,0,0.4); }
+  .login-logo { text-align: center; margin-bottom: 6px; }
+  .login-logo-text { font-size: 26px; font-weight: 800; color: var(--text); letter-spacing: -0.5px; }
+  .login-logo-text span { color: var(--gold); }
+  .login-role { text-align: center; font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--gold); margin-bottom: 32px; }
+  .login-label { font-size: 12px; font-weight: 600; color: var(--text-2); margin-bottom: 6px; display: block; text-transform: uppercase; letter-spacing: 0.5px; }
+  .login-input { width: 100%; background: var(--navy-3); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 12px 14px; color: var(--text); font-size: 14px; margin-bottom: 16px; transition: border-color 0.2s; }
+  .login-input:focus { border-color: var(--gold); }
+  .login-btn { width: 100%; background: var(--gold); color: var(--navy); font-size: 15px; font-weight: 700; padding: 14px; border-radius: var(--radius-sm); margin-top: 8px; transition: background 0.15s; }
+  .login-btn:hover { background: var(--gold-light); }
+  .login-error { background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3); border-radius: var(--radius-sm); padding: 10px 14px; font-size: 13px; color: #FCA5A5; margin-bottom: 16px; }
+
+  /* LAYOUT */
+  .app { display: flex; min-height: 100vh; }
+
+  /* SIDEBAR */
+  .sidebar { width: 220px; background: var(--navy-2); border-right: 1px solid var(--border); display: flex; flex-direction: column; flex-shrink: 0; }
+  .sidebar-top { padding: 20px; border-bottom: 1px solid var(--border); }
+  .sidebar-brand { font-size: 18px; font-weight: 800; color: var(--text); letter-spacing: -0.3px; }
+  .sidebar-brand span { color: var(--gold); }
+  .sidebar-role { font-size: 10px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: var(--gold); margin-top: 2px; }
+  .sidebar-nav { flex: 1; padding: 16px 0; }
+  .nav-section { font-size: 10px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: var(--text-3); padding: 12px 20px 6px; }
+  .nav-item { display: flex; align-items: center; gap: 10px; padding: 10px 20px; font-size: 13px; color: var(--text-2); cursor: pointer; border-left: 3px solid transparent; transition: all 0.15s; }
+  .nav-item:hover { background: var(--surface); color: var(--text); }
+  .nav-item.active { background: rgba(212,168,67,0.08); color: var(--gold); border-left-color: var(--gold); }
+  .nav-icon { font-size: 16px; width: 18px; text-align: center; }
+  .sidebar-bottom { padding: 16px 20px; border-top: 1px solid var(--border); }
+  .signout-btn { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text-3); cursor: pointer; transition: color 0.15s; background: none; width: 100%; }
+  .signout-btn:hover { color: var(--red); }
+
+  /* MAIN */
+  .main { flex: 1; overflow-y: auto; }
+  .topbar { height: 56px; background: var(--navy-2); border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; padding: 0 28px; position: sticky; top: 0; z-index: 10; }
+  .topbar-title { font-size: 15px; font-weight: 600; color: var(--text); }
+  .topbar-right { display: flex; align-items: center; gap: 12px; }
+  .content { padding: 28px; }
+
+  /* CARDS */
+  .card { background: var(--navy-2); border: 1px solid var(--border); border-radius: var(--radius); padding: 24px; }
+  .card-title { font-size: 14px; font-weight: 600; color: var(--text); margin-bottom: 4px; }
+  .card-sub { font-size: 12px; color: var(--text-2); }
+
+  /* STATS */
+  .stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
+  .stat { background: var(--navy-2); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px 22px; }
+  .stat-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.8px; color: var(--text-3); margin-bottom: 10px; }
+  .stat-val { font-size: 30px; font-weight: 800; color: var(--text); line-height: 1; }
+  .stat-val.gold { color: var(--gold); }
+  .stat-val.green { color: var(--green); }
+  .stat-note { font-size: 12px; color: var(--text-3); margin-top: 6px; }
+
+  /* OFICINA CARDS */
+  .oficinas-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px; }
+  .of-card { background: var(--navy-2); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; transition: border-color 0.15s; }
+  .of-card:hover { border-color: rgba(212,168,67,0.3); }
+  .of-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 16px; }
+  .of-avatar { width: 40px; height: 40px; border-radius: 10px; background: var(--navy-3); display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
+  .of-info { flex: 1; margin-left: 12px; }
+  .of-name { font-size: 14px; font-weight: 700; color: var(--text); }
+  .of-owner { font-size: 12px; color: var(--text-2); margin-top: 2px; }
+  .of-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 16px; }
+  .of-stat { background: var(--navy-3); border-radius: 8px; padding: 10px 8px; text-align: center; }
+  .of-stat-val { font-size: 18px; font-weight: 800; color: var(--text); }
+  .of-stat-val.green { color: var(--green); }
+  .of-stat-val.yellow { color: var(--yellow); }
+  .of-stat-lbl { font-size: 10px; color: var(--text-3); margin-top: 2px; text-transform: uppercase; letter-spacing: 0.5px; }
+  .of-actions { display: flex; gap: 8px; }
+
+  /* BADGES */
+  .badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; }
+  .badge-green { background: rgba(34,197,94,0.1); color: var(--green); border: 1px solid rgba(34,197,94,0.2); }
+  .badge-yellow { background: rgba(245,158,11,0.1); color: var(--yellow); border: 1px solid rgba(245,158,11,0.2); }
+  .badge-red { background: rgba(239,68,68,0.1); color: var(--red); border: 1px solid rgba(239,68,68,0.2); }
+  .badge-gold { background: rgba(212,168,67,0.1); color: var(--gold); border: 1px solid rgba(212,168,67,0.2); }
+  .badge-blue { background: rgba(59,130,246,0.1); color: var(--blue); border: 1px solid rgba(59,130,246,0.2); }
+
+  /* BUTTONS */
+  .btn { padding: 8px 16px; border-radius: var(--radius-sm); font-size: 13px; font-weight: 600; transition: all 0.15s; display: inline-flex; align-items: center; gap: 6px; }
+  .btn-gold { background: var(--gold); color: var(--navy); }
+  .btn-gold:hover { background: var(--gold-light); }
+  .btn-ghost { background: var(--surface-2); color: var(--text-2); border: 1px solid var(--border); }
+  .btn-ghost:hover { color: var(--text); background: var(--surface); }
+  .btn-danger { background: rgba(239,68,68,0.1); color: var(--red); border: 1px solid rgba(239,68,68,0.2); }
+  .btn-danger:hover { background: rgba(239,68,68,0.2); }
+  .btn-sm { padding: 6px 12px; font-size: 12px; }
+  .btn-enter { background: var(--navy-3); color: var(--text); border: 1px solid var(--border); width: 100%; justify-content: center; padding: 10px; font-size: 13px; font-weight: 600; border-radius: var(--radius-sm); transition: all 0.15s; }
+  .btn-enter:hover { background: var(--gold); color: var(--navy); border-color: var(--gold); }
+
+  /* TABLE */
+  .table-wrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th { text-align: left; padding: 10px 16px; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: var(--text-3); border-bottom: 1px solid var(--border); }
+  td { padding: 14px 16px; border-bottom: 1px solid var(--border-2); color: var(--text); vertical-align: middle; }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: var(--surface); }
+
+  /* MODAL */
+  .modal-bg { position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 100; display: flex; align-items: center; justify-content: center; padding: 20px; backdrop-filter: blur(4px); }
+  .modal { background: var(--navy-2); border: 1px solid var(--border); border-radius: 16px; padding: 32px; width: 100%; max-width: 480px; }
+  .modal-title { font-size: 18px; font-weight: 700; color: var(--text); margin-bottom: 6px; }
+  .modal-sub { font-size: 13px; color: var(--text-2); margin-bottom: 24px; }
+  .form-group { margin-bottom: 16px; }
+  .form-label { font-size: 12px; font-weight: 600; color: var(--text-2); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; display: block; }
+  .form-input { width: 100%; background: var(--navy-3); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 11px 14px; color: var(--text); font-size: 14px; transition: border-color 0.2s; font-family: inherit; }
+  .form-input:focus { border-color: var(--gold); outline: none; }
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .form-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 24px; }
+
+  /* PLAN PILLS */
+  .plan-select { display: flex; gap: 8px; }
+  .plan-pill { flex: 1; padding: 10px 8px; border-radius: 8px; border: 1px solid var(--border); background: var(--navy-3); color: var(--text-2); font-size: 12px; font-weight: 600; text-align: center; cursor: pointer; transition: all 0.15s; }
+  .plan-pill.selected { border-color: var(--gold); background: rgba(212,168,67,0.1); color: var(--gold); }
+  .plan-pill:hover:not(.selected) { border-color: var(--border); background: var(--surface-2); color: var(--text); }
+  .plan-name { font-size: 13px; font-weight: 700; }
+  .plan-price { font-size: 11px; margin-top: 2px; opacity: 0.7; }
+
+  /* DEMO TIMER */
+  .demo-bar { background: rgba(245,158,11,0.08); border: 1px solid rgba(245,158,11,0.2); border-radius: 8px; padding: 10px 14px; display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
+  .demo-days { font-size: 22px; font-weight: 800; color: var(--yellow); }
+  .demo-text { font-size: 12px; color: var(--text-2); }
+
+  /* EMPTY */
+  .empty { text-align: center; padding: 48px 24px; color: var(--text-3); }
+  .empty-icon { font-size: 36px; margin-bottom: 12px; }
+  .empty-text { font-size: 14px; }
+
+  /* LOADING */
+  .loading { display: flex; align-items: center; justify-content: center; height: 200px; color: var(--text-3); font-size: 14px; gap: 8px; }
+
+  @media (max-width: 900px) {
+    .stats-row { grid-template-columns: 1fr 1fr; }
+    .oficinas-grid { grid-template-columns: 1fr; }
+    .sidebar { display: none; }
+  }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+
+// ─── FIREBASE ──────────────────────────────────────────────────────────────
+const firebaseConfig = {
+  apiKey: "AIzaSyAnZXNV8tUCgUheOrI2p0due1Dj4S_tYCg",
+  authDomain: "immigration-platform-11380.firebaseapp.com",
+  projectId: "immigration-platform-11380",
+  storageBucket: "immigration-platform-11380.firebasestorage.app",
+  messagingSenderId: "682062748742",
+  appId: "1:682062748742:web:5b2466ddf7d8ae05a67e47",
+  measurementId: "G-3VXLEW9B2M"
+};
+
+if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.firestore();
+
+// ─── SUPERADMIN EMAIL (solo este email puede entrar) ───────────────────────
+const SUPERADMIN_EMAIL = "privas31@gmail.com"; // ← cambia a tu email real
+
+// ─── PLANES ───────────────────────────────────────────────────────────────
+const PLANES = [
+  { id: 'demo', nombre: 'Demo', precio: 0, dias: 15, label: 'Demo', price: '15 días gratis' },
+  { id: 'basico', nombre: 'Básico', precio: 99, dias: null, label: 'Básico', price: '$99/mes' },
+  { id: 'pro', nombre: 'Pro', precio: 199, dias: null, label: 'Pro', price: '$199/mes' },
+  { id: 'enterprise', nombre: 'Enterprise', precio: 399, dias: null, label: 'Enterprise', price: '$399/mes' },
+];
+
+// ─── HELPERS ──────────────────────────────────────────────────────────────
+function diasRestantes(fechaCreacion, diasDemo) {
+  if (!fechaCreacion) return 0;
+  const inicio = fechaCreacion.toDate ? fechaCreacion.toDate() : new Date(fechaCreacion);
+  const diff = Math.ceil((inicio.getTime() + diasDemo * 86400000 - Date.now()) / 86400000);
+  return Math.max(0, diff);
+}
+
+function formatMoney(n) {
+  return '$' + (n || 0).toLocaleString('en-US');
+}
+
+// ─── DEMO DATA (cuando no hay oficinas en Firestore aún) ──────────────────
+const DEMO_OFFICES = [
+  { id: 'demo1', nombre: 'Crédito Nuevo Tampa', propietario: 'Rosa Méndez', email: 'rosa@creditonuevo.com', ciudad: 'Tampa, FL', plan: 'pro', activa: true, clientes: 34, cobrado: 6766, pendiente: 199, creadoEn: { toDate: () => new Date(Date.now() - 5 * 86400000) } },
+  { id: 'demo2', nombre: 'Fix Credit Miami', propietario: 'Jorge Castillo', email: 'jorge@fixcredit.com', ciudad: 'Miami, FL', plan: 'enterprise', activa: true, clientes: 98, cobrado: 29302, pendiente: 0, creadoEn: { toDate: () => new Date(Date.now() - 45 * 86400000) } },
+  { id: 'demo3', nombre: 'Tu Crédito Houston', propietario: 'Carla Vega', email: 'carla@tucredito.com', ciudad: 'Houston, TX', plan: 'demo', activa: true, clientes: 4, cobrado: 0, pendiente: 0, creadoEn: { toDate: () => new Date(Date.now() - 8 * 86400000) } },
+];
+
+// ─── LOGIN ─────────────────────────────────────────────────────────────────
+function Login({ onLogin }) {
+  const [email, setEmail] = React.useState('');
+  const [pass, setPass] = React.useState('');
+  const [err, setErr] = React.useState('');
+  const [loading, setLoading] = React.useState(false);
+
+  const handleLogin = async () => {
+    if (!email || !pass) { setErr('Completa todos los campos'); return; }
+    setLoading(true); setErr('');
+    try {
+      const cred = await auth.signInWithEmailAndPassword(email, pass);
+      if (cred.user.email !== SUPERADMIN_EMAIL) {
+        await auth.signOut();
+        setErr('Acceso no autorizado para este email.');
+        setLoading(false); return;
+      }
+      onLogin(cred.user);
+    } catch (e) {
+      setErr('Email o contraseña incorrectos.');
+      setLoading(false);
+    }
+  };
+
+  return React.createElement('div', { className: 'login-wrap' },
+    React.createElement('div', { className: 'login-box' },
+      React.createElement('div', { className: 'login-logo' },
+        React.createElement('div', { className: 'login-logo-text' }, 'Credit', React.createElement('span', null, 'Path'))
+      ),
+      React.createElement('div', { className: 'login-role' }, 'Super Admin · Acceso Restringido'),
+      err && React.createElement('div', { className: 'login-error' }, err),
+      React.createElement('label', { className: 'login-label' }, 'Email'),
+      React.createElement('input', { className: 'login-input', type: 'email', placeholder: 'tu@email.com', value: email, onChange: e => setEmail(e.target.value), onKeyDown: e => e.key === 'Enter' && handleLogin() }),
+      React.createElement('label', { className: 'login-label' }, 'Contraseña'),
+      React.createElement('input', { className: 'login-input', type: 'password', placeholder: '••••••••', value: pass, onChange: e => setPass(e.target.value), onKeyDown: e => e.key === 'Enter' && handleLogin() }),
+      React.createElement('button', { className: 'login-btn', onClick: handleLogin, disabled: loading },
+        loading ? 'Entrando...' : 'Iniciar Sesión'
+      )
+    )
+  );
+}
+
+// ─── MODAL NUEVA OFICINA ──────────────────────────────────────────────────
+function ModalNuevaOficina({ onClose, onSave }) {
+  const [form, setForm] = React.useState({ nombre: '', propietario: '', email: '', ciudad: '', telefono: '', plan: 'demo' });
+  const [saving, setSaving] = React.useState(false);
+  const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
+
+  const guardar = async () => {
+    if (!form.nombre || !form.email) { alert('Nombre y email son requeridos'); return; }
+    setSaving(true);
+    try {
+      const data = {
+        ...form,
+        activa: true,
+        clientes: 0,
+        cobrado: 0,
+        pendiente: 0,
+        creadoEn: firebase.firestore.FieldValue.serverTimestamp(),
+      };
+      await db.collection('cp_offices').add(data);
+      onSave();
+      onClose();
+    } catch (e) {
+      // Si Firestore no está habilitado, guardamos en demo
+      alert('✅ Oficina creada (modo demo). Conecta Firestore para persistir datos.');
+      onClose();
+    }
+    setSaving(false);
+  };
+
+  return React.createElement('div', { className: 'modal-bg', onClick: e => e.target === e.currentTarget && onClose() },
+    React.createElement('div', { className: 'modal' },
+      React.createElement('div', { className: 'modal-title' }, '+ Nueva Oficina'),
+      React.createElement('div', { className: 'modal-sub' }, 'Crea acceso para una nueva oficina de reparación de crédito'),
+      React.createElement('div', { className: 'form-row' },
+        React.createElement('div', { className: 'form-group' },
+          React.createElement('label', { className: 'form-label' }, 'Nombre de la Oficina'),
+          React.createElement('input', { className: 'form-input', placeholder: 'Ej: Crédito Nuevo Dallas', value: form.nombre, onChange: e => set('nombre', e.target.value) })
+        ),
+        React.createElement('div', { className: 'form-group' },
+          React.createElement('label', { className: 'form-label' }, 'Ciudad'),
+          React.createElement('input', { className: 'form-input', placeholder: 'Dallas, TX', value: form.ciudad, onChange: e => set('ciudad', e.target.value) })
+        )
+      ),
+      React.createElement('div', { className: 'form-row' },
+        React.createElement('div', { className: 'form-group' },
+          React.createElement('label', { className: 'form-label' }, 'Nombre del Propietario'),
+          React.createElement('input', { className: 'form-input', placeholder: 'Juan García', value: form.propietario, onChange: e => set('propietario', e.target.value) })
+        ),
+        React.createElement('div', { className: 'form-group' },
+          React.createElement('label', { className: 'form-label' }, 'Teléfono'),
+          React.createElement('input', { className: 'form-input', placeholder: '(407) 555-0000', value: form.telefono, onChange: e => set('telefono', e.target.value) })
+        )
+      ),
+      React.createElement('div', { className: 'form-group' },
+        React.createElement('label', { className: 'form-label' }, 'Email de Acceso'),
+        React.createElement('input', { className: 'form-input', type: 'email', placeholder: 'admin@oficina.com', value: form.email, onChange: e => set('email', e.target.value) })
+      ),
+      React.createElement('div', { className: 'form-group' },
+        React.createElement('label', { className: 'form-label' }, 'Plan'),
+        React.createElement('div', { className: 'plan-select' },
+          PLANES.map(p => React.createElement('div', {
+            key: p.id,
+            className: `plan-pill ${form.plan === p.id ? 'selected' : ''}`,
+            onClick: () => set('plan', p.id)
+          },
+            React.createElement('div', { className: 'plan-name' }, p.label),
+            React.createElement('div', { className: 'plan-price' }, p.price)
+          ))
+        )
+      ),
+      React.createElement('div', { className: 'form-actions' },
+        React.createElement('button', { className: 'btn btn-ghost', onClick: onClose }, 'Cancelar'),
+        React.createElement('button', { className: 'btn btn-gold', onClick: guardar, disabled: saving },
+          saving ? 'Guardando...' : '✓ Crear Oficina'
+        )
+      )
+    )
+  );
+}
+
+// ─── DASHBOARD VIEW ────────────────────────────────────────────────────────
+function DashboardView({ oficinas, onNueva, onEntrar, onDesactivar }) {
+  const activas = oficinas.filter(o => o.activa && o.plan !== 'demo');
+  const demos = oficinas.filter(o => o.plan === 'demo');
+  const totalClientes = oficinas.reduce((s, o) => s + (o.clientes || 0), 0);
+  const mrr = activas.reduce((s, o) => {
+    const plan = PLANES.find(p => p.id === o.plan);
+    return s + (plan ? plan.precio : 0);
+  }, 0);
+  const cobrado = oficinas.reduce((s, o) => s + (o.cobrado || 0), 0);
+  const pendiente = oficinas.reduce((s, o) => s + (o.pendiente || 0), 0);
+
+  return React.createElement('div', null,
+    // Stats
+    React.createElement('div', { className: 'stats-row' },
+      [
+        { label: 'Oficinas Activas', val: activas.length, cls: '', note: `${demos.length} en demo` },
+        { label: 'Total Clientes', val: totalClientes, cls: '', note: 'en todas las oficinas' },
+        { label: 'MRR (lo que cobras)', val: formatMoney(mrr), cls: 'gold', note: 'ingresos mensuales' },
+        { label: 'Cobrado Total', val: formatMoney(cobrado), cls: 'green', note: `${formatMoney(pendiente)} pendiente` },
+      ].map(s => React.createElement('div', { key: s.label, className: 'stat' },
+        React.createElement('div', { className: 'stat-label' }, s.label),
+        React.createElement('div', { className: `stat-val ${s.cls}` }, s.val),
+        React.createElement('div', { className: 'stat-note' }, s.note)
+      ))
+    ),
+
+    // Oficinas cards
+    oficinas.length === 0
+      ? React.createElement('div', { className: 'empty' },
+          React.createElement('div', { className: 'empty-icon' }, '🏢'),
+          React.createElement('div', { className: 'empty-text' }, 'No hay oficinas registradas. Crea la primera.')
+        )
+      : React.createElement('div', { className: 'oficinas-grid' },
+          oficinas.map(o => {
+            const plan = PLANES.find(p => p.id === o.plan) || PLANES[0];
+            const esDemo = o.plan === 'demo';
+            const diasLeft = esDemo ? diasRestantes(o.creadoEn, 15) : null;
+
+            return React.createElement('div', { key: o.id, className: 'of-card' },
+              React.createElement('div', { className: 'of-header' },
+                React.createElement('div', { className: 'of-avatar' }, '🏢'),
+                React.createElement('div', { className: 'of-info' },
+                  React.createElement('div', { className: 'of-name' }, o.nombre),
+                  React.createElement('div', { className: 'of-owner' }, o.propietario + (o.ciudad ? ' · ' + o.ciudad : ''))
+                ),
+                esDemo
+                  ? React.createElement('span', { className: 'badge badge-yellow' }, `⏳ Demo: ${diasLeft}d`)
+                  : React.createElement('span', { className: 'badge badge-green' }, '● Activa')
+              ),
+              React.createElement('div', { className: 'of-stats' },
+                React.createElement('div', { className: 'of-stat' },
+                  React.createElement('div', { className: 'of-stat-val' }, o.clientes || 0),
+                  React.createElement('div', { className: 'of-stat-lbl' }, 'Clientes')
+                ),
+                React.createElement('div', { className: 'of-stat' },
+                  React.createElement('div', { className: 'of-stat-val green' }, formatMoney(o.cobrado)),
+                  React.createElement('div', { className: 'of-stat-lbl' }, 'Cobrado')
+                ),
+                React.createElement('div', { className: 'of-stat' },
+                  React.createElement('div', { className: `of-stat-val ${o.pendiente > 0 ? 'yellow' : ''}` }, formatMoney(o.pendiente)),
+                  React.createElement('div', { className: 'of-stat-lbl' }, 'Pendiente')
+                )
+              ),
+              React.createElement('div', { className: 'of-actions' },
+                React.createElement('span', { className: `badge badge-${esDemo ? 'yellow' : 'gold'}`, style: { marginRight: 'auto' } }, plan.label),
+                React.createElement('button', { className: 'btn btn-ghost btn-sm', onClick: () => onDesactivar(o) }, 'Suspender'),
+                React.createElement('button', { className: 'btn btn-enter', style: { width: 'auto', padding: '6px 14px' }, onClick: () => onEntrar(o) }, 'Entrar al monitor →')
+              )
+            );
+          })
+        )
+  );
+}
+
+// ─── OFICINAS TABLE VIEW ───────────────────────────────────────────────────
+function OficinasView({ oficinas, onNueva, onDesactivar }) {
+  const [buscar, setBuscar] = React.useState('');
+  const filtradas = oficinas.filter(o =>
+    o.nombre.toLowerCase().includes(buscar.toLowerCase()) ||
+    (o.propietario || '').toLowerCase().includes(buscar.toLowerCase())
+  );
+
+  return React.createElement('div', null,
+    React.createElement('div', { style: { display: 'flex', gap: 12, marginBottom: 20, alignItems: 'center' } },
+      React.createElement('input', {
+        className: 'form-input', style: { maxWidth: 260 },
+        placeholder: '🔍 Buscar oficina...', value: buscar, onChange: e => setBuscar(e.target.value)
+      }),
+      React.createElement('button', { className: 'btn btn-gold', style: { marginLeft: 'auto' }, onClick: onNueva }, '+ Nueva Oficina')
+    ),
+    React.createElement('div', { className: 'card' },
+      React.createElement('div', { className: 'table-wrap' },
+        React.createElement('table', null,
+          React.createElement('thead', null,
+            React.createElement('tr', null,
+              ['Oficina', 'Plan', 'Clientes', 'Cobrado', 'Pendiente', 'Estado', 'Acciones'].map(h =>
+                React.createElement('th', { key: h }, h)
+              )
+            )
+          ),
+          React.createElement('tbody', null,
+            filtradas.map(o => {
+              const plan = PLANES.find(p => p.id === o.plan) || PLANES[0];
+              const esDemo = o.plan === 'demo';
+              const diasLeft = esDemo ? diasRestantes(o.creadoEn, 15) : null;
+              return React.createElement('tr', { key: o.id },
+                React.createElement('td', null,
+                  React.createElement('div', { style: { fontWeight: 600 } }, o.nombre),
+                  React.createElement('div', { style: { fontSize: 12, color: 'var(--text-3)' } }, o.email)
+                ),
+                React.createElement('td', null,
+                  React.createElement('span', { className: `badge badge-${esDemo ? 'yellow' : 'gold'}` }, plan.label)
+                ),
+                React.createElement('td', null, React.createElement('span', { style: { fontWeight: 700 } }, o.clientes || 0)),
+                React.createElement('td', null, React.createElement('span', { style: { color: 'var(--green)', fontWeight: 700 } }, formatMoney(o.cobrado))),
+                React.createElement('td', null,
+                  React.createElement('span', { style: { color: (o.pendiente || 0) > 0 ? 'var(--yellow)' : 'var(--text-3)', fontWeight: 600 } }, formatMoney(o.pendiente))
+                ),
+                React.createElement('td', null,
+                  esDemo
+                    ? React.createElement('span', { className: 'badge badge-yellow' }, `⏳ ${diasLeft} días`)
+                    : React.createElement('span', { className: 'badge badge-green' }, '● Activa')
+                ),
+                React.createElement('td', null,
+                  React.createElement('div', { style: { display: 'flex', gap: 6 } },
+                    React.createElement('button', { className: 'btn btn-ghost btn-sm' }, 'Editar'),
+                    React.createElement('button', { className: 'btn btn-danger btn-sm', onClick: () => onDesactivar(o) }, 'Suspender')
+                  )
+                )
+              );
+            })
+          )
+        )
+      )
+    )
+  );
+}
+
+// ─── COBROS VIEW ───────────────────────────────────────────────────────────
+function CobrosView({ oficinas }) {
+  const activas = oficinas.filter(o => o.plan !== 'demo');
+  const totalMRR = activas.reduce((s, o) => {
+    const plan = PLANES.find(p => p.id === o.plan);
+    return s + (plan ? plan.precio : 0);
+  }, 0);
+  const totalCobrado = oficinas.reduce((s, o) => s + (o.cobrado || 0), 0);
+  const totalPendiente = oficinas.reduce((s, o) => s + (o.pendiente || 0), 0);
+
+  return React.createElement('div', null,
+    React.createElement('div', { className: 'stats-row', style: { gridTemplateColumns: 'repeat(3,1fr)' } },
+      [
+        { label: 'MRR Esperado', val: formatMoney(totalMRR), cls: 'gold' },
+        { label: 'Cobrado Total', val: formatMoney(totalCobrado), cls: 'green' },
+        { label: 'Por Cobrar', val: formatMoney(totalPendiente), cls: '' },
+      ].map(s => React.createElement('div', { key: s.label, className: 'stat' },
+        React.createElement('div', { className: 'stat-label' }, s.label),
+        React.createElement('div', { className: `stat-val ${s.cls}` }, s.val)
+      ))
+    ),
+    React.createElement('div', { className: 'card' },
+      React.createElement('div', { className: 'card-title', style: { marginBottom: 16 } }, 'Estado de Cobros por Oficina'),
+      React.createElement('div', { className: 'table-wrap' },
+        React.createElement('table', null,
+          React.createElement('thead', null,
+            React.createElement('tr', null,
+              ['Oficina', 'Plan', 'Mensualidad', 'Cobrado', 'Pendiente', 'Acción'].map(h =>
+                React.createElement('th', { key: h }, h)
+              )
+            )
+          ),
+          React.createElement('tbody', null,
+            oficinas.map(o => {
+              const plan = PLANES.find(p => p.id === o.plan) || PLANES[0];
+              return React.createElement('tr', { key: o.id },
+                React.createElement('td', null,
+                  React.createElement('div', { style: { fontWeight: 600 } }, o.nombre),
+                  React.createElement('div', { style: { fontSize: 12, color: 'var(--text-3)' } }, o.propietario)
+                ),
+                React.createElement('td', null, React.createElement('span', { className: 'badge badge-gold' }, plan.label)),
+                React.createElement('td', null, formatMoney(plan.precio) + '/mes'),
+                React.createElement('td', null, React.createElement('span', { style: { color: 'var(--green)', fontWeight: 700 } }, formatMoney(o.cobrado))),
+                React.createElement('td', null,
+                  (o.pendiente || 0) > 0
+                    ? React.createElement('span', { style: { color: 'var(--yellow)', fontWeight: 700 } }, formatMoney(o.pendiente))
+                    : React.createElement('span', { className: 'badge badge-green' }, '✓ Al día')
+                ),
+                React.createElement('td', null,
+                  React.createElement('button', { className: 'btn btn-ghost btn-sm' },
+                    (o.pendiente || 0) > 0 ? '📧 Recordatorio' : '🧾 Recibo'
+                  )
+                )
+              );
+            })
+          )
+        )
+      )
+    )
+  );
+}
+
+// ─── APP ──────────────────────────────────────────────────────────────────
+function App() {
+  const [user, setUser] = React.useState(null);
+  const [checking, setChecking] = React.useState(true);
+  const [page, setPage] = React.useState('dashboard');
+  const [oficinas, setOficinas] = React.useState(DEMO_OFFICES);
+  const [showModal, setShowModal] = React.useState(false);
+  const [loadingOf, setLoadingOf] = React.useState(false);
+
+  // Auth listener
+  React.useEffect(() => {
+    const unsub = auth.onAuthStateChanged(u => {
+      setUser(u);
+      setChecking(false);
+      if (u) cargarOficinas();
+    });
+    return unsub;
+  }, []);
+
+  const cargarOficinas = async () => {
+    setLoadingOf(true);
+    try {
+      const snap = await db.collection('cp_offices').orderBy('creadoEn', 'desc').get();
+      if (!snap.empty) {
+        setOficinas(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+      }
+    } catch (e) {
+      // Usa demo data si Firestore falla
+    }
+    setLoadingOf(false);
+  };
+
+  const handleDesactivar = async (o) => {
+    if (!confirm(`¿Suspender "${o.nombre}"? Perderán acceso al sistema.`)) return;
+    try {
+      await db.collection('cp_offices').doc(o.id).update({ activa: false });
+      cargarOficinas();
+    } catch (e) {
+      setOficinas(prev => prev.filter(x => x.id !== o.id));
+    }
+  };
+
+  const handleEntrar = (o) => {
+    alert(`Entrando al monitor de: ${o.nombre}\n\n(Próximamente: redirige a oficina.html?id=${o.id})`);
+  };
+
+  if (checking) return React.createElement('div', { className: 'loading' }, '⏳ Verificando sesión...');
+  if (!user) return React.createElement(Login, { onLogin: setUser });
+
+  const navItems = [
+    { key: 'dashboard', icon: '📊', label: 'Dashboard' },
+    { key: 'oficinas', icon: '🏢', label: 'Oficinas' },
+    { key: 'cobros', icon: '💰', label: 'Cobros' },
+  ];
+
+  const pageTitle = { dashboard: 'Dashboard', oficinas: 'Oficinas', cobros: 'Cobros' };
+
+  return React.createElement('div', { className: 'app' },
+    // Sidebar
+    React.createElement('div', { className: 'sidebar' },
+      React.createElement('div', { className: 'sidebar-top' },
+        React.createElement('div', { className: 'sidebar-brand' }, 'Credit', React.createElement('span', null, 'Path')),
+        React.createElement('div', { className: 'sidebar-role' }, 'Super Admin')
+      ),
+      React.createElement('div', { className: 'sidebar-nav' },
+        React.createElement('div', { className: 'nav-section' }, 'Principal'),
+        navItems.map(item => React.createElement('div', {
+          key: item.key,
+          className: `nav-item ${page === item.key ? 'active' : ''}`,
+          onClick: () => setPage(item.key)
+        },
+          React.createElement('span', { className: 'nav-icon' }, item.icon),
+          React.createElement('span', null, item.label)
+        ))
+      ),
+      React.createElement('div', { className: 'sidebar-bottom' },
+        React.createElement('button', { className: 'signout-btn', onClick: () => auth.signOut() },
+          '→ Cerrar Sesión'
+        )
+      )
+    ),
+
+    // Main
+    React.createElement('div', { className: 'main' },
+      React.createElement('div', { className: 'topbar' },
+        React.createElement('span', { className: 'topbar-title' }, pageTitle[page] || ''),
+        React.createElement('div', { className: 'topbar-right' },
+          React.createElement('button', { className: 'btn btn-gold btn-sm', onClick: () => setShowModal(true) }, '+ Nueva Oficina')
+        )
+      ),
+      React.createElement('div', { className: 'content' },
+        loadingOf
+          ? React.createElement('div', { className: 'loading' }, '⏳ Cargando oficinas...')
+          : React.createElement('div', null,
+              page === 'dashboard' && React.createElement(DashboardView, { oficinas, onNueva: () => setShowModal(true), onEntrar: handleEntrar, onDesactivar: handleDesactivar }),
+              page === 'oficinas' && React.createElement(OficinasView, { oficinas, onNueva: () => setShowModal(true), onDesactivar: handleDesactivar }),
+              page === 'cobros' && React.createElement(CobrosView, { oficinas })
+            )
+      )
+    ),
+
+    showModal && React.createElement(ModalNuevaOficina, {
+      onClose: () => setShowModal(false),
+      onSave: cargarOficinas
+    })
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(React.createElement(App));
+</script>
+</body>
+</html>
