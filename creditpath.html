@@ -11,194 +11,215 @@
 <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
 <style>
-:root {
+:root{
   --navy:#0A1628;--navy2:#FFFFFF;--navy3:#F8F5EE;
   --gold:#D4A843;--gold2:#F0C865;
-  --green:#22C55E;--red:#EF4444;--yellow:#F59E0B;--blue:#3B82F6;--purple:#A855F7;
+  --green:#16A34A;--red:#DC2626;--yellow:#D97706;--blue:#2563EB;--purple:#7C3AED;
   --t:#0A1628;--t2:#4A5568;--t3:#718096;
-  --b:#E2E8F0;--b2:#EDF2F7;
-  --s:#F7FAFC;--s2:#EDF2F7;
+  --b:#E2E8F0;--b2:#EDF2F7;--s:#F7FAFC;--s2:#EDF2F7;
   --r:12px;--rs:8px;
+  --shadow:0 1px 3px rgba(10,22,40,0.08),0 4px 16px rgba(10,22,40,0.04);
+  --shadow-lg:0 8px 32px rgba(10,22,40,0.12);
 }
 *{box-sizing:border-box;margin:0;padding:0;}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--navy3);color:var(--t);min-height:100vh;}
 button{cursor:pointer;border:none;outline:none;font-family:inherit;}
 input,select,textarea{font-family:inherit;outline:none;font-size:14px;}
+a{text-decoration:none;}
 
 /* LOGIN */
 .lw{min-height:100vh;display:flex;align-items:center;justify-content:center;background:var(--navy);}
-.lb{background:#FFFFFF;border:1px solid var(--b);border-radius:16px;padding:44px 40px;width:380px;box-shadow:0 24px 64px rgba(0,0,0,0.4);}
-.ll{font-size:26px;font-weight:800;color:var(--t);text-align:center;margin-bottom:4px;}
+.lb{background:#fff;border-radius:16px;padding:44px 40px;width:380px;box-shadow:var(--shadow-lg);}
+.ll{font-size:26px;font-weight:800;color:var(--navy);text-align:center;margin-bottom:4px;}
 .ll span{color:var(--gold);}
 .lr{text-align:center;font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--gold);margin-bottom:28px;}
-.li{width:100%;background:#F8F5EE;border:1px solid var(--b);border-radius:var(--rs);padding:12px 14px;color:var(--t);font-size:14px;margin-bottom:14px;transition:border-color 0.2s;}
-.li:focus{border-color:var(--gold);}
+.li{width:100%;background:var(--navy3);border:1px solid var(--b);border-radius:var(--rs);padding:12px 14px;color:var(--t);font-size:14px;margin-bottom:14px;transition:border-color 0.2s;}
+.li:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(212,168,67,0.12);}
 .llab{font-size:12px;font-weight:600;color:var(--t2);margin-bottom:6px;display:block;text-transform:uppercase;letter-spacing:0.5px;}
 .lbtn{width:100%;background:var(--gold);color:var(--navy);font-size:15px;font-weight:700;padding:14px;border-radius:var(--rs);margin-top:6px;transition:background 0.15s;}
 .lbtn:hover{background:var(--gold2);}
-.lerr{background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);border-radius:var(--rs);padding:10px 14px;font-size:13px;color:#FCA5A5;margin-bottom:14px;}
+.lerr{background:#FEE2E2;border:1px solid #FECACA;border-radius:var(--rs);padding:10px 14px;font-size:13px;color:#DC2626;margin-bottom:14px;}
 
 /* LAYOUT */
 .app{display:flex;min-height:100vh;}
-.sb{width:224px;background:var(--navy);border-right:1px solid var(--b);display:flex;flex-direction:column;flex-shrink:0;}
+.sb{width:224px;background:var(--navy);display:flex;flex-direction:column;flex-shrink:0;}
 .sbt{padding:20px;border-bottom:1px solid rgba(255,255,255,0.1);}
-.sbb2{font-size:18px;font-weight:800;color:#FFFFFF;}
+.sbb2{font-size:18px;font-weight:800;color:#fff;}
 .sbb2 span{color:var(--gold);}
-.sbo{font-size:11px;color:var(--t2);margin-top:4px;}
+.sbo{font-size:11px;color:rgba(255,255,255,0.45);margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .sbn{flex:1;padding:10px 0;overflow-y:auto;}
-.nss{font-size:10px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:rgba(255,255,255,0.35);padding:12px 20px 4px;}
+.nss{font-size:10px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:rgba(255,255,255,0.3);padding:12px 20px 4px;}
 .ni{display:flex;align-items:center;gap:10px;padding:9px 20px;font-size:13px;color:rgba(255,255,255,0.55);cursor:pointer;border-left:3px solid transparent;transition:all 0.15s;}
-.ni:hover{background:rgba(255,255,255,0.06);color:#FFFFFF;}
-.ni.active{background:rgba(212,168,67,0.08);color:var(--gold);border-left-color:var(--gold);}
+.ni:hover{background:rgba(255,255,255,0.06);color:#fff;}
+.ni.active{background:rgba(212,168,67,0.12);color:var(--gold);border-left-color:var(--gold);}
 .nic{font-size:15px;width:18px;text-align:center;}
 .sbb{padding:16px 20px;border-top:1px solid rgba(255,255,255,0.1);}
-.sob{display:flex;align-items:center;gap:8px;font-size:13px;color:rgba(255,255,255,0.4);cursor:pointer;background:none;transition:color 0.15s;width:100%;}
-.sob:hover{color:var(--red);}
+.sob{display:flex;align-items:center;gap:8px;font-size:13px;color:rgba(255,255,255,0.35);cursor:pointer;background:none;transition:color 0.15s;width:100%;}
+.sob:hover{color:#EF4444;}
 
 /* MAIN */
 .mn{flex:1;overflow-y:auto;}
-.tb{height:56px;background:#FFFFFF;border-bottom:1px solid var(--b);display:flex;align-items:center;justify-content:space-between;padding:0 28px;position:sticky;top:0;z-index:10;}
-.tbt{font-size:15px;font-weight:600;}
+.tb{height:56px;background:#fff;border-bottom:1px solid var(--b);display:flex;align-items:center;justify-content:space-between;padding:0 28px;position:sticky;top:0;z-index:10;box-shadow:0 1px 3px rgba(10,22,40,0.06);}
+.tbt{font-size:15px;font-weight:600;color:var(--t);}
 .ct{padding:28px;}
 
 /* STATS */
 .sg{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px;}
-.sc{background:#FFFFFF;border:1px solid var(--b);border-radius:var(--r);padding:20px;}
+.sc{background:#fff;border:1px solid var(--b);border-radius:var(--r);padding:20px;box-shadow:var(--shadow);}
 .sl{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.8px;color:var(--t3);margin-bottom:10px;}
-.sv{font-size:28px;font-weight:800;line-height:1;}
+.sv{font-size:28px;font-weight:800;line-height:1;color:var(--t);}
 .sv.gold{color:var(--gold);}
 .sv.green{color:var(--green);}
 .sv.yellow{color:var(--yellow);}
 .sn{font-size:12px;color:var(--t3);margin-top:6px;}
 
-/* CARD */
-.cd{background:#FFFFFF;border:1px solid var(--b);border-radius:var(--r);padding:24px;margin-bottom:20px;}
+/* CARDS */
+.cd{background:#fff;border:1px solid var(--b);border-radius:var(--r);padding:24px;margin-bottom:20px;box-shadow:var(--shadow);}
 .cdh{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;}
-.cdt{font-size:14px;font-weight:600;}
+.cdt{font-size:14px;font-weight:600;color:var(--t);}
 .g2{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px;}
+
+/* SCORE DIAL — Multi-zone */
+.dw{display:flex;flex-direction:column;align-items:center;padding:12px 0;}
+.dial-zones{font-size:10px;display:flex;justify-content:space-between;width:180px;margin-top:4px;color:var(--t3);}
 
 /* KANBAN */
 .kb{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;}
-.kc{background:#EDF2F7;border-radius:var(--rs);padding:12px;min-height:180px;}
+.kc{background:var(--s2);border-radius:var(--rs);padding:12px;min-height:180px;}
 .kh{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:var(--t3);margin-bottom:10px;display:flex;justify-content:space-between;}
-.kk{background:#FFFFFF;border:1px solid var(--b);border-radius:8px;padding:12px;margin-bottom:8px;cursor:pointer;transition:all 0.15s;}
-.kk:hover{border-color:var(--gold);transform:translateY(-1px);}
-.kn{font-size:13px;font-weight:600;}
+.kk{background:#fff;border:1px solid var(--b);border-radius:8px;padding:12px;margin-bottom:8px;cursor:pointer;transition:all 0.15s;box-shadow:0 1px 3px rgba(0,0,0,0.04);}
+.kk:hover{border-color:var(--gold);transform:translateY(-1px);box-shadow:var(--shadow);}
+.kn{font-size:13px;font-weight:600;color:var(--t);}
 .km{font-size:11px;color:var(--t3);margin-top:3px;}
 .ks{font-size:12px;font-weight:700;margin-top:6px;}
 
 /* TABLE */
 .tw{overflow-x:auto;}
 table{width:100%;border-collapse:collapse;font-size:13px;}
-th{text-align:left;padding:10px 14px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:var(--t3);border-bottom:1px solid var(--b);}
-td{padding:13px 14px;border-bottom:1px solid var(--b2);vertical-align:middle;}
+th{text-align:left;padding:10px 14px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:var(--t3);border-bottom:1px solid var(--b);background:var(--s);}
+td{padding:13px 14px;border-bottom:1px solid var(--b2);vertical-align:middle;color:var(--t);}
 tr:last-child td{border-bottom:none;}
 tr:hover td{background:var(--s);}
 
 /* BADGES */
 .bgg{display:inline-flex;align-items:center;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:700;}
-.bg-green{background:rgba(34,197,94,0.1);color:var(--green);border:1px solid rgba(34,197,94,0.2);}
-.bg-yellow{background:rgba(245,158,11,0.1);color:var(--yellow);border:1px solid rgba(245,158,11,0.2);}
-.bg-red{background:rgba(239,68,68,0.1);color:var(--red);border:1px solid rgba(239,68,68,0.2);}
-.bg-blue{background:rgba(59,130,246,0.1);color:var(--blue);border:1px solid rgba(59,130,246,0.2);}
-.bg-purple{background:rgba(168,85,247,0.1);color:var(--purple);border:1px solid rgba(168,85,247,0.2);}
-.bg-gold{background:rgba(212,168,67,0.1);color:var(--gold);border:1px solid rgba(212,168,67,0.2);}
+.bg-green{background:#DCFCE7;color:#15803D;}
+.bg-yellow{background:#FEF3C7;color:#92400E;}
+.bg-red{background:#FEE2E2;color:#B91C1C;}
+.bg-blue{background:#DBEAFE;color:#1D4ED8;}
+.bg-purple{background:#EDE9FE;color:#6D28D9;}
+.bg-gold{background:rgba(212,168,67,0.12);color:#92650A;}
 
 /* BUTTONS */
 .btn{padding:8px 16px;border-radius:var(--rs);font-size:13px;font-weight:600;transition:all 0.15s;display:inline-flex;align-items:center;gap:6px;}
 .btn-gold{background:var(--gold);color:var(--navy);}
 .btn-gold:hover{background:var(--gold2);}
-.btn-ghost{background:var(--s2);color:var(--t2);border:1px solid var(--b);}
-.btn-ghost:hover{color:var(--t);}
+.btn-ghost{background:#fff;color:var(--t2);border:1px solid var(--b);}
+.btn-ghost:hover{background:var(--s);color:var(--t);}
+.btn-navy{background:var(--navy);color:#fff;}
+.btn-navy:hover{background:#132040;}
 .btn-sm{padding:6px 12px;font-size:12px;}
+.btn-lang{background:var(--navy3);color:var(--t2);border:1px solid var(--b);border-radius:6px;padding:5px 10px;font-size:12px;font-weight:700;cursor:pointer;transition:all 0.15s;}
+.btn-lang:hover{border-color:var(--gold);color:var(--gold);}
 
 /* MODAL */
-.mbg{position:fixed;inset:0;background:rgba(0,0,0,0.65);z-index:200;display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px);}
-.md{background:#FFFFFF;border:1px solid var(--b);border-radius:16px;padding:32px;width:100%;max-width:600px;max-height:88vh;overflow-y:auto;}
-.mdt{font-size:18px;font-weight:700;margin-bottom:4px;}
+.mbg{position:fixed;inset:0;background:rgba(10,22,40,0.45);z-index:200;display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px);}
+.md{background:#fff;border-radius:16px;padding:32px;width:100%;max-width:600px;max-height:88vh;overflow-y:auto;box-shadow:var(--shadow-lg);}
+.mdt{font-size:18px;font-weight:700;color:var(--t);margin-bottom:4px;}
 .mds{font-size:13px;color:var(--t2);margin-bottom:20px;}
 
 /* FORM */
 .fg{margin-bottom:14px;}
 .fl{font-size:12px;font-weight:600;color:var(--t2);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;display:block;}
-.fi{width:100%;background:#F8F5EE;border:1px solid var(--b);border-radius:var(--rs);padding:11px 14px;color:var(--t);font-size:14px;transition:border-color 0.2s;}
-.fi:focus{border-color:var(--gold);outline:none;}
+.fi{width:100%;background:var(--navy3);border:1px solid var(--b);border-radius:var(--rs);padding:11px 14px;color:var(--t);font-size:14px;transition:border-color 0.2s;}
+.fi:focus{border-color:var(--gold);outline:none;box-shadow:0 0 0 3px rgba(212,168,67,0.1);}
 .fr{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
 .fa{display:flex;gap:10px;justify-content:flex-end;margin-top:20px;}
-
-/* TIMELINE */
-.tl{position:relative;padding-left:20px;}
-.tl::before{content:'';position:absolute;left:6px;top:0;bottom:0;width:1px;background:var(--b);}
-.tli{position:relative;padding-bottom:16px;}
-.tld{position:absolute;left:-17px;top:3px;width:8px;height:8px;border-radius:50%;background:var(--gold);border:2px solid var(--navy2);}
-.tldt{font-size:11px;color:var(--t3);}
-.tlt{font-size:13px;color:var(--t);margin-top:2px;}
-
-/* SCORE */
-.dw{display:flex;flex-direction:column;align-items:center;padding:8px 0;}
-.sc-bad{color:var(--red);}
-.sc-fair{color:var(--yellow);}
-.sc-good{color:var(--blue);}
-.sc-ex{color:var(--green);}
-
-/* HERRAMIENTAS */
-.hgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:24px;}
-.hcard{background:#FFFFFF;border:1px solid var(--b);border-radius:var(--r);padding:22px;cursor:pointer;transition:all 0.2s;text-align:center;}
-.hcard:hover{border-color:var(--gold);background:rgba(212,168,67,0.05);transform:translateY(-2px);}
-.hicon{font-size:32px;margin-bottom:10px;}
-.htitle{font-size:14px;font-weight:700;color:var(--t);margin-bottom:4px;}
-.hdesc{font-size:12px;color:var(--t3);line-height:1.5;}
-
-/* PROMPT CARDS */
-.pgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;}
-.pcard{background:#F8F5EE;border:1px solid var(--b);border-radius:var(--r);padding:18px;cursor:pointer;transition:all 0.15s;display:flex;align-items:flex-start;gap:12px;}
-.pcard:hover{border-color:var(--gold);background:rgba(212,168,67,0.05);}
-.picon{font-size:22px;flex-shrink:0;}
-.ptitle{font-size:13px;font-weight:700;color:var(--t);margin-bottom:3px;}
-.pdesc{font-size:11px;color:var(--t3);line-height:1.4;}
-.pcopy{margin-top:8px;font-size:11px;color:var(--gold);font-weight:600;}
-
-/* DIRECTORIO */
-.dgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;}
-.dcard{background:#FFFFFF;border:1px solid var(--b);border-radius:var(--r);padding:16px;}
-.dname{font-size:13px;font-weight:700;color:var(--t);margin-bottom:4px;}
-.ddesc{font-size:11px;color:var(--t3);line-height:1.4;margin-bottom:10px;}
-.dbtn{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:600;color:var(--gold);background:rgba(212,168,67,0.1);border:1px solid rgba(212,168,67,0.2);border-radius:6px;padding:4px 10px;cursor:pointer;transition:all 0.15s;}
-.dbtn:hover{background:rgba(212,168,67,0.2);}
-
-/* CARTA */
-.cbox{background:#F8F5EE;border:1px solid var(--b);border-radius:var(--r);padding:20px;font-family:monospace;font-size:12px;color:var(--t2);line-height:1.8;white-space:pre-wrap;max-height:400px;overflow-y:auto;margin-bottom:16px;}
-
-/* STEPS */
-.steps{display:flex;gap:8px;margin-bottom:20px;}
-.step{flex:1;padding:9px;border-radius:8px;text-align:center;font-size:12px;font-weight:600;border:1px solid var(--b);color:var(--t3);background:#EDF2F7;transition:all 0.15s;}
-.step.active{background:rgba(212,168,67,0.1);border-color:var(--gold);color:var(--gold);}
-.step.done{background:rgba(34,197,94,0.08);border-color:rgba(34,197,94,0.3);color:var(--green);}
-
-/* NOTA */
-.nota{background:#F8F5EE;border-radius:8px;padding:12px 14px;margin-bottom:10px;}
-.nota-m{font-size:11px;color:var(--t3);margin-bottom:4px;}
-.nota-t{font-size:13px;color:var(--t);}
 
 /* TABS */
 .tabs{display:flex;border-bottom:1px solid var(--b);margin-bottom:20px;}
 .tab{padding:8px 18px;font-size:13px;font-weight:500;color:var(--t3);border-bottom:2px solid transparent;cursor:pointer;transition:all 0.15s;}
 .tab.active{color:var(--gold);border-bottom-color:var(--gold);font-weight:600;}
 
+/* STEPS */
+.steps{display:flex;gap:8px;margin-bottom:20px;}
+.step{flex:1;padding:9px;border-radius:8px;text-align:center;font-size:12px;font-weight:600;border:1px solid var(--b);color:var(--t3);background:var(--s2);transition:all 0.15s;}
+.step.active{background:rgba(212,168,67,0.1);border-color:var(--gold);color:var(--gold);}
+.step.done{background:#DCFCE7;border-color:#86EFAC;color:#15803D;}
+
+/* TIMELINE */
+.tl{position:relative;padding-left:20px;}
+.tl::before{content:'';position:absolute;left:6px;top:0;bottom:0;width:1px;background:var(--b);}
+.tli{position:relative;padding-bottom:16px;}
+.tld{position:absolute;left:-17px;top:3px;width:8px;height:8px;border-radius:50%;background:var(--gold);border:2px solid #fff;}
+.tldt{font-size:11px;color:var(--t3);}
+.tlt{font-size:13px;color:var(--t);margin-top:2px;}
+
+/* HERRAMIENTAS */
+.hgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;margin-bottom:24px;}
+.hcard{background:#fff;border:1px solid var(--b);border-radius:var(--r);padding:24px;cursor:pointer;transition:all 0.2s;display:flex;align-items:flex-start;gap:16px;box-shadow:var(--shadow);}
+.hcard:hover{border-color:var(--gold);box-shadow:var(--shadow-lg);transform:translateY(-2px);}
+.hicon{font-size:32px;flex-shrink:0;}
+.htitle{font-size:15px;font-weight:700;color:var(--t);margin-bottom:4px;}
+.hdesc{font-size:13px;color:var(--t3);line-height:1.5;}
+
+/* PROMPT CARDS */
+.pgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;}
+.pcard{background:#fff;border:1px solid var(--b);border-radius:var(--r);padding:18px;cursor:pointer;transition:all 0.15s;display:flex;align-items:flex-start;gap:12px;box-shadow:var(--shadow);}
+.pcard:hover{border-color:var(--gold);box-shadow:var(--shadow-lg);}
+.picon{font-size:24px;flex-shrink:0;}
+.ptitle{font-size:13px;font-weight:700;color:var(--t);margin-bottom:3px;}
+.pdesc{font-size:11px;color:var(--t3);line-height:1.4;}
+.pcopy{margin-top:8px;font-size:11px;color:var(--gold);font-weight:600;}
+
+/* DIRECTORIO */
+.dgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;}
+.dcard{background:#fff;border:1px solid var(--b);border-radius:var(--r);padding:16px;box-shadow:var(--shadow);}
+.dname{font-size:13px;font-weight:700;color:var(--t);margin-bottom:4px;}
+.ddesc{font-size:11px;color:var(--t3);line-height:1.4;margin-bottom:10px;}
+
+/* CARTA BOX */
+.cbox{background:var(--navy3);border:1px solid var(--b);border-radius:var(--r);padding:20px;font-family:monospace;font-size:12px;color:var(--t2);line-height:1.8;white-space:pre-wrap;max-height:380px;overflow-y:auto;margin-bottom:16px;}
+
+/* CARTA SELECTOR */
+.carta-sel{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px;}
+.carta-opt{padding:14px;border-radius:var(--rs);border:2px solid var(--b);background:#fff;cursor:pointer;transition:all 0.15s;text-align:center;}
+.carta-opt:hover{border-color:var(--gold);}
+.carta-opt.selected{border-color:var(--gold);background:rgba(212,168,67,0.06);}
+.carta-opt-num{font-size:20px;font-weight:800;color:var(--gold);margin-bottom:4px;}
+.carta-opt-title{font-size:12px;font-weight:700;color:var(--t);}
+.carta-opt-desc{font-size:10px;color:var(--t3);margin-top:2px;line-height:1.3;}
+
+/* NOTA */
+.nota{background:var(--navy3);border-radius:8px;padding:12px 14px;margin-bottom:10px;border-left:3px solid var(--gold);}
+.nota-m{font-size:11px;color:var(--t3);margin-bottom:4px;}
+.nota-t{font-size:13px;color:var(--t);}
+
+/* PLAN OPTIONS */
+.plan-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:4px;}
+.plan-opt{padding:12px;border-radius:8px;border:1px solid var(--b);background:#fff;cursor:pointer;transition:all 0.15s;}
+.plan-opt:hover{border-color:var(--gold);}
+.plan-opt.sel{border-color:var(--gold);background:rgba(212,168,67,0.06);}
+.plan-opt-title{font-size:13px;font-weight:700;color:var(--t);}
+.plan-opt-desc{font-size:11px;color:var(--t3);margin-top:2px;}
+
+.tip{background:#FFFBEB;border:1px solid #FDE68A;border-radius:8px;padding:12px 16px;font-size:13px;color:#92400E;line-height:1.6;margin-bottom:16px;}
+.tip strong{color:var(--yellow);}
+.warn{background:#FEF2F2;border:1px solid #FECACA;border-radius:8px;padding:12px 16px;font-size:13px;color:#B91C1C;line-height:1.6;margin-bottom:16px;}
+.info{background:#EFF6FF;border:1px solid #BFDBFE;border-radius:8px;padding:12px 16px;font-size:13px;color:#1E40AF;line-height:1.6;margin-bottom:16px;}
+
 .loading{display:flex;align-items:center;justify-content:center;height:200px;color:var(--t3);font-size:14px;}
 .empty{text-align:center;padding:40px;color:var(--t3);}
-.tip{background:rgba(212,168,67,0.08);border:1px solid rgba(212,168,67,0.2);border-radius:8px;padding:12px 16px;font-size:13px;color:var(--t2);line-height:1.6;margin-bottom:16px;}
-.tip strong{color:var(--gold);}
-.warn{background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.2);border-radius:8px;padding:12px 16px;font-size:13px;color:#FCA5A5;line-height:1.6;margin-bottom:16px;}
 
 @media(max-width:900px){
   .sg{grid-template-columns:1fr 1fr;}
   .kb{grid-template-columns:1fr 1fr;}
   .g2{grid-template-columns:1fr;}
-  .hgrid{grid-template-columns:1fr 1fr;}
+  .hgrid{grid-template-columns:1fr;}
   .pgrid{grid-template-columns:1fr;}
   .dgrid{grid-template-columns:1fr 1fr;}
   .sb{display:none;}
+  .carta-sel{grid-template-columns:1fr;}
 }
 </style>
 </head>
@@ -206,309 +227,340 @@ tr:hover td{background:var(--s);}
 <div id="root"></div>
 <script type="text/babel">
 
-const firebaseConfig={
+const FC={
   apiKey:"AIzaSyAnZXNV8tUCgUheOrI2p0due1Dj4S_tYCg",
   authDomain:"immigration-platform-11380.firebaseapp.com",
   projectId:"immigration-platform-11380",
   storageBucket:"immigration-platform-11380.firebasestorage.app",
   messagingSenderId:"682062748742",
-  appId:"1:682062748742:web:5b2466ddf7d8ae05a67e47",
-  measurementId:"G-3VXLEW9B2M"
+  appId:"1:682062748742:web:5b2466ddf7d8ae05a67e47"
 };
-if(!firebase.apps.length)firebase.initializeApp(firebaseConfig);
+if(!firebase.apps.length)firebase.initializeApp(FC);
 const auth=firebase.auth();
 const db=firebase.firestore();
 
-// ── HELPERS ────────────────────────────────────────────────────────────────
-const scColor=s=>s<580?'sc-bad':s<670?'sc-fair':s<740?'sc-good':'sc-ex';
-const scLabel=s=>s<580?'Malo':s<670?'Regular':s<740?'Bueno':'Excelente';
-const fm=n=>'$'+(n||0).toLocaleString('en-US');
-
-// ── PROMPTS DATA ───────────────────────────────────────────────────────────
-const PROMPTS=[
-{id:1,icon:'🔬',title:'Reparar Mi Crédito',desc:'Análisis forense completo + carta de disputa + Metro 2',tag:'Principal',
-prompt:`Act as a highly skilled credit report analyst, Metro 2 compliance expert, and bilingual dispute-letter writer (English and Spanish). I will provide my credit report(s) from one or more bureaus (Equifax, Experian, TransUnion). Perform a forensic-style review with maximum detail.
-
-STEP 1 — FULL CREDIT AUDIT:
-Identify ALL derogatory accounts, late payments, collections, charge-offs, repossessions, bankruptcies, public records, judgments. Flag Metro 2 format violations (🔴 METRO 2 VIOLATION), duplicate accounts (📋 MULTI-BUREAU), re-aged items past 7 years (⚠️ EXPIRED — DEMAND REMOVAL), unauthorized inquiries (🔍 UNAUTHORIZED).
-
-STEP 2 — PRIORITY SCORING:
-For each item assign: Impact Level (High/Medium/Low), Dispute Strength (Strong/Moderate/Weak), Expiration Date, Recommended Action. Sort highest to lowest impact.
-
-STEP 3 — DISPUTE LETTERS (one per bureau):
-Write separate letters for Equifax, Experian, TransUnion. Each must: cite FCRA §611 and §623, reference Metro 2 violations, demand deletion or correction within 30 days, include Certified Mail reference.
-
-STEP 4 — SPANISH VERSION:
-Translate the most important dispute letter into professional Spanish.
-
-STEP 5 — ACTION PACKAGE:
-Bureau mailing checklist, document checklist, summary of strongest dispute points, estimated score impact.
-
-Do not begin until I provide the credit report(s).`},
-
-{id:2,icon:'⚖️',title:'Records Públicos',desc:'Estrategia LexisNexis + carta de disputa para bancarrotas y gravámenes',tag:'Avanzado',
-prompt:`PASO CRÍTICO ANTES DE ENVIAR CUALQUIER CARTA:
-Llama a LexisNexis al 1-800-456-1244 y pide que bloqueen tu record público ANTES de disputar con los bureaus. Esto es esencial porque LexisNexis es la fuente que los bureaus consultan para verificar records públicos.
-
----
-
-Act as an FCRA compliance expert specializing in public records disputes. I will provide my credit report. Your task:
-
-STEP 1 — IDENTIFY ALL PUBLIC RECORDS:
-- Bankruptcies (Chapter 7: 10 years; Chapter 13: 7 years)
-- Civil judgments
-- Tax liens
-- Child support
-- Foreclosures
-
-For each item: report exact date, calculate exact expiration date, assess if re-aged or inaccurate.
-
-STEP 2 — LEXISNEXIS BLOCK STRATEGY:
-Draft a formal written request to LexisNexis demanding removal of public records under FCRA §605 and §605B. Include their address: LexisNexis Consumer Center, P.O. Box 105108, Atlanta, GA 30348.
-
-STEP 3 — BUREAU DISPUTE LETTERS:
-Write dispute letters to all three bureaus citing that the public record cannot be verified independently without LexisNexis data, and demanding deletion if LexisNexis has blocked/removed the record.
-
-STEP 4 — FOLLOW-UP TIMELINE:
-Day 0: Call LexisNexis + send written block request.
-Day 7: Send dispute letters to all 3 bureaus.
-Day 37: Follow up if not resolved.
-Day 45: Escalate to CFPB if still unresolved.
-
-Do not begin until I upload my credit report.`},
-
-{id:3,icon:'🔍',title:'Borrar Inquiries',desc:'Disputa de consultas no autorizadas — hard pulls y unauthorized inquiries',tag:'Rápido',
-prompt:`Act as an FCRA compliance expert specializing in hard inquiry disputes.
-
-STEP 1 — IDENTIFY DISPUTABLE INQUIRIES:
-Review all hard inquiries and flag: unauthorized inquiries (no credit application submitted), inquiries older than 2 years (must be removed by law), duplicate inquiries from same creditor, inquiries with incorrect dates.
-
-DO NOT dispute: inquiries from accounts currently open and recognized, soft pulls, employer inquiries from jobs applied for.
-
-STEP 2 — PRIORITY LIST:
-Sort inquiries by: (1) unauthorized, (2) expired 2+ years, (3) duplicate. Estimate score impact of removing each.
-
-STEP 3 — DISPUTE LETTERS (one per bureau):
-For each bureau, write a dispute letter citing FCRA §604 — unauthorized access to credit file. Include exact inquiry name, date, and reason for dispute. Reference that no permissible purpose existed.
-
-STEP 4 — DIRECT CREDITOR LETTERS:
-Write letters to each creditor that made unauthorized inquiries demanding they instruct the bureaus to remove the inquiry.
-
-STEP 5 — PHONE SCRIPT:
-Provide a script to call each bureau and follow up after 30 days. Include: what to say, who to ask for (supervisor), what to demand if not resolved.
-
-IMPORTANT: If bureau does not respond within 30 days, the item must be removed automatically under FCRA. Include this demand in all letters.
-
-Do not begin until I provide my credit report.`},
-
-{id:4,icon:'💬',title:'Negociación de Deudas',desc:'Script completo para negociar al 20% + acuerdo pay-for-delete',tag:'Avanzado',
-prompt:`Act as a debt negotiation strategist. I will provide details about my debt(s). Your task:
-
-STEP 1 — DEBT ANALYSIS:
-Identify: original creditor vs. debt collector, age of debt (statute of limitations by state), whether debt is past the credit reporting period (7 years), likelihood of successful negotiation.
-
-STEP 2 — NEGOTIATION STRATEGY:
-Provide a step-by-step negotiation plan starting at 20% of balance. Include:
-- Opening offer strategy
-- Counter-offer ranges (20% → 30% → 40% maximum)
-- Pressure arguments (bankruptcy Chapter 7, statute of limitations)
-- Pay-for-delete demand (removal from all 3 bureaus as condition of payment)
-
-STEP 3 — PHONE SCRIPT (in Spanish):
-APERTURA: "Mi nombre es [NOMBRE] llamando sobre la cuenta [#]. Quiero resolver esta deuda pero primero debo explicarles mi situación."
-PRESIÓN BANCARROTA: "Estoy considerando Capítulo 7. Si eso ocurre, no recibirán nada. Prefiero resolver esto ahora."
-OFERTA: "Puedo ofrecer el 20% como pago único y final, pero SOLO si eliminan esta cuenta de los tres bureaus. Sin eliminación, no hay trato."
-CIERRE: "Necesito confirmación escrita antes de cualquier pago — por email o correo certificado — especificando el monto, que es pago total, y el compromiso de eliminar de Equifax, Experian y TransUnion."
-
-STEP 4 — PAY-FOR-DELETE AGREEMENT TEMPLATE:
-Draft a written agreement template the collector must sign before any payment is made.
-
-STEP 5 — GOLDEN RULES:
-⚠️ NEVER pay before receiving written agreement
-⚠️ ONLY pay by personal check — never card or wire transfer
-⚠️ Agreement MUST specify deletion from all 3 bureaus
-⚠️ Keep ALL documents — emails, letters, cancelled check
-⚠️ If they refuse deletion — NO DEAL
-
-Do not begin until I provide my debt details.`},
-
-{id:5,icon:'📄',title:'Segunda Carta de Disputa',desc:'Follow-up con Method of Verification demand para ítems no resueltos',tag:'Seguimiento',
-prompt:`MASTER PROMPT — Second Notice of Dispute Letter
-
-You are a consumer credit analyst and FCRA compliance writer. Draft a "Second Notice of Dispute & Method of Verification Demand" targeting remaining derogatory items after a first dispute round.
-
-INPUTS NEEDED (provide or upload):
-- Full name, current address, former addresses if applicable, DOB, last 4 SSN, phone, email
-- Report date, confirmation number, bureau(s) involved
-- Date of first dispute sent, date of bureau response (if any)
-- Remaining items: bureau (EX/EQ/TU), furnisher/collector, account # last 4, current status, reason code
-
-REASON CODES: not mine / identity mismatch / duplicate / re-aged DOFD / balance inaccurate / payment history mismatch / incorrect status after payoff / unverifiable / impermissible inquiry / obsolete (>7 yrs)
-
-OUTPUT — One letter per bureau:
-1. My contact block + bureau address
-2. Subject: "Second Notice of Dispute – Method of Verification Demand" + Report # + Date
-3. Opening paragraph referencing first dispute date and their response (or lack thereof)
-4. Issue Index (numbered) — for each item: furnisher, account ending ####, reported status, reason, quoted evidence from report, requested remedy (delete or correct), exhibits list
-5. Legal basis: FCRA §611(a)(6)(B)(iii) & §611(a)(7) — demand name, address, phone of each furnisher and exact records used to verify
-6. Demands within 30 days: updated report, written Method of Verification, notices to all furnishers
-7. Closing with Certified Mail reference
-8. Signature block + enclosures list
-
-STYLE: Professional, firm, no admission of debt. Redact account numbers to last 4.
-
-Do not begin until I provide the remaining items and upload documents.`},
-
-{id:6,icon:'✅',title:'Validación de Deuda',desc:'Paquete completo FDCPA §809 para detener cobros y exigir validación',tag:'Avanzado',
-prompt:`Act as an FDCPA/FCRA compliance analyst. I will upload documents from a debt collector. Generate a complete Debt Validation Package.
-
-INPUTS NEEDED: Full name, current address, DOB, last 4 SSN, collector name/address, date of first collector contact, state (important for Texas Cap. 392).
-
-OUTPUT PACKAGE (in Spanish, print-ready):
-
-A) EXECUTIVE SUMMARY (6-8 bullets): debts in validation, risks, key dates/deadlines.
-
-B) OPERATIONAL CHECKLIST Day 0-45:
-- Day 0: prepare DV letter, exhibits, certified mail
-- Day 1-10: monitor delivery, log RRN tracking number
-- Day 11-30: debt collection silence period — log any calls
-- Day 31-45: evaluate response; if insufficient, send follow-up + dispute to bureaus + CFPB complaint
-
-C) DEBT VALIDATION LETTER (FDCPA §809 / 15 U.S.C. §1692g):
-- My address block + collector address block
-- Subject: "Solicitud de Validación de Deuda y Cese de Cobranza"
-- Dispute within 30 days, demand collection cease until validated
-- Required: itemized balance breakdown, original creditor name/address, copy of original contract, chain of ownership/assignments, full accounting from origin to current balance
-- All responses in writing; prohibit phone calls
-- No admission of debt; account numbers last 4 only
-
-D) EXHIBITS LIST: map each document to letter reference (A1, A2...)
-
-E) FOLLOW-UP LETTER (30+ days / insufficient validation):
-Demand Method of Verification, warn about FCRA §623 reporting violations, request removal if not properly verified.
-
-F) TEXAS MODULE (if applicable):
-Texas Finance Code Cap. 392 — prohibited practices, corrections under §392.202, complaints to Texas AG/OCCC.
-
-G) EVIDENCE LOG TABLE:
-Columns: Date | Type | Description | Tracking # | Exhibit | Next Step/Deadline
-
-STYLE: Professional, firm, no debt admission. Certified Mail instruction on all letters.
-
-Do not begin until I upload all collector documents.`},
-
-{id:7,icon:'📊',title:'ITIN + Construir Crédito',desc:'Cómo obtener tu ITIN y usarlo para construir crédito desde cero',tag:'Básico',
-prompt:`Act as a bilingual financial advisor specializing in credit building for immigrants and ITIN holders in the United States.
-
-STEP 1 — ITIN GUIDE:
-Explain clearly: What is an ITIN, who needs it, how it differs from SSN. Provide step-by-step process for each method:
-1. W-7 form by mail (with documents required)
-2. In-person at a Certified Acceptance Agent (CAA)
-3. IRS offices (appointment required)
-4. American consulates abroad
-5. With tax return filing
-6. Through authorized tax preparer
-
-Documents needed: Passport (preferred), driver's license, birth certificate, national ID, USCIS immigration document.
-
-STEP 2 — CREDIT BUILDING WITH ITIN:
-Explain exactly how to start building credit with an ITIN:
-- Which banks and credit unions accept ITIN (list top 10)
-- Secured credit cards available with ITIN
-- Credit builder loans available with ITIN
-- Rent reporting services that work with ITIN
-- How long to build a 700+ score starting from zero
-
-STEP 3 — ITIN vs SSN SERVICES:
-Create a comparison table of all major credit-building services showing which accept ITIN only, SSN only, or both.
-
-STEP 4 — 12-MONTH CREDIT BUILDING ROADMAP:
-Month 1-3: Get ITIN, open bank account, get secured card
-Month 4-6: Add credit builder loan, report rent payments
-Month 7-9: Request credit limit increase, add authorized user tradeline
-Month 10-12: Apply for first unsecured card, review progress
-
-I will provide my specific situation for personalized advice.`},
-
-{id:8,icon:'🏛️',title:'Records Públicos — Bancarrota',desc:'Guía completa Capítulo 7 vs 13 e impacto en crédito',tag:'Información',
-prompt:null,link:'https://upsolve.org'},
-];
-
-// ── DIRECTORIO ─────────────────────────────────────────────────────────────
-const DIRECTORIO={
-construccion:[
-  {n:'Self.inc',d:'Crédito constructor con reportes a 3 bureaus',tag:'ITIN y SSN',url:'https://self.inc'},
-  {n:'Kikoff',d:'Línea de $750 sin intereses — solo $5/mes',tag:'Solo SSN',url:'https://kikoff.com'},
-  {n:'Experian Boost',d:'Mejora score instantáneo agregando pagos de servicios',tag:'ITIN y SSN',url:'https://experian.com/boost'},
-  {n:'GrowCredit',d:'Construye crédito pagando Netflix, Spotify y más',tag:'ITIN y SSN',url:'https://growcredit.com'},
-  {n:'Bilt Rewards',d:'Gana puntos pagando renta y construye crédito',tag:'ITIN y SSN',url:'https://biltrewards.com'},
-  {n:'GetFlex',d:'Paga renta en cuotas y reporta a bureaus',tag:'ITIN y SSN',url:'https://getflex.com'},
-],
-tradelines:[
-  {n:'TradelineSupply.com',d:'Tradelines autorizadas 2-20+ años de historial',tag:'Solo SSN',url:'https://tradelinesupply.com'},
-  {n:'TradelineWorks.com',d:'Marketplace de tradelines con filtros de límite y edad',tag:'Solo SSN',url:'https://tradelineworks.com'},
-  {n:'PersonalTradelines.com',d:'Servicio personalizado con asesoría individual',tag:'Solo SSN',url:'https://personaltradelines.com'},
-],
-bancos:[
-  {n:'Majority',d:'Banco digital para inmigrantes — acepta ITIN',tag:'ITIN y SSN',url:'https://majority.com'},
-  {n:'Varo Bank',d:'Banco digital sin cuotas mensuales',tag:'ITIN y SSN',url:'https://varomoney.com'},
-  {n:'Chime',d:'Credit Builder con depósito de seguridad',tag:'Solo SSN',url:'https://chime.com'},
-],
-despues:[
-  {n:'Navy Federal CU',d:'La cooperativa más grande de EE.UU.',tag:'ITIN y SSN',url:'https://navyfederal.org'},
-  {n:'PenFed CU',d:'Tasas competitivas en tarjetas e hipotecas',tag:'ITIN y SSN',url:'https://penfed.org'},
-  {n:'CareCredit',d:'Financia gastos médicos y dentales',tag:'ITIN y SSN',url:'https://carecredit.com'},
-],
-emergencia:[
-  {n:'Oportun',d:'Préstamos para comunidad hispana sin SSN',tag:'ITIN y SSN',url:'https://oportun.com'},
-  {n:'Upstart',d:'Préstamos basados en educación e ingresos',tag:'Solo SSN',url:'https://upstart.com'},
-  {n:'LendingPoint',d:'Préstamos personales con mal crédito',tag:'Solo SSN',url:'https://lendingpoint.com'},
-],
+// ── TRANSLATIONS ────────────────────────────────────────────────────────────
+const T={
+  es:{
+    panel:'Panel',monitor:'Monitor Casos',clientes:'Clientes',nuevo:'Nuevo Cliente',
+    cobros:'Cobros',herramientas:'Herramientas',portal:'Portal Cliente',
+    panelTitle:'Panel Principal',cerrar:'Cerrar Sesión',miOficina:'Mi Oficina',
+    clientesActivos:'Clientes Activos',scorePromedio:'Score Promedio',
+    cobradoMes:'Cobrado Este Mes',porCobrar:'Por Cobrar',
+    clientesRecientes:'Clientes Recientes',actividadReciente:'Actividad Reciente',
+    verCaso:'Ver Caso',nuevo2:'+ Nuevo',score:'Score',estado:'Estado',
+    resumen:'Resumen',disputas:'Disputas',notas:'Notas',
+    meta:'Meta',items:'Ítems',pago:'Pago',pagoDel:'Pago del mes',
+    pagado:'✓ Pagado',pendiente:'⚠ Pendiente',
+    agregarNota:'Guardar Nota',notaPlaceholder:'Escribe una nota interna...',
+    poor:'Malo',fair:'Regular',good:'Bueno',vgood:'Muy Bueno',exceptional:'Excepcional',
+    herramientasTitle:'Herramientas',
+    promptsIA:'Prompts de IA',promptsDesc:'7 prompts especializados para reparar crédito, disputar records y validar deudas',
+    cartasDisp:'Cartas de Disputa',cartasDesc:'3 cartas en secuencia para cada bureau — datos del cliente precargados',
+    directorio:'Directorio de Servicios',dirDesc:'Servicios de construcción de crédito, tradelines y bancos con filtro ITIN/SSN',
+    reportes:'Obtener Reportes',repDesc:'Links directos a los 3 bureaus y AnnualCreditReport.com oficial',
+    iniciarSesion:'Iniciar Sesión',email:'Email',password:'Contraseña',
+    nuevoClienteTitle:'Nuevo Cliente',nuevoClienteDesc:'Registra un nuevo cliente de reparación de crédito',
+    datosPersonales:'Datos Personales',credito:'Crédito',acuerdo:'Acuerdo',
+    nombre:'Nombre',apellido:'Apellido',telefono:'Teléfono',
+    scoreActual:'Score Actual',scoreMeta:'Score Meta',planPago:'Plan de Pago',
+    itemsDisputar:'Ítems a Disputar (uno por línea)',
+    firmaCliente:'Firma del Cliente (nombre completo)',
+    aceptoTerminos:'Acepto los términos y autorizo el proceso de reparación de crédito.',
+    acuerdoTexto:'Al firmar, el cliente autoriza a la oficina a disputar ítems inexactos bajo la FCRA. La oficina NO garantiza resultados. El cliente puede cancelar en los primeros 3 días hábiles sin cargo.',
+    crearCliente:'✓ Crear Cliente',anterior:'← Anterior',siguiente:'Siguiente →',cancelar:'Cancelar',
+    planMensual:'Mensualidad Fija',planMensualDesc:'Cobro mensual fijo independiente del resultado',
+    planDisputa:'Por Disputa',planDisputaDesc:'Cobro por cada ítem disputado exitosamente',
+    planResultado:'Por Resultado',planResultadoDesc:'Cobro solo cuando se elimina una mancha del reporte',
+    planPersonalizado:'Personalizado',planPersonalizadoDesc:'El dueño define el monto y condiciones',
+    monto:'Monto ($)',
+    cobradoTotal:'Cobrado Total',porCobrarTotal:'Por Cobrar',mrrEsperado:'MRR Esperado',
+    pagosMes:'Pagos — Este Mes',recibo:'🧾 Recibo',recordatorio:'📧 Recordatorio',
+    vistaPreviaPortal:'👁️ Vista Previa: Así ve el cliente su portal cuando entra con sus credenciales.',
+    tuScore:'Tu Puntaje de Crédito',estadoCaso:'Estado de Tu Caso',
+    copiar:'📋 Copiar',imprimir:'🖨️ Imprimir',nuevaCarta:'✓ Nueva Carta',volver:'← Volver',
+    selCliente:'Selecciona el cliente',selBureau:'Bureau de Crédito',selTipo:'Tipo de Carta',
+    instrEnvio:'📮 Instrucciones: Envía por Certified Mail con Return Receipt. Guarda el tracking. El bureau tiene 30 días para responder.',
+    carta1title:'Primera Disputa',carta1desc:'Disputa inicial de ítems negativos',
+    carta2title:'Seguimiento 30 días',carta2desc:'Sin respuesta del bureau',
+    carta3title:'Escalada Final',carta3desc:'Method of Verification demand',
+    comoUsar:'Cómo usar:',comoUsarDesc:'Copia este prompt, abre Claude.ai o ChatGPT, pégalo y presiona Enter. Luego sube tu reporte de crédito.',
+    copiarPrompt:'📋 Copiar Prompt',abrirClaude:'Abrir Claude.ai →',verGuia:'Ver guía →',verPrompt:'Ver prompt →',
+    construction:'Construcción',tradelines:'Tradelines',bancos:'Bancos',despues:'Después del Crédito',emergencia:'Emergencia',
+    visitarSitio:'Visitar →',
+    officialSite:'Sitio Oficial — GRATIS',bureauOficial:'Bureau Oficial',
+    atenciondias:'⚠️ Préstamos de alto interés. Solo en emergencias. Usa pre-calificación (soft check) primero.',
+  },
+  en:{
+    panel:'Dashboard',monitor:'Case Monitor',clientes:'Clients',nuevo:'New Client',
+    cobros:'Billing',herramientas:'Tools',portal:'Client Portal',
+    panelTitle:'Main Dashboard',cerrar:'Sign Out',miOficina:'My Office',
+    clientesActivos:'Active Clients',scorePromedio:'Avg Score',
+    cobradoMes:'Collected This Month',porCobrar:'Outstanding',
+    clientesRecientes:'Recent Clients',actividadReciente:'Recent Activity',
+    verCaso:'View Case',nuevo2:'+ New',score:'Score',estado:'Status',
+    resumen:'Summary',disputas:'Disputes',notas:'Notes',
+    meta:'Goal',items:'Items',pago:'Fee',pagoDel:'Monthly payment',
+    pagado:'✓ Paid',pendiente:'⚠ Pending',
+    agregarNota:'Save Note',notaPlaceholder:'Write an internal note...',
+    poor:'Poor',fair:'Fair',good:'Good',vgood:'Very Good',exceptional:'Exceptional',
+    herramientasTitle:'Tools',
+    promptsIA:'AI Prompts',promptsDesc:'7 specialized prompts to repair credit, dispute records and validate debts',
+    cartasDisp:'Dispute Letters',cartasDesc:'3 sequential letters for each bureau — client data pre-loaded',
+    directorio:'Services Directory',dirDesc:'Credit building services, tradelines and banks with ITIN/SSN filter',
+    reportes:'Get Credit Reports',repDesc:'Direct links to all 3 bureaus and official AnnualCreditReport.com',
+    iniciarSesion:'Sign In',email:'Email',password:'Password',
+    nuevoClienteTitle:'New Client',nuevoClienteDesc:'Register a new credit repair client',
+    datosPersonales:'Personal Info',credito:'Credit',acuerdo:'Agreement',
+    nombre:'First Name',apellido:'Last Name',telefono:'Phone',
+    scoreActual:'Current Score',scoreMeta:'Target Score',planPago:'Payment Plan',
+    itemsDisputar:'Items to Dispute (one per line)',
+    firmaCliente:'Client Signature (full name)',
+    aceptoTerminos:'I accept the terms and authorize the credit repair process.',
+    acuerdoTexto:'By signing, the client authorizes the office to dispute inaccurate items under the FCRA. The office does NOT guarantee results. The client may cancel within the first 3 business days at no charge.',
+    crearCliente:'✓ Create Client',anterior:'← Back',siguiente:'Next →',cancelar:'Cancel',
+    planMensual:'Fixed Monthly',planMensualDesc:'Fixed monthly fee regardless of results',
+    planDisputa:'Per Dispute',planDisputaDesc:'Fee charged per item successfully disputed',
+    planResultado:'Per Result',planResultadoDesc:'Fee charged only when a negative item is removed',
+    planPersonalizado:'Custom',planPersonalizadoDesc:'Owner defines amount and conditions',
+    monto:'Amount ($)',
+    cobradoTotal:'Total Collected',porCobrarTotal:'Outstanding',mrrEsperado:'Expected MRR',
+    pagosMes:'Payments — This Month',recibo:'🧾 Receipt',recordatorio:'📧 Reminder',
+    vistaPreviaPortal:'👁️ Preview: This is what the client sees when they log in.',
+    tuScore:'Your Credit Score',estadoCaso:'Your Case Status',
+    copiar:'📋 Copy',imprimir:'🖨️ Print',nuevaCarta:'✓ New Letter',volver:'← Back',
+    selCliente:'Select client',selBureau:'Credit Bureau',selTipo:'Letter Type',
+    instrEnvio:'📮 Instructions: Send by Certified Mail with Return Receipt. Keep tracking number. Bureau has 30 days to respond.',
+    carta1title:'First Dispute',carta1desc:'Initial dispute of negative items',
+    carta2title:'30-Day Follow-Up',carta2desc:'No response from bureau',
+    carta3title:'Final Escalation',carta3desc:'Method of Verification demand',
+    comoUsar:'How to use:',comoUsarDesc:'Copy this prompt, open Claude.ai or ChatGPT, paste it and press Enter. Then upload your credit report.',
+    copiarPrompt:'📋 Copy Prompt',abrirClaude:'Open Claude.ai →',verGuia:'View guide →',verPrompt:'View prompt →',
+    construction:'Credit Building',tradelines:'Tradelines',bancos:'Banks',despues:'After Good Credit',emergencia:'Emergency',
+    visitarSitio:'Visit →',
+    officialSite:'Official Site — FREE',bureauOficial:'Official Bureau',
+    atenciondias:'⚠️ High interest loans. Emergency use only. Always use pre-qualification (soft check) first.',
+  }
 };
 
-// ── DEMO CLIENTES ──────────────────────────────────────────────────────────
+// ── HELPERS ─────────────────────────────────────────────────────────────────
+const scColor=s=>s<580?'#DC2626':s<670?'#D97706':s<740?'#16A34A':s<800?'#2563EB':'#7C3AED';
+const scZone=(s,lang)=>{
+  const t=T[lang];
+  return s<580?t.poor:s<670?t.fair:s<740?t.good:s<800?t.vgood:t.exceptional;
+};
+const fm=n=>'$'+(n||0).toLocaleString('en-US');
+const EB={
+  nuevo:{c:'bg-purple',es:'Nuevo',en:'New'},
+  en_proceso:{c:'bg-yellow',es:'En Proceso',en:'In Progress'},
+  activo:{c:'bg-blue',es:'Activo',en:'Active'},
+  completado:{c:'bg-green',es:'Completado',en:'Completed'}
+};
+const getEB=(e,l)=>{const b=EB[e]||EB.nuevo;return{c:b.c,l:b[l]||b.es};};
+
+// ── DEMO DATA ────────────────────────────────────────────────────────────────
 const DEMO=[
-  {id:'c1',nombre:'María García',tel:'(407) 555-0101',email:'maria@email.com',scoreActual:542,scoreMeta:700,estado:'en_proceso',items:7,pago:150,pagado:true,inicio:'2024-11-01',disputas:['Colección médica $2,100','Pago tardío Chase','Capital One en colecciones'],notas:[{f:'Dic 15',a:'Admin',t:'Carta enviada a Experian. Esperando respuesta 30 días.'}]},
-  {id:'c2',nombre:'Carlos Rodríguez',tel:'(321) 555-0202',email:'carlos@email.com',scoreActual:618,scoreMeta:740,estado:'activo',items:4,pago:120,pagado:true,inicio:'2024-10-15',disputas:['Consulta no autorizada','Balance alto Discover'],notas:[]},
-  {id:'c3',nombre:'Ana Martínez',tel:'(407) 555-0303',email:'ana@email.com',scoreActual:701,scoreMeta:750,estado:'completado',items:0,pago:120,pagado:true,inicio:'2024-07-01',disputas:[],notas:[{f:'Dic 01',a:'Admin',t:'¡Caso cerrado! Cliente alcanzó 701 pts.'}]},
-  {id:'c4',nombre:'José López',tel:'(321) 555-0404',email:'jose@email.com',scoreActual:480,scoreMeta:650,estado:'nuevo',items:12,pago:150,pagado:false,inicio:'2024-12-01',disputas:['Juicio civil $5,400','3 colecciones','Reporte de fraude'],notas:[]},
-  {id:'c5',nombre:'Elena Torres',tel:'(407) 555-0505',email:'elena@email.com',scoreActual:590,scoreMeta:700,estado:'en_proceso',items:5,pago:150,pagado:true,inicio:'2024-09-20',disputas:['Saldo viejo Sprint','Pago tardío Banco América'],notas:[]},
+  {id:'c1',nombre:'María García',tel:'(407) 555-0101',email:'maria@email.com',scoreActual:542,scoreMeta:700,estado:'en_proceso',items:7,planTipo:'mensual',pago:150,pagado:true,inicio:'2024-11-01',disputas:['Colección médica $2,100','Pago tardío Chase','Capital One en colecciones'],notas:[{f:'Dic 15',a:'Admin',t:'Carta enviada a Experian. Esperando 30 días.'}]},
+  {id:'c2',nombre:'Carlos Rodríguez',tel:'(321) 555-0202',email:'carlos@email.com',scoreActual:618,scoreMeta:740,estado:'activo',items:4,planTipo:'disputa',pago:120,pagado:true,inicio:'2024-10-15',disputas:['Consulta no autorizada','Balance alto Discover'],notas:[]},
+  {id:'c3',nombre:'Ana Martínez',tel:'(407) 555-0303',email:'ana@email.com',scoreActual:701,scoreMeta:750,estado:'completado',items:0,planTipo:'resultado',pago:0,pagado:true,inicio:'2024-07-01',disputas:[],notas:[{f:'Dic 01',a:'Admin',t:'¡Caso cerrado! Score 701 alcanzado.'}]},
+  {id:'c4',nombre:'José López',tel:'(321) 555-0404',email:'jose@email.com',scoreActual:480,scoreMeta:650,estado:'nuevo',items:12,planTipo:'mensual',pago:150,pagado:false,inicio:'2024-12-01',disputas:['Juicio civil $5,400','3 colecciones','Reporte de fraude'],notas:[]},
+  {id:'c5',nombre:'Elena Torres',tel:'(407) 555-0505',email:'elena@email.com',scoreActual:590,scoreMeta:700,estado:'en_proceso',items:5,planTipo:'mensual',pago:150,pagado:true,inicio:'2024-09-20',disputas:['Saldo viejo Sprint','Pago tardío Banco América'],notas:[]},
 ];
 
 const KCOLS=[
-  {key:'nuevo',label:'Nuevos',color:'#A855F7'},
-  {key:'en_proceso',label:'En Proceso',color:'#F59E0B'},
-  {key:'activo',label:'Activos',color:'#3B82F6'},
-  {key:'completado',label:'Completados',color:'#22C55E'},
+  {key:'nuevo',color:'#7C3AED'},
+  {key:'en_proceso',color:'#D97706'},
+  {key:'activo',color:'#2563EB'},
+  {key:'completado',color:'#16A34A'},
 ];
-const EB={nuevo:{c:'bg-purple',l:'Nuevo'},en_proceso:{c:'bg-yellow',l:'En Proceso'},activo:{c:'bg-blue',l:'Activo'},completado:{c:'bg-green',l:'Completado'}};
 
-// ── SCORE DIAL ─────────────────────────────────────────────────────────────
-function Dial({score,size=160}){
-  const pct=Math.min(1,Math.max(0,(score-300)/550));
-  const ang=-180+pct*180;
-  const cx=80,cy=76,r=60;
-  const xy=(d,rd)=>({x:cx+rd*Math.cos(d*Math.PI/180),y:cy+rd*Math.sin(d*Math.PI/180)});
-  const end=xy(ang,r);
-  const large=ang>-90?1:0;
-  const color=score<580?'#EF4444':score<670?'#F59E0B':score<740?'#3B82F6':'#22C55E';
-  const needle=xy(ang-90,44);
+// ── PROMPTS ──────────────────────────────────────────────────────────────────
+const PROMPTS=[
+{id:1,icon:'🔬',es:{t:'Reparar Mi Crédito',d:'Análisis forense completo + Metro 2 + cartas por bureau'},en:{t:'Repair My Credit',d:'Full forensic analysis + Metro 2 + letters per bureau'},tag:'Principal',
+prompt:`Act as a highly skilled credit report analyst, Metro 2 compliance expert, and bilingual dispute-letter writer. Perform a forensic-style review with maximum detail.
+
+STEP 1 — FULL AUDIT: Identify ALL negatives. Flag: 🔴 METRO 2 VIOLATION, ⚠️ EXPIRED (>7 yrs), 📋 MULTI-BUREAU, 🔍 UNAUTHORIZED INQUIRY.
+
+STEP 2 — PRIORITY SCORING: Assign Impact (High/Medium/Low), Dispute Strength, Expiration Date, Action. Sort highest to lowest impact.
+
+STEP 3 — 3 DISPUTE LETTERS: One each for Equifax, Experian, TransUnion. Cite FCRA §611 and §623. Demand deletion within 30 days.
+
+STEP 4 — SPANISH VERSION: Translate the main dispute letter to professional Spanish.
+
+STEP 5 — ACTION PACKAGE: Mailing checklist, document checklist, strongest dispute points, estimated score impact.
+
+Do not begin until I provide the credit report(s).`},
+
+{id:2,icon:'⚖️',es:{t:'Records Públicos',d:'Estrategia LexisNexis + disputa de bancarrotas y gravámenes'},en:{t:'Public Records',d:'LexisNexis strategy + bankruptcy and lien disputes'},tag:'Avanzado',
+prompt:`CRITICAL FIRST STEP: Call LexisNexis at 1-800-456-1244 and request a block on your public record BEFORE disputing with bureaus. LexisNexis is the source bureaus use to verify public records.
+
+Act as an FCRA expert specializing in public records disputes.
+
+STEP 1 — IDENTIFY ALL PUBLIC RECORDS: Bankruptcies (Ch7: 10yr; Ch13: 7yr), civil judgments, tax liens, child support, foreclosures. Calculate exact expiration date for each.
+
+STEP 2 — LEXISNEXIS WRITTEN REQUEST: Draft formal letter to LexisNexis demanding removal under FCRA §605. Address: LexisNexis Consumer Center, P.O. Box 105108, Atlanta, GA 30348.
+
+STEP 3 — BUREAU DISPUTE LETTERS: Write letters citing that the public record cannot be verified independently without LexisNexis data. Demand deletion.
+
+STEP 4 — TIMELINE: Day 0: Call LexisNexis + send written request. Day 7: Send bureau disputes. Day 37: Follow up. Day 45: Escalate to CFPB.
+
+Do not begin until I upload my credit report.`},
+
+{id:3,icon:'🔍',es:{t:'Borrar Inquiries',d:'Disputa de hard pulls y consultas no autorizadas'},en:{t:'Remove Inquiries',d:'Dispute hard pulls and unauthorized credit checks'},tag:'Rápido',
+prompt:`Act as an FCRA expert specializing in hard inquiry disputes.
+
+STEP 1 — IDENTIFY: Flag unauthorized inquiries, inquiries older than 2 years (must be removed by law), duplicates, incorrect dates. DO NOT dispute: open recognized accounts, soft pulls, employer inquiries.
+
+STEP 2 — PRIORITY: Sort by (1) unauthorized, (2) expired 2+ years, (3) duplicate. Estimate score impact per removal.
+
+STEP 3 — DISPUTE LETTERS (one per bureau): Cite FCRA §604 — no permissible purpose. Include exact inquiry name and date.
+
+STEP 4 — DIRECT CREDITOR LETTERS: Demand each creditor instruct bureaus to remove the inquiry.
+
+STEP 5 — PHONE SCRIPT: What to say, who to ask for (supervisor), what to demand if not resolved in 30 days.
+
+Do not begin until I provide my credit report.`},
+
+{id:4,icon:'💬',es:{t:'Negociación de Deudas',d:'Script al 20% + acuerdo pay-for-delete en español'},en:{t:'Debt Negotiation',d:'20% offer script + pay-for-delete agreement'},tag:'Avanzado',
+prompt:`Act as a debt negotiation strategist.
+
+STEP 1 — DEBT ANALYSIS: Original creditor vs collector, age of debt, statute of limitations by state, credit reporting period (7 years).
+
+STEP 2 — STRATEGY: Start at 20%, escalate to 30% then 40% maximum. Pay-for-delete from all 3 bureaus as condition.
+
+STEP 3 — PHONE SCRIPT (in Spanish):
+APERTURA: "Mi nombre es [NOMBRE] sobre la cuenta [#]. Quiero resolver esta deuda."
+PRESIÓN: "Estoy considerando Capítulo 7. Si ocurre, no recibirán nada. Prefiero resolver ahora."
+OFERTA: "Ofrezco el 20% como pago único y final, SOLO si eliminan de los tres bureaus."
+CIERRE: "Necesito confirmación escrita antes de cualquier pago."
+
+STEP 4 — PAY-FOR-DELETE AGREEMENT: Draft template collector must sign before payment.
+
+GOLDEN RULES: ⚠️ NEVER pay before written agreement. ONLY personal check. Agreement MUST specify deletion from all 3 bureaus. Keep ALL documents.
+
+Do not begin until I provide debt details.`},
+
+{id:5,icon:'✅',es:{t:'Validación de Deuda',d:'Paquete completo FDCPA §809 para detener cobros'},en:{t:'Debt Validation',d:'Complete FDCPA §809 package to stop collections'},tag:'Avanzado',
+prompt:`Act as an FDCPA/FCRA compliance analyst. Generate a complete Debt Validation Package in Spanish, print-ready.
+
+INPUTS: Full name, address, DOB, last 4 SSN, collector name/address, date of first contact, state (important for Texas Cap. 392).
+
+OUTPUT:
+A) EXECUTIVE SUMMARY: debts in validation, risks, key deadlines.
+B) CHECKLIST Day 0-45: Day 0 prepare + send certified mail. Day 1-10 monitor delivery. Day 11-30 silence period, log calls. Day 31-45 evaluate response, CFPB complaint if needed.
+C) DEBT VALIDATION LETTER (FDCPA §809): demand itemized balance, original creditor, original contract, chain of ownership, full accounting. All in writing, no phone calls.
+D) EXHIBITS LIST
+E) FOLLOW-UP LETTER (30+ days): Method of Verification demand, FCRA §623 warning.
+F) TEXAS MODULE (if applicable): Texas Finance Code Cap. 392.
+G) EVIDENCE LOG TABLE
+
+Do not begin until I upload collector documents.`},
+
+{id:6,icon:'📊',es:{t:'ITIN + Construir Crédito',d:'Cómo obtener ITIN y construir crédito desde cero'},en:{t:'ITIN + Build Credit',d:'How to get ITIN and build credit from scratch'},tag:'Básico',
+prompt:`Act as a bilingual financial advisor specializing in credit building for immigrants and ITIN holders.
+
+STEP 1 — ITIN GUIDE: Who needs it, how to get it via: (1) W-7 by mail, (2) Certified Acceptance Agent, (3) IRS office, (4) US consulate abroad, (5) with tax return, (6) authorized tax preparer. Documents: passport (preferred), driver's license, birth certificate, national ID, USCIS document.
+
+STEP 2 — BUILD CREDIT WITH ITIN: Which banks accept ITIN, secured cards available, credit builder loans, rent reporting services. Timeline to 700+ score from zero.
+
+STEP 3 — ITIN vs SSN TABLE: All major credit-building services — which accept ITIN only, SSN only, or both.
+
+STEP 4 — 12-MONTH ROADMAP: Month 1-3: ITIN + bank account + secured card. Month 4-6: credit builder loan + rent reporting. Month 7-9: limit increase + authorized user tradeline. Month 10-12: first unsecured card.
+
+Provide personalized advice based on my situation.`},
+
+{id:7,icon:'🏛️',es:{t:'Bancarrota — Guía',d:'Capítulo 7 vs 13 e impacto en crédito'},en:{t:'Bankruptcy Guide',d:'Chapter 7 vs 13 and credit impact'},tag:'Info',link:'https://upsolve.org'},
+];
+
+// ── DIRECTORIO ────────────────────────────────────────────────────────────────
+const DIR={
+construccion:[
+  {n:'Self.inc',d:'Credit builder with reports to 3 bureaus',tag:'ITIN y SSN',url:'https://self.inc'},
+  {n:'Kikoff',d:'$750 line, no interest — $5/month',tag:'Solo SSN',url:'https://kikoff.com'},
+  {n:'Experian Boost',d:'Instant score boost adding utility payments',tag:'ITIN y SSN',url:'https://experian.com/boost'},
+  {n:'GrowCredit',d:'Build credit paying Netflix, Spotify and more',tag:'ITIN y SSN',url:'https://growcredit.com'},
+  {n:'Bilt Rewards',d:'Earn points paying rent and build credit',tag:'ITIN y SSN',url:'https://biltrewards.com'},
+  {n:'GetFlex',d:'Pay rent in installments and report to bureaus',tag:'ITIN y SSN',url:'https://getflex.com'},
+],
+tradelines:[
+  {n:'TradelineSupply.com',d:'Authorized tradelines 2-20+ year history',tag:'Solo SSN',url:'https://tradelinesupply.com'},
+  {n:'TradelineWorks.com',d:'Tradeline marketplace with limit and age filters',tag:'Solo SSN',url:'https://tradelineworks.com'},
+  {n:'PersonalTradelines.com',d:'Personalized service with individual consulting',tag:'Solo SSN',url:'https://personaltradelines.com'},
+],
+bancos:[
+  {n:'Majority',d:'Digital bank for immigrants — accepts ITIN',tag:'ITIN y SSN',url:'https://majority.com'},
+  {n:'Varo Bank',d:'Digital bank no monthly fees',tag:'ITIN y SSN',url:'https://varomoney.com'},
+  {n:'Chime',d:'Credit Builder with security deposit',tag:'Solo SSN',url:'https://chime.com'},
+  {n:'Oportun',d:'Loans for Hispanic community without SSN',tag:'ITIN y SSN',url:'https://oportun.com'},
+],
+despues:[
+  {n:'Navy Federal CU',d:"USA's largest credit union",tag:'ITIN y SSN',url:'https://navyfederal.org'},
+  {n:'PenFed CU',d:'Competitive rates on cards and mortgages',tag:'ITIN y SSN',url:'https://penfed.org'},
+  {n:'CareCredit',d:'Financing for medical and dental expenses',tag:'ITIN y SSN',url:'https://carecredit.com'},
+  {n:'NASA Federal CU',d:'High quality financial products',tag:'ITIN y SSN',url:'https://nasafcu.com'},
+],
+emergencia:[
+  {n:'Upstart',d:'Loans based on education and income',tag:'Solo SSN',url:'https://upstart.com'},
+  {n:'LendingPoint',d:'Personal loans with bad credit',tag:'Solo SSN',url:'https://lendingpoint.com'},
+  {n:'OneMain Financial',d:'Secured and unsecured personal loans',tag:'Solo SSN',url:'https://onemainfinancial.com'},
+],
+};
+
+// ── SCORE DIAL ────────────────────────────────────────────────────────────────
+function Dial({score,lang='es'}){
+  const cx=100,cy=95,r=80;
+  const toXY=(deg,rd)=>({x:cx+rd*Math.cos(deg*Math.PI/180),y:cy+rd*Math.sin(deg*Math.PI/180)});
+  const zones=[
+    {min:300,max:580,color:'#DC2626',label:'Poor'},
+    {min:580,max:670,color:'#D97706',label:'Fair'},
+    {min:670,max:740,color:'#84CC16',label:'Good'},
+    {min:740,max:800,color:'#16A34A',label:'Very Good'},
+    {min:800,max:850,color:'#2563EB',label:'Exceptional'},
+  ];
+  const scoreToAngle=s=>-180+((s-300)/550)*180;
+  const arcPath=(a1,a2,rd)=>{
+    const s=toXY(a1,rd),e=toXY(a2,rd);
+    const large=a2-a1>180?1:0;
+    return `M${s.x},${s.y} A${rd},${rd} 0 ${large} 1 ${e.x},${e.y}`;
+  };
+  const needleAng=scoreToAngle(Math.min(850,Math.max(300,score)));
+  const needleTip=toXY(needleAng,65);
+  const needleBase1=toXY(needleAng+90,8);
+  const needleBase2=toXY(needleAng-90,8);
+  const color=scColor(score);
+  const zone=scZone(score,lang);
   return React.createElement('div',{className:'dw'},
-    React.createElement('svg',{width:size,height:size*0.58,viewBox:'0 0 160 93'},
-      React.createElement('path',{d:'M20 76 A60 60 0 0 1 140 76',fill:'none',stroke:'rgba(255,255,255,0.08)',strokeWidth:12,strokeLinecap:'round'}),
-      React.createElement('path',{d:`M20 76 A60 60 0 ${large} 1 ${end.x} ${end.y}`,fill:'none',stroke:color,strokeWidth:12,strokeLinecap:'round'}),
-      React.createElement('line',{x1:cx,y1:cy,x2:needle.x,y2:needle.y,stroke:color,strokeWidth:2,strokeLinecap:'round'}),
-      React.createElement('circle',{cx,cy,r:4,fill:color}),
-      React.createElement('text',{x:cx,y:93,textAnchor:'middle',fontSize:22,fontWeight:800,fill:'#F1F5F9',fontFamily:'-apple-system,sans-serif'},score)
-    )
+    React.createElement('svg',{width:200,height:115,viewBox:'0 0 200 115'},
+      // Background arc
+      React.createElement('path',{d:arcPath(-180,0,r),fill:'none',stroke:'#E2E8F0',strokeWidth:16,strokeLinecap:'round'}),
+      // Zone arcs
+      ...zones.map((z,i)=>{
+        const a1=scoreToAngle(z.min);
+        const a2=scoreToAngle(Math.min(z.max,score));
+        if(score<z.min)return null;
+        return React.createElement('path',{key:i,d:arcPath(a1,a2,r),fill:'none',stroke:z.color,strokeWidth:16,strokeLinecap:i===0?'round':'butt'});
+      }).filter(Boolean),
+      // Needle
+      React.createElement('polygon',{
+        points:`${needleTip.x},${needleTip.y} ${needleBase1.x},${needleBase1.y} ${needleBase2.x},${needleBase2.y}`,
+        fill:'#1E293B'
+      }),
+      React.createElement('circle',{cx,cy,r:10,fill:'#1E293B'}),
+      React.createElement('circle',{cx,cy,r:6,fill:'#fff'}),
+      // Score number
+      React.createElement('text',{x:cx,y:112,textAnchor:'middle',fontSize:26,fontWeight:800,fill:'#0A1628',fontFamily:'-apple-system,sans-serif'},score)
+    ),
+    React.createElement('div',{style:{fontSize:13,fontWeight:700,color,marginTop:2}},zone),
+    React.createElement('div',{style:{fontSize:11,color:'#718096',marginTop:2}},'300 — Poor · 580 — Fair · 670 — Good · 740 — Very Good · 800 — Exceptional')
   );
 }
 
-// ── MODAL CLIENTE ──────────────────────────────────────────────────────────
-function ModalCliente({c,onClose,onNota}){
+// ── MODAL CLIENTE ─────────────────────────────────────────────────────────────
+function ModalCliente({c,onClose,onNota,lang}){
   const [tab,setTab]=React.useState('resumen');
   const [nota,setNota]=React.useState('');
-  const eb=EB[c.estado]||EB.nuevo;
+  const t=T[lang];
+  const eb=getEB(c.estado,lang);
   return React.createElement('div',{className:'mbg',onClick:e=>e.target===e.currentTarget&&onClose()},
     React.createElement('div',{className:'md'},
       React.createElement('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:16}},
@@ -519,59 +571,60 @@ function ModalCliente({c,onClose,onNota}){
         React.createElement('button',{className:'btn btn-ghost btn-sm',onClick:onClose},'✕')
       ),
       React.createElement('div',{className:'tabs'},
-        ['resumen','disputas','notas'].map(t=>React.createElement('div',{key:t,className:`tab ${tab===t?'active':''}`,onClick:()=>setTab(t)},t==='resumen'?'Resumen':t==='disputas'?'Disputas':'Notas'))
+        [{k:'resumen',l:t.resumen},{k:'disputas',l:t.disputas},{k:'notas',l:t.notas}]
+        .map(tb=>React.createElement('div',{key:tb.k,className:`tab ${tab===tb.k?'active':''}`,onClick:()=>setTab(tb.k)},tb.l))
       ),
       tab==='resumen'&&React.createElement('div',null,
-        React.createElement(Dial,{score:c.scoreActual}),
-        React.createElement('div',{style:{textAlign:'center',marginBottom:16}},
-          React.createElement('span',{className:scColor(c.scoreActual),style:{fontWeight:700}},scLabel(c.scoreActual)),
-          React.createElement('span',{style:{color:'var(--t3)',fontSize:13}},` · Meta: ${c.scoreMeta} pts (+${c.scoreMeta-c.scoreActual})`)
+        React.createElement(Dial,{score:c.scoreActual,lang}),
+        React.createElement('div',{style:{textAlign:'center',marginBottom:16,fontSize:13,color:'var(--t2)'}},
+          `${t.meta}: ${c.scoreMeta} pts (+${c.scoreMeta-c.scoreActual})`
         ),
-        React.createElement('div',{style:{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:8,marginBottom:16}},
-          [{l:'Estado',v:React.createElement('span',{className:`bgg ${eb.c}`},eb.l)},{l:'Ítems',v:c.items},{l:'Pago',v:fm(c.pago)+'/mes'}]
+        React.createElement('div',{style:{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:8,marginBottom:12}},
+          [{l:t.estado,v:React.createElement('span',{className:`bgg ${eb.c}`},eb.l)},{l:t.items,v:c.items},{l:t.pago,v:fm(c.pago)+'/mo'}]
           .map(s=>React.createElement('div',{key:s.l,style:{background:'var(--navy3)',borderRadius:8,padding:'10px 8px',textAlign:'center'}},
-            React.createElement('div',{style:{fontSize:11,color:'var(--t3)',marginBottom:4,textTransform:'uppercase',letterSpacing:'0.5px'}},s.l),
-            React.createElement('div',{style:{fontWeight:700}},s.v)
+            React.createElement('div',{style:{fontSize:10,color:'var(--t3)',marginBottom:4,textTransform:'uppercase',letterSpacing:'0.5px'}},s.l),
+            React.createElement('div',{style:{fontWeight:700,fontSize:14}},s.v)
           ))
         ),
         React.createElement('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center',background:'var(--navy3)',borderRadius:8,padding:'10px 14px'}},
-          React.createElement('span',{style:{fontSize:13,color:'var(--t2)'}},'Pago del mes'),
-          c.pagado?React.createElement('span',{className:'bgg bg-green'},'✓ Pagado'):React.createElement('span',{className:'bgg bg-red'},'⚠ Pendiente')
+          React.createElement('span',{style:{fontSize:13,color:'var(--t2)'}},t.pagoDel),
+          c.pagado?React.createElement('span',{className:'bgg bg-green'},t.pagado):React.createElement('span',{className:'bgg bg-red'},t.pendiente)
         )
       ),
       tab==='disputas'&&React.createElement('div',null,
         React.createElement('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:14}},
-          React.createElement('span',{style:{fontSize:13,color:'var(--t2)'}},`${c.disputas.length} ítems en disputa`),
-          React.createElement('button',{className:'btn btn-gold btn-sm'},'+ Agregar')
+          React.createElement('span',{style:{fontSize:13,color:'var(--t2)'}},`${c.disputas.length} ${t.items}`),
+          React.createElement('button',{className:'btn btn-gold btn-sm'},'+ Add')
         ),
         c.disputas.length===0
-          ?React.createElement('div',{className:'empty'},'✅ Sin disputas activas')
+          ?React.createElement('div',{className:'empty'},'✅ No active disputes')
           :c.disputas.map((d,i)=>React.createElement('div',{key:i,style:{display:'flex',justifyContent:'space-between',alignItems:'center',background:'var(--navy3)',borderRadius:8,padding:'12px 14px',marginBottom:8}},
               React.createElement('span',{style:{fontSize:13}},'⚡ '+d),
-              React.createElement('span',{className:'bgg bg-yellow'},'En disputa')
+              React.createElement('span',{className:'bgg bg-yellow'},'In dispute')
             )),
-        React.createElement('button',{className:'btn btn-gold',style:{width:'100%',marginTop:12,justifyContent:'center'}},'✉️ Generar Carta de Disputa')
+        React.createElement('button',{className:'btn btn-gold',style:{width:'100%',marginTop:12,justifyContent:'center'}},'✉️ Generate Dispute Letter')
       ),
       tab==='notas'&&React.createElement('div',null,
         c.notas.length===0
-          ?React.createElement('div',{className:'empty',style:{paddingBottom:20}},'Sin notas aún')
+          ?React.createElement('div',{className:'empty',style:{paddingBottom:20}},'No notes yet')
           :c.notas.map((n,i)=>React.createElement('div',{key:i,className:'nota'},
               React.createElement('div',{className:'nota-m'},n.f+' · '+n.a),
               React.createElement('div',{className:'nota-t'},n.t)
             )),
-        React.createElement('textarea',{className:'fi',rows:3,placeholder:'Escribe una nota interna...',value:nota,onChange:e=>setNota(e.target.value),style:{resize:'vertical',marginTop:8}}),
-        React.createElement('button',{className:'btn btn-gold',style:{marginTop:8},onClick:()=>{if(nota.trim()){onNota(c.id,nota);setNota('');}}})
+        React.createElement('textarea',{className:'fi',rows:3,placeholder:t.notaPlaceholder,value:nota,onChange:e=>setNota(e.target.value),style:{resize:'vertical',marginTop:8}}),
+        React.createElement('button',{className:'btn btn-gold',style:{marginTop:8},onClick:()=>{if(nota.trim()){onNota(c.id,nota);setNota('');}}},'💾 '+t.agregarNota)
       )
     )
   );
 }
 
-// ── CARTAS DE DISPUTA ──────────────────────────────────────────────────────
-function CartasView({clientes}){
+// ── CARTAS ────────────────────────────────────────────────────────────────────
+function CartasView({clientes,lang,oficinaNombre}){
   const [step,setStep]=React.useState(1);
   const [sel,setSel]=React.useState(null);
   const [bureau,setBureau]=React.useState('equifax');
-  const [tipo,setTipo]=React.useState('general');
+  const [cartaNum,setCartaNum]=React.useState(1);
+  const t=T[lang];
 
   const bureauAddr={
     equifax:'Equifax Information Services LLC\nP.O. Box 740256\nAtlanta, GA 30374',
@@ -579,153 +632,218 @@ function CartasView({clientes}){
     transunion:'TransUnion LLC\nConsumer Dispute Center\nP.O. Box 2000\nChester, PA 19016'
   };
 
-  const generarCarta=()=>{
+  const genCarta=()=>{
     if(!sel)return '';
     const b=bureau.charAt(0).toUpperCase()+bureau.slice(1);
-    const fecha=new Date().toLocaleDateString('es-US',{year:'numeric',month:'long',day:'numeric'});
-    const items=sel.disputas.map((d,i)=>`  ${i+1}. ${d} — Solicitamos investigación y eliminación inmediata`).join('\n');
-    return `[TU NOMBRE COMPLETO]
-[TU DIRECCIÓN]
-[CIUDAD, ESTADO ZIP]
-[TELÉFONO]
-[EMAIL]
+    const fecha=new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'});
+    const items=sel.disputas.map((d,i)=>`  ${i+1}. ${d}`).join('\n');
+
+    if(cartaNum===1)return `[YOUR FULL NAME]
+[YOUR ADDRESS]
+[CITY, STATE ZIP]
+[PHONE] | [EMAIL]
+SSN: XXX-XX-[LAST 4]
 
 ${fecha}
 
 ${b}
 ${bureauAddr[bureau]}
 
-RE: DISPUTA FORMAL DE CRÉDITO — FCRA §611
-Cliente: ${sel.nombre}
-Email: ${sel.email}
+RE: FORMAL CREDIT DISPUTE — FCRA §611
+Consumer: ${sel.nombre} | Email: ${sel.email}
 
-Estimado Departamento de Disputas de ${b}:
+To Whom It May Concern at ${b}:
 
-Por medio de la presente, ejerzo mis derechos bajo la Fair Credit Reporting Act (FCRA), 15 U.S.C. §1681 et seq., para disputar la exactitud e integridad de los siguientes ítems en mi reporte de crédito:
+Pursuant to my rights under the Fair Credit Reporting Act (FCRA), 15 U.S.C. §1681i, I hereby formally dispute the accuracy of the following items appearing on my credit report:
 
-ÍTEMS EN DISPUTA:
-${items||'  [Agregar ítems específicos]'}
+DISPUTED ITEMS:
+${items||'  [Add specific items]'}
 
-Bajo FCRA §611 (15 U.S.C. §1681i), tienen 30 días para investigar y responder. Si no pueden verificar la exactitud de los ítems disputados, están obligados a eliminarlos de mi reporte.
+Under FCRA §611, you are required to conduct a reasonable investigation within 30 days. If you cannot verify the accuracy of any disputed item, you are legally obligated to delete it from my credit report.
 
-Les exijo que:
-1. Investiguen todos los ítems listados
-2. Eliminen cualquier ítem que no pueda ser verificado
-3. Me envíen copia actualizada de mi reporte
-4. Notifiquen a todos los furnishers sobre las correcciones
+I demand that you:
+1. Conduct a thorough investigation of all items listed above
+2. Delete any item that cannot be fully verified
+3. Provide me with an updated copy of my credit report
+4. Notify all furnishers of the corrections required
 
-Esta carta es enviada por Correo Certificado con acuse de recibo.
+This letter is sent via Certified Mail, Return Receipt Requested.
 
-Atentamente,
+Sincerely,
 
-[FIRMA]
+_______________________________
 ${sel.nombre}
+[DATE]
 
-Enclosures: Copia de ID, comprobante de dirección`;
+Enclosures: Government-issued ID, Proof of Address`;
+
+    if(cartaNum===2)return `[YOUR FULL NAME]
+[YOUR ADDRESS]
+[CITY, STATE ZIP]
+
+${fecha}
+
+${b}
+${bureauAddr[bureau]}
+
+RE: SECOND NOTICE OF DISPUTE — NO RESPONSE RECEIVED
+Consumer: ${sel.nombre}
+Previous Dispute Date: [DATE OF FIRST LETTER]
+
+To Whom It May Concern at ${b}:
+
+On [DATE], I submitted a formal dispute letter via Certified Mail (Tracking #: [TRACKING NUMBER]) regarding the following items on my credit report. As of today, I have not received any response, which constitutes a violation of FCRA §611(a)(1).
+
+ITEMS STILL IN DISPUTE:
+${items||'  [Add specific items]'}
+
+Under FCRA §611(a)(1), you were required to complete your investigation within 30 days of receiving my dispute. Your failure to respond is a violation of federal law.
+
+I DEMAND IMMEDIATELY:
+1. Deletion of all disputed items due to your failure to investigate within the required timeframe
+2. Written confirmation of the deletion
+3. Updated credit report reflecting the corrections
+
+If these items are not removed within 15 days of this letter, I will file a formal complaint with the Consumer Financial Protection Bureau (CFPB) and the Federal Trade Commission (FTC).
+
+Sent via Certified Mail, Return Receipt Requested.
+
+Sincerely,
+${sel.nombre}`;
+
+    return `[YOUR FULL NAME]
+[YOUR ADDRESS]
+[CITY, STATE ZIP]
+
+${fecha}
+
+${b}
+${bureauAddr[bureau]}
+
+RE: THIRD NOTICE — METHOD OF VERIFICATION DEMAND (FCRA §611(a)(6) & §611(a)(7))
+Consumer: ${sel.nombre}
+
+To Whom It May Concern at ${b}:
+
+I have previously disputed the following items on [DATE 1] and [DATE 2]. Your responses have been insufficient and appear to be automated verifications without proper investigation.
+
+DISPUTED ITEMS:
+${items||'  [Add specific items]'}
+
+Pursuant to FCRA §611(a)(6)(B)(iii) and §611(a)(7), I hereby demand the COMPLETE METHOD OF VERIFICATION including:
+
+1. The name, address, and telephone number of each furnisher contacted
+2. The specific records, databases, and documents relied upon to verify each item
+3. A description of the exact procedures used during reinvestigation
+4. Copies of all documents obtained from furnishers during verification
+
+If you conducted an automated verification without contacting the furnisher directly, this constitutes a violation of your duty to conduct a "reasonable reinvestigation" under FCRA §611(a)(1).
+
+I DEMAND within 15 days:
+• Complete Method of Verification for each disputed item
+• Deletion of any item that cannot be properly verified with supporting documentation
+• Written notice of any reinsertion under FCRA §611(a)(5)(B)
+
+NOTICE: If you fail to comply, I will pursue all legal remedies available under the FCRA, including civil action for damages under 15 U.S.C. §1681n and §1681o.
+
+Sent via Certified Mail, Return Receipt Requested.
+
+Sincerely,
+${sel.nombre}`;
   };
 
   return React.createElement('div',null,
     React.createElement('div',{className:'steps'},
-      ['Seleccionar Cliente','Elegir Bureau','Generar Carta'].map((s,i)=>React.createElement('div',{key:i,className:`step ${step===i+1?'active':step>i+1?'done':''}`},`${i+1}. ${s}`))
+      [t.selCliente,t.selBureau,t.selTipo].map((s,i)=>React.createElement('div',{key:i,className:`step ${step===i+1?'active':step>i+1?'done':''}`},`${i+1}. ${s}`))
     ),
 
     step===1&&React.createElement('div',{className:'cd'},
-      React.createElement('div',{className:'cdh'},React.createElement('span',{className:'cdt'},'Selecciona el cliente')),
       clientes.map(c=>React.createElement('div',{key:c.id,onClick:()=>{setSel(c);setStep(2);},
-        style:{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'14px 16px',background:'var(--navy3)',borderRadius:8,marginBottom:8,cursor:'pointer',border:`1px solid ${sel?.id===c.id?'var(--gold)':'var(--b)'}`,transition:'all 0.15s'}},
+        style:{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'14px 16px',background:sel?.id===c.id?'rgba(212,168,67,0.06)':'var(--navy3)',borderRadius:8,marginBottom:8,cursor:'pointer',border:`1.5px solid ${sel?.id===c.id?'var(--gold)':'var(--b)'}`,transition:'all 0.15s'}},
         React.createElement('div',null,
           React.createElement('div',{style:{fontWeight:600}},c.nombre),
-          React.createElement('div',{style:{fontSize:12,color:'var(--t3)',marginTop:2}},`${c.disputas.length} ítems en disputa · Score: ${c.scoreActual}`)
+          React.createElement('div',{style:{fontSize:12,color:'var(--t3)',marginTop:2}},`${c.disputas.length} items · Score: ${c.scoreActual}`)
         ),
-        React.createElement('span',{className:`bgg ${(EB[c.estado]||EB.nuevo).c}`},(EB[c.estado]||EB.nuevo).l)
+        React.createElement('span',{className:`bgg ${getEB(c.estado,lang).c}`},getEB(c.estado,lang).l)
       ))
     ),
 
     step===2&&React.createElement('div',{className:'cd'},
-      React.createElement('div',{className:'cdh'},React.createElement('span',{className:'cdt'},'Selecciona Bureau y Tipo')),
       React.createElement('div',{className:'fg'},
-        React.createElement('label',{className:'fl'},'Bureau de Crédito'),
+        React.createElement('label',{className:'fl'},t.selBureau),
         React.createElement('div',{style:{display:'flex',gap:8}},
           ['equifax','experian','transunion'].map(b=>React.createElement('button',{key:b,
-            style:{flex:1,padding:'10px',borderRadius:8,border:`1px solid ${bureau===b?'var(--gold)':'var(--b)'}`,background:bureau===b?'rgba(212,168,67,0.1)':'var(--navy3)',color:bureau===b?'var(--gold)':'var(--t2)',fontWeight:600,fontSize:13,cursor:'pointer',transition:'all 0.15s'},
-            onClick:()=>setBureau(b)
-          },b.charAt(0).toUpperCase()+b.slice(1)))
+            style:{flex:1,padding:'10px',borderRadius:8,border:`1.5px solid ${bureau===b?'var(--gold)':'var(--b)'}`,background:bureau===b?'rgba(212,168,67,0.08)':'#fff',color:bureau===b?'var(--gold)':'var(--t2)',fontWeight:600,fontSize:13,cursor:'pointer',transition:'all 0.15s'},
+            onClick:()=>setBureau(b)},b.charAt(0).toUpperCase()+b.slice(1)))
         )
       ),
       React.createElement('div',{className:'fg'},
-        React.createElement('label',{className:'fl'},'Tipo de Carta'),
-        ['general','inquiries','personal'].map(t=>React.createElement('div',{key:t,onClick:()=>setTipo(t),
-          style:{padding:'12px 16px',background:tipo===t?'rgba(212,168,67,0.08)':'var(--navy3)',border:`1px solid ${tipo===t?'var(--gold)':'var(--b)'}`,borderRadius:8,marginBottom:8,cursor:'pointer',transition:'all 0.15s'}},
-          React.createElement('div',{style:{fontWeight:600,fontSize:13,color:tipo===t?'var(--gold)':'var(--t)'}},
-            t==='general'?'📋 Carta de Disputa General':t==='inquiries'?'🔍 Carta de Inquiries No Autorizados':'👤 Carta de Información Personal'
-          ),
-          React.createElement('div',{style:{fontSize:12,color:'var(--t3)',marginTop:2}},
-            t==='general'?'Para cuentas negativas, colecciones, pagos tardíos':t==='inquiries'?'Para consultas de crédito no autorizadas':'Para errores en nombre, dirección o SSN'
-          )
-        ))
+        React.createElement('label',{className:'fl'},'Sequence'),
+        React.createElement('div',{className:'carta-sel'},
+          [{n:1,tl:t.carta1title,td:t.carta1desc,tag:'First 30 days'},{n:2,tl:t.carta2title,td:t.carta2desc,tag:'Day 30-45'},{n:3,tl:t.carta3title,td:t.carta3desc,tag:'Day 45+'}]
+          .map(c=>React.createElement('div',{key:c.n,className:`carta-opt ${cartaNum===c.n?'selected':''}`,onClick:()=>setCartaNum(c.n)},
+            React.createElement('div',{className:'carta-opt-num'},'#'+c.n),
+            React.createElement('div',{className:'carta-opt-title'},c.tl),
+            React.createElement('div',{className:'carta-opt-desc'},c.td),
+            React.createElement('div',{style:{fontSize:10,color:'var(--t3)',marginTop:4}},c.tag)
+          ))
+        )
       ),
       React.createElement('div',{className:'fa'},
-        React.createElement('button',{className:'btn btn-ghost',onClick:()=>setStep(1)},'← Volver'),
-        React.createElement('button',{className:'btn btn-gold',onClick:()=>setStep(3)},'Generar Carta →')
+        React.createElement('button',{className:'btn btn-ghost',onClick:()=>setStep(1)},t.volver),
+        React.createElement('button',{className:'btn btn-gold',onClick:()=>setStep(3)},'Generate Letter →')
       )
     ),
 
     step===3&&React.createElement('div',null,
       React.createElement('div',{className:'cd'},
         React.createElement('div',{className:'cdh'},
-          React.createElement('span',{className:'cdt'},`Carta para ${bureau.charAt(0).toUpperCase()+bureau.slice(1)} — ${sel?.nombre}`),
+          React.createElement('span',{className:'cdt'},`Letter #${cartaNum} — ${bureau.charAt(0).toUpperCase()+bureau.slice(1)} — ${sel?.nombre}`),
           React.createElement('div',{style:{display:'flex',gap:8}},
-            React.createElement('button',{className:'btn btn-ghost btn-sm',onClick:()=>{navigator.clipboard.writeText(generarCarta());alert('✅ Carta copiada al portapapeles')}},'📋 Copiar'),
-            React.createElement('button',{className:'btn btn-ghost btn-sm',onClick:()=>window.print()},'🖨️ Imprimir')
+            React.createElement('button',{className:'btn btn-ghost btn-sm',onClick:()=>{navigator.clipboard.writeText(genCarta());alert('✅ Letter copied to clipboard!');}},t.copiar),
+            React.createElement('button',{className:'btn btn-ghost btn-sm',onClick:()=>window.print()},t.imprimir)
           )
         ),
-        React.createElement('div',{className:'cbox'},generarCarta()),
-        React.createElement('div',{className:'tip'},
-          React.createElement('strong',null,'📮 Instrucciones de envío: '),
-          'Envía por Certified Mail con Return Receipt (acuse de recibo). Guarda el número de tracking. El bureau tiene 30 días para responder.'
-        ),
+        React.createElement('div',{className:'cbox'},genCarta()),
+        React.createElement('div',{className:'tip'},t.instrEnvio),
         React.createElement('div',{className:'fa'},
-          React.createElement('button',{className:'btn btn-ghost',onClick:()=>setStep(2)},'← Volver'),
-          React.createElement('button',{className:'btn btn-gold',onClick:()=>{setStep(1);setSel(null);}},'✓ Nueva Carta')
+          React.createElement('button',{className:'btn btn-ghost',onClick:()=>setStep(2)},t.volver),
+          React.createElement('button',{className:'btn btn-gold',onClick:()=>{setStep(1);setSel(null);}},t.nuevaCarta)
         )
       )
     )
   );
 }
 
-// ── HERRAMIENTAS MAIN VIEW ─────────────────────────────────────────────────
-function HerramientasView({clientes}){
+// ── HERRAMIENTAS ──────────────────────────────────────────────────────────────
+function HerramientasView({clientes,lang,oficinaNombre}){
   const [sub,setSub]=React.useState(null);
   const [promptSel,setPromptSel]=React.useState(null);
   const [dirTab,setDirTab]=React.useState('construccion');
+  const t=T[lang];
 
   if(sub==='prompts')return React.createElement('div',null,
     React.createElement('div',{style:{display:'flex',alignItems:'center',gap:12,marginBottom:20}},
-      React.createElement('button',{className:'btn btn-ghost btn-sm',onClick:()=>{setSub(null);setPromptSel(null);}},'← Herramientas'),
-      React.createElement('h2',{style:{fontSize:18,fontWeight:700}},'🤖 Prompts de IA')
+      React.createElement('button',{className:'btn btn-ghost btn-sm',onClick:()=>{setSub(null);setPromptSel(null);}},t.volver+' '+t.herramientasTitle),
+      React.createElement('h2',{style:{fontSize:18,fontWeight:700}},'🤖 '+t.promptsIA)
     ),
     promptSel
       ?React.createElement('div',{className:'cd'},
           React.createElement('div',{className:'cdh'},
-            React.createElement('span',{className:'cdt'},promptSel.icon+' '+promptSel.title),
-            React.createElement('button',{className:'btn btn-ghost btn-sm',onClick:()=>setPromptSel(null)},'← Volver')
+            React.createElement('span',{className:'cdt'},promptSel.icon+' '+(promptSel[lang]?.t||promptSel.es.t)),
+            React.createElement('button',{className:'btn btn-ghost btn-sm',onClick:()=>setPromptSel(null)},t.volver)
           ),
           promptSel.link
             ?React.createElement('div',null,
-                React.createElement('div',{className:'tip'},React.createElement('strong',null,'ℹ️ Bancarrota: '),'La bancarrota es un proceso legal serio. Te recomendamos usar Upsolve.org — es gratis, confiable y te guía paso a paso sin necesitar abogado.'),
-                React.createElement('div',{style:{marginBottom:16,fontSize:13,color:'var(--t2)',lineHeight:1.7}},
-                  'Upsolve ha ayudado a más de 250,000 familias a declararse en bancarrota sin pagar honorarios de abogado. El proceso toma aproximadamente 8-10 horas y es completamente gratuito.',
-                  React.createElement('br',null),React.createElement('br',null),
-                  '⚠️ Capítulo 7 permanece en tu crédito 10 años. Capítulo 13 permanece 7 años. Consulta con un abogado antes de proceder.'
-                ),
-                React.createElement('a',{href:'https://upsolve.org',target:'_blank',className:'btn btn-gold',style:{display:'inline-flex'}},'🔗 Ir a Upsolve.org →')
+                React.createElement('div',{className:'info'},'ℹ️ Bankruptcy is a serious legal process. We recommend using Upsolve.org — it\'s free, trusted, and guides you step by step. Chapter 7 stays on credit 10 years. Chapter 13 stays 7 years. Consult an attorney before proceeding.'),
+                React.createElement('a',{href:'https://upsolve.org',target:'_blank',className:'btn btn-gold'},'🔗 Go to Upsolve.org →')
               )
             :React.createElement('div',null,
-                React.createElement('div',{className:'tip'},React.createElement('strong',null,'Cómo usar: '),'Copia este prompt, abre Claude.ai o ChatGPT en una nueva pestaña, pégalo y presiona Enter. Luego sube tu reporte de crédito cuando te lo pida.'),
+                React.createElement('div',{className:'tip'},React.createElement('strong',null,t.comoUsar+' '),t.comoUsarDesc),
                 React.createElement('div',{className:'cbox'},promptSel.prompt),
                 React.createElement('div',{style:{display:'flex',gap:8,marginTop:12}},
-                  React.createElement('button',{className:'btn btn-gold',onClick:()=>{navigator.clipboard.writeText(promptSel.prompt);alert('✅ Prompt copiado. Abre Claude.ai y pégalo.')}},'📋 Copiar Prompt'),
-                  React.createElement('a',{href:'https://claude.ai',target:'_blank',className:'btn btn-ghost'},'Abrir Claude.ai →')
+                  React.createElement('button',{className:'btn btn-gold',onClick:()=>{navigator.clipboard.writeText(promptSel.prompt);alert('✅ Prompt copied! Open Claude.ai and paste it.');}},t.copiarPrompt),
+                  React.createElement('a',{href:'https://claude.ai',target:'_blank',className:'btn btn-ghost'},'Open Claude.ai →')
                 )
               )
         )
@@ -733,10 +851,12 @@ function HerramientasView({clientes}){
           PROMPTS.map(p=>React.createElement('div',{key:p.id,className:'pcard',onClick:()=>setPromptSel(p)},
             React.createElement('div',{className:'picon'},p.icon),
             React.createElement('div',{style:{flex:1}},
-              React.createElement('div',{className:'ptitle'},p.title),
-              React.createElement('div',{className:'pdesc'},p.desc),
-              React.createElement('div',{style:{marginTop:6}},React.createElement('span',{className:`bgg bg-${p.tag==='Principal'?'gold':p.tag==='Avanzado'?'red':p.tag==='Rápido'?'green':p.tag==='Seguimiento'?'blue':'purple'}`,style:{fontSize:10}},p.tag)),
-              React.createElement('div',{className:'pcopy'},p.link?'Ver guía →':'Ver prompt →')
+              React.createElement('div',{className:'ptitle'},p[lang]?.t||p.es.t),
+              React.createElement('div',{className:'pdesc'},p[lang]?.d||p.es.d),
+              React.createElement('div',{style:{marginTop:6}},
+                React.createElement('span',{className:`bgg ${p.tag==='Principal'?'bg-gold':p.tag==='Avanzado'?'bg-red':p.tag==='Rápido'?'bg-green':p.tag==='Info'?'bg-blue':'bg-purple'}`,style:{fontSize:10}},p.tag)
+              ),
+              React.createElement('div',{className:'pcopy'},p.link?t.verGuia:t.verPrompt)
             )
           ))
         )
@@ -744,29 +864,29 @@ function HerramientasView({clientes}){
 
   if(sub==='cartas')return React.createElement('div',null,
     React.createElement('div',{style:{display:'flex',alignItems:'center',gap:12,marginBottom:20}},
-      React.createElement('button',{className:'btn btn-ghost btn-sm',onClick:()=>setSub(null)},'← Herramientas'),
-      React.createElement('h2',{style:{fontSize:18,fontWeight:700}},'✉️ Cartas de Disputa')
+      React.createElement('button',{className:'btn btn-ghost btn-sm',onClick:()=>setSub(null)},t.volver+' '+t.herramientasTitle),
+      React.createElement('h2',{style:{fontSize:18,fontWeight:700}},'✉️ '+t.cartasDisp)
     ),
-    React.createElement(CartasView,{clientes})
+    React.createElement(CartasView,{clientes,lang,oficinaNombre})
   );
 
   if(sub==='directorio')return React.createElement('div',null,
     React.createElement('div',{style:{display:'flex',alignItems:'center',gap:12,marginBottom:20}},
-      React.createElement('button',{className:'btn btn-ghost btn-sm',onClick:()=>setSub(null)},'← Herramientas'),
-      React.createElement('h2',{style:{fontSize:18,fontWeight:700}},'🏦 Directorio de Servicios')
+      React.createElement('button',{className:'btn btn-ghost btn-sm',onClick:()=>setSub(null)},t.volver+' '+t.herramientasTitle),
+      React.createElement('h2',{style:{fontSize:18,fontWeight:700}},'🏦 '+t.directorio)
     ),
     React.createElement('div',{className:'tabs'},
-      [{k:'construccion',l:'🔨 Construcción'},{k:'tradelines',l:'📈 Tradelines'},{k:'bancos',l:'🏦 Bancos'},{k:'despues',l:'⭐ Después del Crédito'},{k:'emergencia',l:'🚨 Emergencia'}]
-      .map(t=>React.createElement('div',{key:t.k,className:`tab ${dirTab===t.k?'active':''}`,onClick:()=>setDirTab(t.k)},t.l))
+      [{k:'construccion',l:'🔨 '+t.construction},{k:'tradelines',l:'📈 '+t.tradelines},{k:'bancos',l:'🏦 '+t.bancos},{k:'despues',l:'⭐ '+t.despues},{k:'emergencia',l:'🚨 '+t.emergencia}]
+      .map(tb=>React.createElement('div',{key:tb.k,className:`tab ${dirTab===tb.k?'active':''}`,onClick:()=>setDirTab(tb.k)},tb.l))
     ),
-    dirTab==='emergencia'&&React.createElement('div',{className:'warn'},'⚠️ Estos préstamos tienen intereses altos. Úsalos solo en emergencias. Siempre usa la opción de pre-calificación (soft check) primero — no afecta tu score.'),
+    dirTab==='emergencia'&&React.createElement('div',{className:'warn'},t.atenciondias),
     React.createElement('div',{className:'dgrid'},
-      (DIRECTORIO[dirTab]||[]).map((s,i)=>React.createElement('div',{key:i,className:'dcard'},
+      (DIR[dirTab]||[]).map((s,i)=>React.createElement('div',{key:i,className:'dcard'},
         React.createElement('div',{className:'dname'},s.n),
         React.createElement('div',{className:'ddesc'},s.d),
-        React.createElement('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center'}},
+        React.createElement('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center',marginTop:8}},
           React.createElement('span',{className:`bgg ${s.tag.includes('ITIN')?'bg-green':'bg-yellow'}`,style:{fontSize:10}},s.tag),
-          React.createElement('a',{href:s.url,target:'_blank',className:'dbtn'},'Visitar →')
+          React.createElement('a',{href:s.url,target:'_blank',style:{fontSize:11,fontWeight:600,color:'var(--gold)'}},t.visitarSitio)
         )
       ))
     )
@@ -774,128 +894,136 @@ function HerramientasView({clientes}){
 
   if(sub==='reportes')return React.createElement('div',null,
     React.createElement('div',{style:{display:'flex',alignItems:'center',gap:12,marginBottom:20}},
-      React.createElement('button',{className:'btn btn-ghost btn-sm',onClick:()=>setSub(null)},'← Herramientas'),
-      React.createElement('h2',{style:{fontSize:18,fontWeight:700}},'📄 Obtener Reportes de Crédito')
+      React.createElement('button',{className:'btn btn-ghost btn-sm',onClick:()=>setSub(null)},t.volver+' '+t.herramientasTitle),
+      React.createElement('h2',{style:{fontSize:18,fontWeight:700}},'📄 '+t.reportes)
     ),
-    React.createElement('div',{className:'tip'},React.createElement('strong',null,'💡 Tip: '),'Tienes derecho a un reporte gratuito de cada bureau cada 12 meses por ley federal. AnnualCreditReport.com es el único sitio oficial autorizado por el gobierno.'),
+    React.createElement('div',{className:'tip'},'💡 You are entitled to one free report from each bureau every 12 months by federal law. AnnualCreditReport.com is the ONLY official government-authorized site.'),
     React.createElement('div',{style:{display:'grid',gridTemplateColumns:'repeat(2,1fr)',gap:16}},
       [
-        {n:'AnnualCreditReport.com',d:'Sitio oficial del gobierno — reporte gratis de los 3 bureaus cada 12 meses. Autorizado por la FTC, CFPB y los 3 bureaus.',icon:'🏛️',url:'https://annualcreditreport.com',tag:'OFICIAL — GRATIS'},
-        {n:'Equifax',d:'Reporte directo de Equifax. Crea una cuenta para monitoreo continuo.',icon:'📊',url:'https://equifax.com',tag:'Bureau Oficial'},
-        {n:'Experian',d:'Reporte de Experian con score FICO incluido. Opción gratuita disponible.',icon:'📊',url:'https://experian.com',tag:'Bureau Oficial'},
-        {n:'TransUnion',d:'Reporte de TransUnion con monitoreo de alertas incluido.',icon:'📊',url:'https://transunion.com',tag:'Bureau Oficial'},
-        {n:'Credit Karma',d:'Scores de Equifax y TransUnion gratis. Actualización semanal. No oficial pero útil para monitoreo.',icon:'📱',url:'https://creditkarma.com',tag:'Gratis — No Oficial'},
-        {n:'myFICO',d:'Score FICO oficial — el mismo que usan los prestamistas. Desde $19.95/mes.',icon:'💳',url:'https://myfico.com',tag:'Score Oficial — Pago'},
+        {n:'AnnualCreditReport.com',d:'Official government site — free report from all 3 bureaus every 12 months.',icon:'🏛️',url:'https://annualcreditreport.com',tag:t.officialSite},
+        {n:'Equifax',d:'Direct Equifax report with continuous monitoring.',icon:'📊',url:'https://equifax.com',tag:t.bureauOficial},
+        {n:'Experian',d:'Experian report with FICO score included. Free option available.',icon:'📊',url:'https://experian.com',tag:t.bureauOficial},
+        {n:'TransUnion',d:'TransUnion report with alert monitoring.',icon:'📊',url:'https://transunion.com',tag:t.bureauOficial},
+        {n:'Credit Karma',d:'Equifax and TransUnion scores free. Weekly updates.',icon:'📱',url:'https://creditkarma.com',tag:'Free — Not Official'},
+        {n:'myFICO',d:'Official FICO score — the same lenders use. From $19.95/mo.',icon:'💳',url:'https://myfico.com',tag:'Official Score — Paid'},
       ].map((s,i)=>React.createElement('div',{key:i,className:'dcard'},
         React.createElement('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:8}},
           React.createElement('div',{className:'dname'},s.icon+' '+s.n),
           React.createElement('span',{className:'bgg bg-gold',style:{fontSize:10}},s.tag)
         ),
         React.createElement('div',{className:'ddesc'},s.d),
-        React.createElement('a',{href:s.url,target:'_blank',className:'dbtn'},'Ir al sitio →')
+        React.createElement('a',{href:s.url,target:'_blank',style:{fontSize:12,fontWeight:600,color:'var(--gold)'}},t.visitarSitio)
       ))
     )
   );
 
-  // Main herramientas menu
   return React.createElement('div',null,
     React.createElement('div',{className:'hgrid'},
       [
-        {id:'prompts',icon:'🤖',t:'Prompts de IA',d:'8 prompts especializados para reparar crédito, disputar records, validar deudas y más'},
-        {id:'cartas',icon:'✉️',t:'Cartas de Disputa',d:'Genera cartas profesionales para los 3 bureaus con datos del cliente precargados'},
-        {id:'directorio',icon:'🏦',t:'Directorio de Servicios',d:'Servicios de construcción de crédito, tradelines, bancos y préstamos — con filtro ITIN/SSN'},
-        {id:'reportes',icon:'📄',t:'Obtener Reportes',d:'Links directos a los 3 bureaus y AnnualCreditReport.com — el sitio oficial gratuito'},
+        {id:'prompts',icon:'🤖',tk:'promptsIA',dk:'promptsDesc'},
+        {id:'cartas',icon:'✉️',tk:'cartasDisp',dk:'cartasDesc'},
+        {id:'directorio',icon:'🏦',tk:'directorio',dk:'dirDesc'},
+        {id:'reportes',icon:'📄',tk:'reportes',dk:'repDesc'},
       ].map(h=>React.createElement('div',{key:h.id,className:'hcard',onClick:()=>setSub(h.id)},
         React.createElement('div',{className:'hicon'},h.icon),
-        React.createElement('div',{className:'htitle'},h.t),
-        React.createElement('div',{className:'hdesc'},h.d)
+        React.createElement('div',null,
+          React.createElement('div',{className:'htitle'},t[h.tk]),
+          React.createElement('div',{className:'hdesc'},t[h.dk])
+        )
       ))
     )
   );
 }
 
-// ── PANEL VIEW ─────────────────────────────────────────────────────────────
-function PanelView({clientes,onVer,onNuevo}){
+// ── PANEL ─────────────────────────────────────────────────────────────────────
+function PanelView({clientes,onVer,onNuevo,lang}){
+  const t=T[lang];
   const act=clientes.filter(c=>c.estado==='activo'||c.estado==='en_proceso');
   const cobrado=clientes.filter(c=>c.pagado).reduce((s,c)=>s+(c.pago||0),0);
   const pend=clientes.filter(c=>!c.pagado).reduce((s,c)=>s+(c.pago||0),0);
   const avg=clientes.length?Math.round(clientes.reduce((s,c)=>s+c.scoreActual,0)/clientes.length):0;
   return React.createElement('div',null,
     React.createElement('div',{className:'sg'},
-      [{l:'Clientes Activos',v:act.length,c:'',n:`de ${clientes.length} total`},{l:'Score Promedio',v:avg,c:'',n:scLabel(avg)},{l:'Cobrado Este Mes',v:fm(cobrado),c:'green',n:'pagos recibidos'},{l:'Por Cobrar',v:fm(pend),c:pend>0?'yellow':'',n:`${clientes.filter(c=>!c.pagado).length} pendientes`}]
+      [{l:t.clientesActivos,v:act.length,c:'',n:`de ${clientes.length} total`},{l:t.scorePromedio,v:avg,c:'',n:scZone(avg,lang)},{l:t.cobradoMes,v:fm(cobrado),c:'green',n:'received'},{l:t.porCobrar,v:fm(pend),c:pend>0?'yellow':'',n:`${clientes.filter(c=>!c.pagado).length} pending`}]
       .map(s=>React.createElement('div',{key:s.l,className:'sc'},React.createElement('div',{className:'sl'},s.l),React.createElement('div',{className:`sv ${s.c}`},s.v),React.createElement('div',{className:'sn'},s.n)))
     ),
     React.createElement('div',{className:'g2'},
       React.createElement('div',{className:'cd'},
-        React.createElement('div',{className:'cdh'},React.createElement('span',{className:'cdt'},'Clientes Recientes'),React.createElement('button',{className:'btn btn-gold btn-sm',onClick:onNuevo},'+ Nuevo')),
+        React.createElement('div',{className:'cdh'},React.createElement('span',{className:'cdt'},t.clientesRecientes),React.createElement('button',{className:'btn btn-gold btn-sm',onClick:onNuevo},t.nuevo2)),
         React.createElement('table',null,
-          React.createElement('thead',null,React.createElement('tr',null,['Cliente','Score','Estado',''].map(h=>React.createElement('th',{key:h},h)))),
-          React.createElement('tbody',null,clientes.slice(0,5).map(c=>React.createElement('tr',{key:c.id},
-            React.createElement('td',null,React.createElement('span',{style:{fontWeight:600}},c.nombre)),
-            React.createElement('td',null,React.createElement('span',{className:scColor(c.scoreActual),style:{fontWeight:700}},c.scoreActual)),
-            React.createElement('td',null,React.createElement('span',{className:`bgg ${(EB[c.estado]||EB.nuevo).c}`},(EB[c.estado]||EB.nuevo).l)),
-            React.createElement('td',null,React.createElement('button',{className:'btn btn-ghost btn-sm',onClick:()=>onVer(c)},'Ver'))
-          )))
+          React.createElement('thead',null,React.createElement('tr',null,[t.clientes,t.score,t.estado,''].map(h=>React.createElement('th',{key:h},h)))),
+          React.createElement('tbody',null,clientes.slice(0,5).map(c=>{
+            const eb=getEB(c.estado,lang);
+            return React.createElement('tr',{key:c.id},
+              React.createElement('td',null,React.createElement('span',{style:{fontWeight:600}},c.nombre)),
+              React.createElement('td',null,React.createElement('span',{style:{fontWeight:700,color:scColor(c.scoreActual)}},c.scoreActual)),
+              React.createElement('td',null,React.createElement('span',{className:`bgg ${eb.c}`},eb.l)),
+              React.createElement('td',null,React.createElement('button',{className:'btn btn-ghost btn-sm',onClick:()=>onVer(c)},t.verCaso))
+            );
+          }))
         )
       ),
       React.createElement('div',{className:'cd'},
-        React.createElement('div',{className:'cdh'},React.createElement('span',{className:'cdt'},'Actividad Reciente')),
+        React.createElement('div',{className:'cdh'},React.createElement('span',{className:'cdt'},t.actividadReciente)),
         React.createElement('div',{className:'tl'},
-          [['Hoy 10:30am','María García — Carta enviada a Experian'],['Hoy 9:00am','José López — Nuevo cliente agregado'],['Ayer 4pm','Ana Martínez — ¡Score alcanzó 701! Caso cerrado'],['Ayer 2pm','Pago recibido — Carlos Rodríguez $120'],['Dic 13','Elena Torres — Respuesta de Equifax recibida']]
-          .map((t,i)=>React.createElement('div',{key:i,className:'tli'},React.createElement('div',{className:'tld'}),React.createElement('div',{className:'tldt'},t[0]),React.createElement('div',{className:'tlt'},t[1])))
+          [['Today 10:30am','María García — Letter sent to Experian'],['Today 9:00am','José López — New client added'],['Yesterday 4pm','Ana Martínez — Score reached 701! Case closed'],['Yesterday 2pm','Payment received — Carlos Rodríguez $120'],['Dec 13','Elena Torres — Equifax response received']]
+          .map((tt,i)=>React.createElement('div',{key:i,className:'tli'},React.createElement('div',{className:'tld'}),React.createElement('div',{className:'tldt'},tt[0]),React.createElement('div',{className:'tlt'},tt[1])))
         )
       )
     )
   );
 }
 
-// ── KANBAN VIEW ────────────────────────────────────────────────────────────
-function KanbanView({clientes,onVer}){
+// ── KANBAN ────────────────────────────────────────────────────────────────────
+function KanbanView({clientes,onVer,lang}){
+  const t=T[lang];
   return React.createElement('div',{className:'kb'},
     KCOLS.map(col=>{
+      const eb=getEB(col.key,lang);
       const cs=clientes.filter(c=>c.estado===col.key);
       return React.createElement('div',{key:col.key,className:'kc'},
         React.createElement('div',{className:'kh'},
-          React.createElement('span',{style:{color:col.color}},col.label),
+          React.createElement('span',{style:{color:col.color}},eb.l),
           React.createElement('span',{style:{background:col.color,color:'white',borderRadius:12,padding:'1px 8px',fontSize:11}},cs.length)
         ),
-        cs.length===0?React.createElement('div',{style:{textAlign:'center',padding:20,color:'var(--t3)',fontSize:12}},'Sin casos'):
+        cs.length===0?React.createElement('div',{style:{textAlign:'center',padding:20,color:'var(--t3)',fontSize:12}},'—'):
         cs.map(c=>React.createElement('div',{key:c.id,className:'kk',onClick:()=>onVer(c)},
           React.createElement('div',{className:'kn'},c.nombre),
-          React.createElement('div',{className:'km'},`${c.items} ítems · ${fm(c.pago)}/mes`),
-          React.createElement('div',{className:`ks ${scColor(c.scoreActual)}`},`${c.scoreActual} → ${c.scoreMeta}`)
+          React.createElement('div',{className:'km'},`${c.items} items · ${fm(c.pago)}/mo`),
+          React.createElement('div',{className:'ks',style:{color:scColor(c.scoreActual)}},`${c.scoreActual} → ${c.scoreMeta}`)
         ))
       );
     })
   );
 }
 
-// ── CLIENTES VIEW ──────────────────────────────────────────────────────────
-function ClientesView({clientes,onVer,onNuevo}){
+// ── CLIENTES ──────────────────────────────────────────────────────────────────
+function ClientesView({clientes,onVer,onNuevo,lang}){
   const [buscar,setBuscar]=React.useState('');
+  const t=T[lang];
   const fil=clientes.filter(c=>c.nombre.toLowerCase().includes(buscar.toLowerCase()));
   return React.createElement('div',null,
     React.createElement('div',{style:{display:'flex',gap:10,marginBottom:20,alignItems:'center'}},
-      React.createElement('input',{className:'fi',style:{maxWidth:240},placeholder:'🔍 Buscar...',value:buscar,onChange:e=>setBuscar(e.target.value)}),
-      React.createElement('button',{className:'btn btn-gold',style:{marginLeft:'auto'},onClick:onNuevo},'+ Nuevo Cliente')
+      React.createElement('input',{className:'fi',style:{maxWidth:240},placeholder:'🔍 Search...',value:buscar,onChange:e=>setBuscar(e.target.value)}),
+      React.createElement('button',{className:'btn btn-gold',style:{marginLeft:'auto'},onClick:onNuevo},'+ '+t.nuevo)
     ),
     React.createElement('div',{className:'cd'},
       React.createElement('div',{className:'tw'},
         React.createElement('table',null,
-          React.createElement('thead',null,React.createElement('tr',null,['Cliente','Teléfono','Score','Meta','Estado','Pago','Mes','Acciones'].map(h=>React.createElement('th',{key:h},h)))),
+          React.createElement('thead',null,React.createElement('tr',null,['Client','Phone','Score','Goal','Status','Fee','Month','Actions'].map(h=>React.createElement('th',{key:h},h)))),
           React.createElement('tbody',null,fil.map(c=>{
-            const eb=EB[c.estado]||EB.nuevo;
+            const eb=getEB(c.estado,lang);
             return React.createElement('tr',{key:c.id},
               React.createElement('td',null,React.createElement('span',{style:{fontWeight:600}},c.nombre)),
               React.createElement('td',null,React.createElement('span',{style:{color:'var(--t3)',fontSize:12}},c.tel)),
-              React.createElement('td',null,React.createElement('span',{className:scColor(c.scoreActual),style:{fontWeight:700}},c.scoreActual)),
+              React.createElement('td',null,React.createElement('span',{style:{fontWeight:700,color:scColor(c.scoreActual)}},c.scoreActual)),
               React.createElement('td',null,React.createElement('span',{style:{color:'var(--green)',fontWeight:600}},c.scoreMeta)),
               React.createElement('td',null,React.createElement('span',{className:`bgg ${eb.c}`},eb.l)),
               React.createElement('td',null,fm(c.pago)),
-              React.createElement('td',null,c.pagado?React.createElement('span',{className:'bgg bg-green'},'✓ Pagado'):React.createElement('span',{className:'bgg bg-red'},'Pendiente')),
+              React.createElement('td',null,c.pagado?React.createElement('span',{className:'bgg bg-green'},t.pagado):React.createElement('span',{className:'bgg bg-red'},t.pendiente)),
               React.createElement('td',null,React.createElement('div',{style:{display:'flex',gap:6}},
-                React.createElement('button',{className:'btn btn-ghost btn-sm',onClick:()=>onVer(c)},'Ver Caso'),
-                React.createElement('button',{className:'btn btn-ghost btn-sm'},'✉️ Carta')
+                React.createElement('button',{className:'btn btn-ghost btn-sm',onClick:()=>onVer(c)},t.verCaso),
+                React.createElement('button',{className:'btn btn-ghost btn-sm'},'✉️')
               ))
             );
           }))
@@ -905,44 +1033,47 @@ function ClientesView({clientes,onVer,onNuevo}){
   );
 }
 
-// ── COBROS VIEW ────────────────────────────────────────────────────────────
-function CobrosView({clientes}){
+// ── COBROS ────────────────────────────────────────────────────────────────────
+function CobrosView({clientes,lang}){
+  const t=T[lang];
   const cobrado=clientes.filter(c=>c.pagado).reduce((s,c)=>s+(c.pago||0),0);
   const pend=clientes.filter(c=>!c.pagado).reduce((s,c)=>s+(c.pago||0),0);
   return React.createElement('div',null,
     React.createElement('div',{className:'sg',style:{gridTemplateColumns:'repeat(3,1fr)'}},
-      [{l:'Cobrado Este Mes',v:fm(cobrado),c:'green'},{l:'Por Cobrar',v:fm(pend),c:'yellow'},{l:'MRR Esperado',v:fm(cobrado+pend),c:'gold'}]
+      [{l:t.cobradoTotal,v:fm(cobrado),c:'green'},{l:t.porCobrarTotal,v:fm(pend),c:'yellow'},{l:t.mrrEsperado,v:fm(cobrado+pend),c:'gold'}]
       .map(s=>React.createElement('div',{key:s.l,className:'sc'},React.createElement('div',{className:'sl'},s.l),React.createElement('div',{className:`sv ${s.c}`},s.v)))
     ),
     React.createElement('div',{className:'cd'},
-      React.createElement('div',{className:'cdh'},React.createElement('span',{className:'cdt'},'Pagos — Este Mes')),
+      React.createElement('div',{className:'cdh'},React.createElement('span',{className:'cdt'},t.pagosMes)),
       React.createElement('table',null,
-        React.createElement('thead',null,React.createElement('tr',null,['Cliente','Monto','Estado','Acción'].map(h=>React.createElement('th',{key:h},h)))),
+        React.createElement('thead',null,React.createElement('tr',null,['Client','Plan','Fee','Status','Action'].map(h=>React.createElement('th',{key:h},h)))),
         React.createElement('tbody',null,clientes.map(c=>React.createElement('tr',{key:c.id},
           React.createElement('td',null,React.createElement('span',{style:{fontWeight:600}},c.nombre)),
-          React.createElement('td',null,fm(c.pago)+'/mes'),
-          React.createElement('td',null,c.pagado?React.createElement('span',{className:'bgg bg-green'},'✓ Pagado'):React.createElement('span',{className:'bgg bg-red'},'Pendiente')),
-          React.createElement('td',null,React.createElement('button',{className:'btn btn-ghost btn-sm'},c.pagado?'🧾 Recibo':'📧 Recordatorio'))
+          React.createElement('td',null,React.createElement('span',{className:'bgg bg-gold',style:{fontSize:10}},c.planTipo||'mensual')),
+          React.createElement('td',null,fm(c.pago)+'/mo'),
+          React.createElement('td',null,c.pagado?React.createElement('span',{className:'bgg bg-green'},t.pagado):React.createElement('span',{className:'bgg bg-red'},t.pendiente)),
+          React.createElement('td',null,React.createElement('button',{className:'btn btn-ghost btn-sm'},c.pagado?t.recibo:t.recordatorio))
         )))
       )
     )
   );
 }
 
-// ── PORTAL CLIENTE PREVIEW ─────────────────────────────────────────────────
-function PortalView({clientes}){
+// ── PORTAL PREVIEW ────────────────────────────────────────────────────────────
+function PortalView({clientes,lang}){
+  const t=T[lang];
   const c=clientes[0];
   return React.createElement('div',null,
-    React.createElement('div',{className:'tip'},React.createElement('strong',null,'👁️ Vista previa: '),'Así ve el cliente su portal cuando entra con sus credenciales.'),
+    React.createElement('div',{className:'tip'},t.vistaPreviaPortal),
     React.createElement('div',{className:'g2'},
       React.createElement('div',{className:'cd'},
-        React.createElement('div',{className:'cdt',style:{marginBottom:8}},'Tu Puntaje de Crédito'),
-        React.createElement(Dial,{score:c.scoreActual}),
-        React.createElement('div',{style:{textAlign:'center',marginTop:8,fontSize:13,color:'var(--t2)'}},`Meta: ${c.scoreMeta} pts`)
+        React.createElement('div',{className:'cdt',style:{marginBottom:8}},t.tuScore),
+        React.createElement(Dial,{score:c.scoreActual,lang}),
+        React.createElement('div',{style:{textAlign:'center',marginTop:8,fontSize:13,color:'var(--t2)'}},`${t.meta}: ${c.scoreMeta} pts`)
       ),
       React.createElement('div',{className:'cd'},
-        React.createElement('div',{className:'cdt',style:{marginBottom:16}},'Estado de Tu Caso'),
-        [{l:'Ítems en Disputa',v:c.items},{l:'Cartas Enviadas',v:3},{l:'Respuestas',v:1},{l:'Próximo Pago',v:'Dic 30'}]
+        React.createElement('div',{className:'cdt',style:{marginBottom:16}},t.estadoCaso),
+        [{l:'Items in Dispute',v:c.items},{l:'Letters Sent',v:3},{l:'Responses',v:1},{l:'Next Payment',v:'Dec 30'}]
         .map(s=>React.createElement('div',{key:s.l,style:{display:'flex',justifyContent:'space-between',padding:'10px 0',borderBottom:'1px solid var(--b)'}},
           React.createElement('span',{style:{fontSize:14,color:'var(--t2)'}},s.l),
           React.createElement('span',{style:{fontWeight:700}},s.v)
@@ -952,46 +1083,73 @@ function PortalView({clientes}){
   );
 }
 
-// ── MODAL NUEVO CLIENTE ────────────────────────────────────────────────────
-function ModalNuevo({onClose,onSave}){
+// ── MODAL NUEVO CLIENTE ───────────────────────────────────────────────────────
+function ModalNuevo({onClose,onSave,lang,oficinaNombre}){
   const [step,setStep]=React.useState(1);
-  const [f,setF]=React.useState({nombre:'',apellido:'',email:'',tel:'',scoreActual:'',scoreMeta:'',pago:150,disputas:''});
+  const [planTipo,setPlanTipo]=React.useState('mensual');
+  const [monto,setMonto]=React.useState('');
+  const [f,setF]=React.useState({nombre:'',apellido:'',email:'',tel:'',scoreActual:'',scoreMeta:'',disputas:''});
   const set=(k,v)=>setF(p=>({...p,[k]:v}));
-  const inp=(l,k,t='text',ph='')=>React.createElement('div',{className:'fg'},React.createElement('label',{className:'fl'},l),React.createElement('input',{className:'fi',type:t,placeholder:ph,value:f[k],onChange:e=>set(k,e.target.value)}));
+  const t=T[lang];
+  const inp=(l,k,tp='text',ph='')=>React.createElement('div',{className:'fg'},React.createElement('label',{className:'fl'},l),React.createElement('input',{className:'fi',type:tp,placeholder:ph,value:f[k],onChange:e=>set(k,e.target.value)}));
+
+  const planes=[
+    {id:'mensual',tk:'planMensual',dk:'planMensualDesc',icon:'📅'},
+    {id:'disputa',tk:'planDisputa',dk:'planDisputaDesc',icon:'⚡'},
+    {id:'resultado',tk:'planResultado',dk:'planResultadoDesc',icon:'🎯'},
+    {id:'personalizado',tk:'planPersonalizado',dk:'planPersonalizadoDesc',icon:'✏️'},
+  ];
+
   return React.createElement('div',{className:'mbg',onClick:e=>e.target===e.currentTarget&&onClose()},
     React.createElement('div',{className:'md'},
-      React.createElement('div',{className:'mdt'},'+ Nuevo Cliente'),
-      React.createElement('div',{className:'mds'},'Registra un nuevo cliente de reparación de crédito'),
-      React.createElement('div',{className:'steps'},['Datos Personales','Crédito','Acuerdo'].map((s,i)=>React.createElement('div',{key:i,className:`step ${step===i+1?'active':step>i+1?'done':''}`},`${i+1}. ${s}`))),
+      React.createElement('div',{className:'mdt'},t.nuevoClienteTitle),
+      React.createElement('div',{className:'mds'},t.nuevoClienteDesc),
+      React.createElement('div',{className:'steps'},[t.datosPersonales,t.credito,t.acuerdo].map((s,i)=>React.createElement('div',{key:i,className:`step ${step===i+1?'active':step>i+1?'done':''}`},`${i+1}. ${s}`))),
+
       step===1&&React.createElement('div',null,
-        React.createElement('div',{className:'fr'},inp('Nombre','nombre','text','María'),inp('Apellido','apellido','text','García')),
-        React.createElement('div',{className:'fr'},inp('Email','email','email','maria@email.com'),inp('Teléfono','tel','tel','(407) 555-0000'))
+        React.createElement('div',{className:'fr'},inp(t.nombre,'nombre','text','María'),inp(t.apellido,'apellido','text','García')),
+        React.createElement('div',{className:'fr'},inp(t.email,'email','email','maria@email.com'),inp(t.telefono,'tel','tel','(407) 555-0000'))
       ),
+
       step===2&&React.createElement('div',null,
-        React.createElement('div',{className:'fr'},inp('Score Actual','scoreActual','number','540'),inp('Score Meta','scoreMeta','number','700')),
-        React.createElement('div',{className:'fg'},React.createElement('label',{className:'fl'},'Plan de Pago'),React.createElement('select',{className:'fi',value:f.pago,onChange:e=>set('pago',e.target.value)},React.createElement('option',{value:99},'Básico — $99/mes'),React.createElement('option',{value:120},'Estándar — $120/mes'),React.createElement('option',{value:150},'Pro — $150/mes'))),
-        React.createElement('div',{className:'fg'},React.createElement('label',{className:'fl'},'Ítems a Disputar (uno por línea)'),React.createElement('textarea',{className:'fi',rows:4,placeholder:'Colección médica $2,100\nPago tardío Chase...',value:f.disputas,onChange:e=>set('disputas',e.target.value),style:{resize:'vertical'}}))
+        React.createElement('div',{className:'fr'},inp(t.scoreActual,'scoreActual','number','540'),inp(t.scoreMeta,'scoreMeta','number','700')),
+        React.createElement('div',{className:'fg'},
+          React.createElement('label',{className:'fl'},t.planPago),
+          React.createElement('div',{className:'plan-grid'},
+            planes.map(p=>React.createElement('div',{key:p.id,className:`plan-opt ${planTipo===p.id?'sel':''}`,onClick:()=>setPlanTipo(p.id)},
+              React.createElement('div',{className:'plan-opt-title'},p.icon+' '+t[p.tk]),
+              React.createElement('div',{className:'plan-opt-desc'},t[p.dk])
+            ))
+          )
+        ),
+        React.createElement('div',{className:'fg'},
+          React.createElement('label',{className:'fl'},t.monto),
+          React.createElement('input',{className:'fi',type:'number',placeholder:'150',value:monto,onChange:e=>setMonto(e.target.value)})
+        ),
+        React.createElement('div',{className:'fg'},React.createElement('label',{className:'fl'},t.itemsDisputar),React.createElement('textarea',{className:'fi',rows:4,placeholder:'Medical collection $2,100\nLate payment Chase...',value:f.disputas,onChange:e=>set('disputas',e.target.value),style:{resize:'vertical'}}))
       ),
+
       step===3&&React.createElement('div',null,
         React.createElement('div',{style:{background:'var(--navy3)',borderRadius:8,padding:16,fontSize:13,lineHeight:1.7,color:'var(--t2)',marginBottom:16}},
-          React.createElement('strong',{style:{color:'var(--t)',display:'block',marginBottom:8}},'ACUERDO DE SERVICIO — CreditPath'),
-          'Al firmar, el cliente autoriza a la oficina a disputar ítems inexactos bajo la FCRA. La oficina NO garantiza resultados. El cliente puede cancelar en los primeros 3 días hábiles sin cargo.'
+          React.createElement('strong',{style:{color:'var(--t)',display:'block',marginBottom:8}},`SERVICE AGREEMENT — ${oficinaNombre||'CreditPath'}`),
+          t.acuerdoTexto
         ),
-        inp('Firma del cliente (nombre completo)','firma','text','Escribe tu nombre completo'),
+        inp(t.firmaCliente,'firma','text','Write your full name'),
         React.createElement('div',{style:{display:'flex',gap:8,alignItems:'center',marginTop:8}},
           React.createElement('input',{type:'checkbox',id:'ac',style:{width:'auto',cursor:'pointer'}}),
-          React.createElement('label',{htmlFor:'ac',style:{fontSize:13,color:'var(--t2)',cursor:'pointer'}},'Acepto los términos y autorizo el proceso de reparación de crédito.')
+          React.createElement('label',{htmlFor:'ac',style:{fontSize:13,color:'var(--t2)',cursor:'pointer'}},t.aceptoTerminos)
         )
       ),
+
       React.createElement('div',{className:'fa'},
-        React.createElement('button',{className:'btn btn-ghost',onClick:()=>step>1?setStep(s=>s-1):onClose()},step>1?'← Anterior':'Cancelar'),
-        React.createElement('button',{className:'btn btn-gold',onClick:()=>step<3?setStep(s=>s+1):onSave()},step<3?'Siguiente →':'✓ Crear Cliente')
+        React.createElement('button',{className:'btn btn-ghost',onClick:()=>step>1?setStep(s=>s-1):onClose()},step>1?t.anterior:t.cancelar),
+        React.createElement('button',{className:'btn btn-gold',onClick:()=>step<3?setStep(s=>s+1):onSave()},step<3?t.siguiente:t.crearCliente)
       )
     )
   );
 }
 
-// ── APP ────────────────────────────────────────────────────────────────────
+// ── APP ────────────────────────────────────────────────────────────────────────
 function App(){
   const [user,setUser]=React.useState(null);
   const [checking,setChecking]=React.useState(true);
@@ -1001,88 +1159,97 @@ function App(){
   const [loading,setLoading]=React.useState(false);
   const [page,setPage]=React.useState('panel');
   const [clientes,setClientes]=React.useState(DEMO);
-  const [clienteSel,setClienteSel]=React.useState(null);
+  const [cSel,setCSel]=React.useState(null);
   const [showNuevo,setShowNuevo]=React.useState(false);
+  const [lang,setLang]=React.useState('es');
+  const [oficinaNombre,setOficinaNombre]=React.useState('');
 
   React.useEffect(()=>{
-    const unsub=auth.onAuthStateChanged(u=>{setUser(u);setChecking(false);});
+    const unsub=auth.onAuthStateChanged(async u=>{
+      setUser(u);
+      setChecking(false);
+      if(u){
+        try{
+          const snap=await db.collection('cp_offices').where('email','==',u.email).limit(1).get();
+          if(!snap.empty){setOficinaNombre(snap.docs[0].data().nombre||'');}
+        }catch(e){}
+      }
+    });
     return unsub;
   },[]);
 
   const handleLogin=async()=>{
-    if(!email||!pass){setErr('Completa todos los campos');return;}
+    if(!email||!pass){setErr('Complete all fields');return;}
     setLoading(true);setErr('');
     try{const c=await auth.signInWithEmailAndPassword(email,pass);setUser(c.user);}
-    catch(e){setErr('Email o contraseña incorrectos.');}
+    catch(e){setErr('Incorrect email or password.');}
     setLoading(false);
   };
 
-  const handleNota=(id,nota)=>setClientes(p=>p.map(c=>c.id===id?{...c,notas:[...(c.notas||[]),{f:'Hoy',a:'Admin',t:nota}]}:c));
+  const handleNota=(id,nota)=>setClientes(p=>p.map(c=>c.id===id?{...c,notas:[...(c.notas||[]),{f:'Today',a:user?.email?.split('@')[0]||'Admin',t:nota}]}:c));
+  const t=T[lang];
 
-  if(checking)return React.createElement('div',{className:'loading'},'⏳ Verificando...');
+  if(checking)return React.createElement('div',{style:{display:'flex',alignItems:'center',justifyContent:'center',height:'100vh',color:'var(--t3)'}},null);
 
   if(!user)return React.createElement('div',{className:'lw'},
     React.createElement('div',{className:'lb'},
       React.createElement('div',{className:'ll'},'Credit',React.createElement('span',null,'Path')),
-      React.createElement('div',{className:'lr'},'Sistema de Oficina'),
+      React.createElement('div',{className:'lr'},'Office System · Sistema de Oficina'),
       err&&React.createElement('div',{className:'lerr'},err),
-      React.createElement('label',{className:'llab'},'Email'),
+      React.createElement('label',{className:'llab'},t.email),
       React.createElement('input',{className:'li',type:'email',placeholder:'tu@email.com',value:email,onChange:e=>setEmail(e.target.value),onKeyDown:e=>e.key==='Enter'&&handleLogin()}),
-      React.createElement('label',{className:'llab'},'Contraseña'),
+      React.createElement('label',{className:'llab'},t.password),
       React.createElement('input',{className:'li',type:'password',placeholder:'••••••••',value:pass,onChange:e=>setPass(e.target.value),onKeyDown:e=>e.key==='Enter'&&handleLogin()}),
-      React.createElement('button',{className:'lbtn',onClick:handleLogin,disabled:loading},loading?'Entrando...':'Iniciar Sesión')
+      React.createElement('button',{className:'lbtn',onClick:handleLogin,disabled:loading},loading?'...':t.iniciarSesion)
     )
   );
 
   const nav=[
-    {k:'panel',i:'📊',l:'Panel'},
-    {k:'kanban',i:'📋',l:'Monitor Casos'},
-    {k:'clientes',i:'👥',l:'Clientes'},
-    {k:'nuevo',i:'➕',l:'Nuevo Cliente'},
-    {k:'cobros',i:'💰',l:'Cobros'},
-    {k:'herramientas',i:'🛠️',l:'Herramientas'},
-    {k:'portal',i:'👤',l:'Portal Cliente'},
+    {k:'panel',i:'📊',l:t.panel},
+    {k:'kanban',i:'📋',l:t.monitor},
+    {k:'clientes',i:'👥',l:t.clientes},
+    {k:'cobros',i:'💰',l:t.cobros},
+    {k:'herramientas',i:'🛠️',l:t.herramientas},
+    {k:'portal',i:'👤',l:t.portal},
   ];
-
-  const titles={panel:'Panel Principal',kanban:'Monitor de Casos',clientes:'Clientes',nuevo:'Nuevo Cliente',cobros:'Cobros',herramientas:'Herramientas',portal:'Portal Cliente'};
 
   return React.createElement('div',{className:'app'},
     React.createElement('div',{className:'sb'},
       React.createElement('div',{className:'sbt'},
         React.createElement('div',{className:'sbb2'},'Credit',React.createElement('span',null,'Path')),
-        React.createElement('div',{className:'sbo'},'Mi Oficina')
+        React.createElement('div',{className:'sbo'},oficinaNombre||t.miOficina)
       ),
       React.createElement('div',{className:'sbn'},
-        React.createElement('div',{className:'nss'},'Menú'),
+        React.createElement('div',{className:'nss'},'MENU'),
         nav.map(item=>React.createElement('div',{key:item.k,className:`ni ${page===item.k?'active':''}`,onClick:()=>setPage(item.k)},
           React.createElement('span',{className:'nic'},item.i),
           React.createElement('span',null,item.l)
         ))
       ),
       React.createElement('div',{className:'sbb'},
-        React.createElement('button',{className:'sob',onClick:()=>auth.signOut()},'→ Cerrar Sesión')
+        React.createElement('button',{className:'sob',onClick:()=>auth.signOut()},'→ '+t.cerrar)
       )
     ),
     React.createElement('div',{className:'mn'},
       React.createElement('div',{className:'tb'},
-        React.createElement('span',{className:'tbt'},titles[page]||''),
-        React.createElement('div',{style:{display:'flex',gap:8}},
-          React.createElement('button',{className:'btn btn-ghost btn-sm',onClick:()=>setPage('herramientas')},'🛠️ Herramientas'),
-          React.createElement('button',{className:'btn btn-gold btn-sm',onClick:()=>setShowNuevo(true)},'+ Nuevo Cliente')
+        React.createElement('span',{className:'tbt'},nav.find(n=>n.k===page)?.l||''),
+        React.createElement('div',{style:{display:'flex',gap:8,alignItems:'center'}},
+          React.createElement('button',{className:'btn-lang',onClick:()=>setLang(l=>l==='es'?'en':'es')},lang==='es'?'🇺🇸 EN':'🇲🇽 ES'),
+          React.createElement('button',{className:'btn btn-ghost btn-sm',onClick:()=>setPage('herramientas')},'🛠️ '+t.herramientas),
+          React.createElement('button',{className:'btn btn-gold btn-sm',onClick:()=>setShowNuevo(true)},'+ '+t.nuevo)
         )
       ),
       React.createElement('div',{className:'ct'},
-        page==='panel'&&React.createElement(PanelView,{clientes,onVer:setClienteSel,onNuevo:()=>setShowNuevo(true)}),
-        page==='kanban'&&React.createElement(KanbanView,{clientes,onVer:setClienteSel}),
-        page==='clientes'&&React.createElement(ClientesView,{clientes,onVer:setClienteSel,onNuevo:()=>setShowNuevo(true)}),
-        page==='cobros'&&React.createElement(CobrosView,{clientes}),
-        page==='herramientas'&&React.createElement(HerramientasView,{clientes}),
-        page==='portal'&&React.createElement(PortalView,{clientes}),
-        page==='nuevo'&&React.createElement('div',null,React.createElement(ModalNuevo,{onClose:()=>setPage('clientes'),onSave:()=>{alert('✅ Cliente creado');setPage('clientes');}}))
+        page==='panel'&&React.createElement(PanelView,{clientes,onVer:setCSel,onNuevo:()=>setShowNuevo(true),lang}),
+        page==='kanban'&&React.createElement(KanbanView,{clientes,onVer:setCSel,lang}),
+        page==='clientes'&&React.createElement(ClientesView,{clientes,onVer:setCSel,onNuevo:()=>setShowNuevo(true),lang}),
+        page==='cobros'&&React.createElement(CobrosView,{clientes,lang}),
+        page==='herramientas'&&React.createElement(HerramientasView,{clientes,lang,oficinaNombre}),
+        page==='portal'&&React.createElement(PortalView,{clientes,lang})
       )
     ),
-    clienteSel&&React.createElement(ModalCliente,{c:clienteSel,onClose:()=>setClienteSel(null),onNota:handleNota}),
-    showNuevo&&React.createElement(ModalNuevo,{onClose:()=>setShowNuevo(false),onSave:()=>{alert('✅ Cliente creado');setShowNuevo(false);}})
+    cSel&&React.createElement(ModalCliente,{c:cSel,onClose:()=>setCSel(null),onNota:handleNota,lang}),
+    showNuevo&&React.createElement(ModalNuevo,{onClose:()=>setShowNuevo(false),onSave:()=>{alert('✅ Client created!');setShowNuevo(false);},lang,oficinaNombre})
   );
 }
 
