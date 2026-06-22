@@ -452,26 +452,47 @@ function Portal({cliente,lang}){
 function App(){
   const [user,setUser]=React.useState(null);
   const [checking,setChecking]=React.useState(true);
+  const [loadingData,setLoadingData]=React.useState(false);
   const [email,setEmail]=React.useState('');
   const [pass,setPass]=React.useState('');
   const [err,setErr]=React.useState('');
   const [loading,setLoading]=React.useState(false);
   const [lang,setLang]=React.useState('es');
-  const [cliente,setCliente]=React.useState(DEMO_CLIENTE);
+  const [cliente,setCliente]=React.useState(null); // null = not loaded yet
+
+  const cargarCliente=async(userEmail)=>{
+    setLoadingData(true);
+    try{
+      // Search by email in cp_clients collection
+      const snap=await db.collection('cp_clients').where('email','==',userEmail).limit(1).get();
+      if(!snap.empty){
+        const data=snap.docs[0].data();
+        // Merge real data with demo structure for missing fields
+        setCliente({
+          ...DEMO_CLIENTE,
+          ...data,
+          id:snap.docs[0].id,
+          nombre:data.nombre||userEmail.split('@')[0],
+          disputas:data.disputas||[],
+          actividad:data.actividad||DEMO_CLIENTE.actividad,
+          notas:data.notas||[],
+        });
+      } else {
+        // No record found — show personalized demo with user email
+        setCliente({...DEMO_CLIENTE,email:userEmail,nombre:userEmail.split('@')[0]});
+      }
+    }catch(e){
+      // Firestore error — show demo
+      setCliente({...DEMO_CLIENTE,email:userEmail});
+    }
+    setLoadingData(false);
+  };
 
   React.useEffect(()=>{
     const unsub=auth.onAuthStateChanged(async u=>{
       setUser(u);
       setChecking(false);
-      if(u){
-        try{
-          const snap=await db.collection('cp_clients').where('email','==',u.email).limit(1).get();
-          if(!snap.empty){
-            const data=snap.docs[0].data();
-            setCliente({...DEMO_CLIENTE,...data,nombre:data.nombre||DEMO_CLIENTE.nombre});
-          }
-        }catch(e){}
-      }
+      if(u) cargarCliente(u.email);
     });
     return unsub;
   },[]);
@@ -479,7 +500,11 @@ function App(){
   const handleLogin=async()=>{
     if(!email||!pass){setErr(lang==='es'?'Completa todos los campos':'Fill in all fields');return;}
     setLoading(true);setErr('');
-    try{const c=await auth.signInWithEmailAndPassword(email,pass);setUser(c.user);}
+    try{
+      const c=await auth.signInWithEmailAndPassword(email,pass);
+      setUser(c.user);
+      await cargarCliente(c.user.email);
+    }
     catch(e){setErr(lang==='es'?'Email o contraseña incorrectos.':'Incorrect email or password.');}
     setLoading(false);
   };
@@ -504,13 +529,20 @@ function App(){
     )
   );
 
+  if(loadingData||!cliente)return React.createElement('div',{className:'loading'},
+    React.createElement('div',{style:{textAlign:'center'}},
+      React.createElement('div',{style:{fontSize:32,marginBottom:12}},'⏳'),
+      React.createElement('div',{style:{fontSize:14,color:'var(--t3)'}},lang==='es'?'Cargando tu información...':'Loading your information...')
+    )
+  );
+
   return React.createElement('div',null,
     React.createElement('div',{className:'hdr'},
       React.createElement('div',{className:'hdr-logo'},'Credit',React.createElement('span',null,'Path')),
       React.createElement('div',{className:'hdr-right'},
         React.createElement('span',{className:'hdr-name'},cliente.nombre),
         React.createElement('button',{className:'btn-lang',onClick:()=>setLang(l=>l==='es'?'en':'es')},lang==='es'?'EN':'ES'),
-        React.createElement('button',{className:'btn-out',onClick:()=>auth.signOut()},t.cerrar)
+        React.createElement('button',{className:'btn-out',onClick:()=>{auth.signOut();setCliente(null);}},t.cerrar)
       )
     ),
     React.createElement(Portal,{cliente,lang})
