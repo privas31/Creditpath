@@ -1034,7 +1034,18 @@ function ClientesView({clientes,onVer,onNuevo,lang}){
               React.createElement('td',null,c.pagado?React.createElement('span',{className:'bgg bg-green'},t.pagado):React.createElement('span',{className:'bgg bg-red'},t.pendiente)),
               React.createElement('td',null,React.createElement('div',{style:{display:'flex',gap:6}},
                 React.createElement('button',{className:'btn btn-ghost btn-sm',onClick:()=>onVer(c)},t.verCaso),
-                React.createElement('button',{className:'btn btn-ghost btn-sm'},'✉️')
+                React.createElement('button',{
+                  className:'btn btn-ghost btn-sm',
+                  title: lang==='es'?'Copiar link del portal para el cliente':'Copy client portal link',
+                  onClick:()=>{
+                    const link='https://privas31.github.io/Creditpath/cliente.html';
+                    navigator.clipboard.writeText(link).then(()=>{
+                      alert(`✅ Link copiado para ${c.nombre}\n\nMándaselo por WhatsApp o email:\n${link}`);
+                    }).catch(()=>{
+                      prompt('Copia este link y mándaselo al cliente:',link);
+                    });
+                  }
+                },'🔗 '+(lang==='es'?'Link':'Link'))
               ))
             );
           }))
@@ -1122,10 +1133,12 @@ function PortalView({clientes,lang}){
 }
 
 // ── MODAL NUEVO CLIENTE ───────────────────────────────────────────────────────
-function ModalNuevo({onClose,onSave,lang,oficinaNombre}){
+function ModalNuevo({onClose,onSave,lang,oficinaNombre,oficinaId}){
   const [step,setStep]=React.useState(1);
   const [planTipo,setPlanTipo]=React.useState('mensual');
   const [monto,setMonto]=React.useState('');
+  const [saving,setSaving]=React.useState(false);
+  const [credenciales,setCredenciales]=React.useState(null);
   const [f,setF]=React.useState({nombre:'',apellido:'',email:'',tel:'',scoreActual:'',scoreMeta:'',disputas:''});
   const set=(k,v)=>setF(p=>({...p,[k]:v}));
   const t=T[lang];
@@ -1138,11 +1151,55 @@ function ModalNuevo({onClose,onSave,lang,oficinaNombre}){
     {id:'personalizado',tk:'planPersonalizado',dk:'planPersonalizadoDesc',icon:'✏️'},
   ];
 
-  return React.createElement('div',{className:'mbg',onClick:e=>e.target===e.currentTarget&&onClose()},
+  // Genera contraseña temporal
+  const genPass=()=>{
+    const chars='ABCDEFGHJKMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789';
+    return Array.from({length:8},()=>chars[Math.floor(Math.random()*chars.length)]).join('');
+  };
+
+  const guardar=async()=>{
+    if(!f.nombre||!f.email){alert('Nombre y email son requeridos');return;}
+    setSaving(true);
+    const tempPass=genPass();
+    try{
+      // Guardar en Firestore
+      const data={
+        nombre:f.nombre+' '+f.apellido,
+        email:f.email,
+        telefono:f.tel,
+        scoreActual:parseInt(f.scoreActual)||0,
+        scoreMeta:parseInt(f.scoreMeta)||700,
+        planTipo,
+        pago:parseInt(monto)||0,
+        estado:'nuevo',
+        items:0,
+        pagado:false,
+        disputas:f.disputas?f.disputas.split('\n').filter(Boolean):[],
+        notas:[],
+        inicio:new Date().toISOString().slice(0,10),
+        oficina:oficinaNombre||'',
+        oficinaId:oficinaId||'',
+        tempPassword:tempPass,
+        creadoEn:firebase.firestore.FieldValue.serverTimestamp()
+      };
+      await db.collection('cp_clients').add(data);
+      setCredenciales({email:f.email,pass:tempPass,nombre:f.nombre});
+      setStep(4); // paso de credenciales
+      onSave();
+    }catch(e){
+      // Si Firestore falla, igual mostrar credenciales
+      setCredenciales({email:f.email,pass:tempPass,nombre:f.nombre});
+      setStep(4);
+      onSave();
+    }
+    setSaving(false);
+  };
+
+  return React.createElement('div',{className:'mbg',onClick:e=>e.target===e.currentTarget&&step===4&&onClose()},
     React.createElement('div',{className:'md'},
-      React.createElement('div',{className:'mdt'},t.nuevoClienteTitle),
-      React.createElement('div',{className:'mds'},t.nuevoClienteDesc),
-      React.createElement('div',{className:'steps'},[t.datosPersonales,t.credito,t.acuerdo].map((s,i)=>React.createElement('div',{key:i,className:`step ${step===i+1?'active':step>i+1?'done':''}`},`${i+1}. ${s}`))),
+      step<4&&React.createElement('div',{className:'mdt'},t.nuevoClienteTitle),
+      step<4&&React.createElement('div',{className:'mds'},t.nuevoClienteDesc),
+      step<4&&React.createElement('div',{className:'steps'},[t.datosPersonales,t.credito,t.acuerdo].map((s,i)=>React.createElement('div',{key:i,className:`step ${step===i+1?'active':step>i+1?'done':''}`},`${i+1}. ${s}`))),
 
       step===1&&React.createElement('div',null,
         React.createElement('div',{className:'fr'},inp(t.nombre,'nombre','text','María'),inp(t.apellido,'apellido','text','García')),
@@ -1179,9 +1236,47 @@ function ModalNuevo({onClose,onSave,lang,oficinaNombre}){
         )
       ),
 
-      React.createElement('div',{className:'fa'},
+      // PASO 4 — CREDENCIALES DEL CLIENTE
+      step===4&&credenciales&&React.createElement('div',null,
+        React.createElement('div',{style:{textAlign:'center',marginBottom:20}},
+          React.createElement('div',{style:{fontSize:32,marginBottom:8}},'✅'),
+          React.createElement('div',{style:{fontSize:18,fontWeight:700,color:'var(--t)'}},`${credenciales.nombre} creado exitosamente`),
+          React.createElement('div',{style:{fontSize:13,color:'var(--t2)',marginTop:4}},'Comparte estas credenciales con el cliente')
+        ),
+        React.createElement('div',{style:{background:'var(--navy3)',border:'2px solid var(--gold)',borderRadius:12,padding:20,marginBottom:16}},
+          React.createElement('div',{style:{fontSize:12,fontWeight:700,textTransform:'uppercase',letterSpacing:'0.8px',color:'var(--t3)',marginBottom:12}},'🔑 Credenciales de Acceso'),
+          React.createElement('div',{style:{marginBottom:10}},
+            React.createElement('div',{style:{fontSize:11,color:'var(--t3)',marginBottom:2}},'Email'),
+            React.createElement('div',{style:{fontSize:15,fontWeight:700,color:'var(--t)',fontFamily:'monospace'}},credenciales.email)
+          ),
+          React.createElement('div',{style:{marginBottom:16}},
+            React.createElement('div',{style:{fontSize:11,color:'var(--t3)',marginBottom:2}},'Contraseña Temporal'),
+            React.createElement('div',{style:{fontSize:22,fontWeight:800,color:'var(--gold)',fontFamily:'monospace',letterSpacing:'2px'}},credenciales.pass)
+          ),
+          React.createElement('div',{style:{background:'var(--navy)',borderRadius:8,padding:12,fontSize:12,color:'var(--t2)',lineHeight:1.6}},
+            '🔗 Link del portal: ',
+            React.createElement('span',{style:{color:'var(--gold)',fontWeight:600}},'https://privas31.github.io/Creditpath/cliente.html')
+          )
+        ),
+        React.createElement('div',{style:{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8,marginBottom:16}},
+          React.createElement('button',{className:'btn btn-ghost',style:{justifyContent:'center'},onClick:()=>{
+            const msg=`Hola ${credenciales.nombre}! 👋\n\nTus credenciales para acceder a tu portal de crédito:\n\n🌐 Link: https://privas31.github.io/Creditpath/cliente.html\n📧 Email: ${credenciales.email}\n🔑 Contraseña: ${credenciales.pass}\n\nPor favor cambia tu contraseña cuando entres por primera vez.`;
+            navigator.clipboard.writeText(msg);
+            alert('✅ Mensaje copiado — pégalo en WhatsApp');
+          }},'📱 Copiar para WhatsApp'),
+          React.createElement('button',{className:'btn btn-ghost',style:{justifyContent:'center'},onClick:()=>{
+            // Crear en Firebase Auth manualmente
+            alert('Para crear la cuenta del cliente en Firebase:\n\n1. Ve a console.firebase.google.com\n2. Authentication → Users → Add user\n3. Email: '+credenciales.email+'\n4. Password: '+credenciales.pass+'\n\nO el cliente puede crear su cuenta directo en el portal.');
+          }},'🔧 Instrucciones Firebase')
+        ),
+        React.createElement('button',{className:'btn btn-gold',style:{width:'100%',justifyContent:'center'},onClick:onClose},'✓ Listo — Cerrar')
+      ),
+
+      step<4&&React.createElement('div',{className:'fa'},
         React.createElement('button',{className:'btn btn-ghost',onClick:()=>step>1?setStep(s=>s-1):onClose()},step>1?t.anterior:t.cancelar),
-        React.createElement('button',{className:'btn btn-gold',onClick:()=>step<3?setStep(s=>s+1):onSave()},step<3?t.siguiente:t.crearCliente)
+        React.createElement('button',{className:'btn btn-gold',onClick:()=>step<3?setStep(s=>s+1):guardar(),disabled:saving},
+          saving?'Guardando...':(step<3?t.siguiente:t.crearCliente)
+        )
       )
     )
   );
@@ -1201,12 +1296,15 @@ function App(){
   const [showNuevo,setShowNuevo]=React.useState(false);
   const [lang,setLang]=React.useState('es');
   const [oficinaNombre,setOficinaNombre]=React.useState('');
+  const [oficinaId,setOficinaId]=React.useState('');
 
   // Lee parámetros de URL si viene del superadmin
   React.useEffect(()=>{
     const params=new URLSearchParams(window.location.search);
     const nombreUrl=params.get('nombre');
+    const idUrl=params.get('oficina');
     if(nombreUrl)setOficinaNombre(decodeURIComponent(nombreUrl));
+    if(idUrl)setOficinaId(idUrl);
   },[]);
 
   React.useEffect(()=>{
@@ -1216,12 +1314,28 @@ function App(){
       if(u){
         try{
           const snap=await db.collection('cp_offices').where('email','==',u.email).limit(1).get();
-          if(!snap.empty){setOficinaNombre(snap.docs[0].data().nombre||'');}
+          if(!snap.empty){
+            setOficinaNombre(snap.docs[0].data().nombre||'');
+            setOficinaId(snap.docs[0].id);
+          }
         }catch(e){}
+        // Cargar clientes reales desde Firestore
+        cargarClientes(u.email);
       }
     });
     return unsub;
   },[]);
+
+  const cargarClientes=async(emailOficina)=>{
+    try{
+      const snap=await db.collection('cp_clients').where('oficina','==',emailOficina||'').get();
+      if(!snap.empty){
+        const real=snap.docs.map(d=>({id:d.id,...d.data()}));
+        setClientes(real);
+      }
+      // Si no hay clientes reales, mantiene el demo
+    }catch(e){}
+  };
 
   const handleLogin=async()=>{
     if(!email||!pass){setErr('Complete all fields');return;}
@@ -1294,7 +1408,7 @@ function App(){
       )
     ),
     cSel&&React.createElement(ModalCliente,{c:cSel,onClose:()=>setCSel(null),onNota:handleNota,lang}),
-    showNuevo&&React.createElement(ModalNuevo,{onClose:()=>setShowNuevo(false),onSave:()=>{alert('✅ Client created!');setShowNuevo(false);},lang,oficinaNombre})
+    showNuevo&&React.createElement(ModalNuevo,{onClose:()=>setShowNuevo(false),onSave:()=>{cargarClientes(user?.email);setShowNuevo(false);},lang,oficinaNombre,oficinaId})
   );
 }
 
