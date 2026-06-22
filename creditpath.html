@@ -358,14 +358,8 @@ const EB={
 };
 const getEB=(e,l)=>{const b=EB[e]||EB.nuevo;return{c:b.c,l:b[l]||b.es};};
 
-// ── DEMO DATA ────────────────────────────────────────────────────────────────
-const DEMO=[
-  {id:'c1',nombre:'María García',tel:'(407) 555-0101',email:'maria@email.com',scoreActual:542,scoreMeta:700,estado:'en_proceso',items:7,planTipo:'mensual',pago:150,pagado:true,inicio:'2024-11-01',disputas:['Colección médica $2,100','Pago tardío Chase','Capital One en colecciones'],notas:[{f:'Dic 15',a:'Admin',t:'Carta enviada a Experian. Esperando 30 días.'}]},
-  {id:'c2',nombre:'Carlos Rodríguez',tel:'(321) 555-0202',email:'carlos@email.com',scoreActual:618,scoreMeta:740,estado:'activo',items:4,planTipo:'disputa',pago:120,pagado:true,inicio:'2024-10-15',disputas:['Consulta no autorizada','Balance alto Discover'],notas:[]},
-  {id:'c3',nombre:'Ana Martínez',tel:'(407) 555-0303',email:'ana@email.com',scoreActual:701,scoreMeta:750,estado:'completado',items:0,planTipo:'resultado',pago:0,pagado:true,inicio:'2024-07-01',disputas:[],notas:[{f:'Dic 01',a:'Admin',t:'¡Caso cerrado! Score 701 alcanzado.'}]},
-  {id:'c4',nombre:'José López',tel:'(321) 555-0404',email:'jose@email.com',scoreActual:480,scoreMeta:650,estado:'nuevo',items:12,planTipo:'mensual',pago:150,pagado:false,inicio:'2024-12-01',disputas:['Juicio civil $5,400','3 colecciones','Reporte de fraude'],notas:[]},
-  {id:'c5',nombre:'Elena Torres',tel:'(407) 555-0505',email:'elena@email.com',scoreActual:590,scoreMeta:700,estado:'en_proceso',items:5,planTipo:'mensual',pago:150,pagado:true,inicio:'2024-09-20',disputas:['Saldo viejo Sprint','Pago tardío Banco América'],notas:[]},
-];
+// ── DEMO DATA — vacío, solo clientes reales de Firestore ─────────────────────
+const DEMO=[];
 
 const KCOLS=[
   {key:'nuevo',color:'#7C3AED'},
@@ -976,10 +970,18 @@ function PanelView({clientes,onVer,onNuevo,lang}){
       ),
       React.createElement('div',{className:'cd'},
         React.createElement('div',{className:'cdh'},React.createElement('span',{className:'cdt'},t.actividadReciente)),
-        React.createElement('div',{className:'tl'},
-          [['Today 10:30am','María García — Letter sent to Experian'],['Today 9:00am','José López — New client added'],['Yesterday 4pm','Ana Martínez — Score reached 701! Case closed'],['Yesterday 2pm','Payment received — Carlos Rodríguez $120'],['Dec 13','Elena Torres — Equifax response received']]
-          .map((tt,i)=>React.createElement('div',{key:i,className:'tli'},React.createElement('div',{className:'tld'}),React.createElement('div',{className:'tldt'},tt[0]),React.createElement('div',{className:'tlt'},tt[1])))
-        )
+        clientes.length===0
+          ?React.createElement('div',{className:'empty',style:{padding:'30px 0'}},
+              React.createElement('div',{style:{fontSize:28,marginBottom:8}},'👥'),
+              React.createElement('div',{style:{fontSize:14,color:'var(--t3)'}},lang==='es'?'Agrega tu primer cliente para ver actividad':'Add your first client to see activity')
+            )
+          :React.createElement('div',{className:'tl'},
+              clientes.slice(0,5).map((c,i)=>React.createElement('div',{key:i,className:'tli'},
+                React.createElement('div',{className:'tld'}),
+                React.createElement('div',{className:'tldt'},c.inicio||'Hoy'),
+                React.createElement('div',{className:'tlt'},`${c.nombre} — ${lang==='es'?'Cliente agregado':'Client added'}`)
+              ))
+            )
       )
     )
   );
@@ -1119,6 +1121,12 @@ function CobrosView({clientes,lang}){
 // ── PORTAL PREVIEW ────────────────────────────────────────────────────────────
 function PortalView({clientes,lang}){
   const t=T[lang];
+  if(clientes.length===0)return React.createElement('div',{className:'cd'},
+    React.createElement('div',{className:'empty'},
+      React.createElement('div',{style:{fontSize:28,marginBottom:8}},'👤'),
+      React.createElement('div',{style:{fontSize:14,color:'var(--t3)'}},lang==='es'?'Agrega un cliente para ver el portal':'Add a client to preview the portal')
+    )
+  );
   const c=clientes[0];
   return React.createElement('div',null,
     React.createElement('div',{className:'tip'},t.vistaPreviaPortal),
@@ -1329,22 +1337,20 @@ function App(){
 
   const cargarClientes=async(emailOficina)=>{
     try{
-      // Busca clientes por email de oficina O todos si no hay filtro
-      let snap=await db.collection('cp_clients').orderBy('creadoEn','desc').get();
+      const snap=await db.collection('cp_clients').get();
       if(!snap.empty){
         const real=snap.docs.map(d=>({id:d.id,...d.data()}));
-        // Mezcla demo + reales, los reales primero
-        setClientes([...real,...DEMO]);
+        setClientes(real);
+      } else {
+        setClientes([]);
       }
     }catch(e){
-      // Si falla por índice, carga sin ordenar
       try{
         const snap2=await db.collection('cp_clients').get();
         if(!snap2.empty){
-          const real=snap2.docs.map(d=>({id:d.id,...d.data()}));
-          setClientes([...real,...DEMO]);
+          setClientes(snap2.docs.map(d=>({id:d.id,...d.data()})));
         }
-      }catch(e2){}
+      }catch(e2){setClientes([]);}
     }
   };
 
