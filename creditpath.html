@@ -549,12 +549,17 @@ function Dial({score,lang='es'}){
 }
 
 // ── MODAL CLIENTE ─────────────────────────────────────────────────────────────
-function ModalCliente({c,onClose,onNota,lang}){
+function ModalCliente({c,onClose,onNota,lang,onScoreUpdate}){
   const [tab,setTab]=React.useState('resumen');
   const [nota,setNota]=React.useState('');
   const [cartas,setCartas]=React.useState(c.cartas||[]);
   const [showAddCarta,setShowAddCarta]=React.useState(false);
   const [nuevaCarta,setNuevaCarta]=React.useState({bureau:'equifax',numero:1,fecha:new Date().toISOString().slice(0,10),tracking:'',estado:'enviada'});
+  const [scoreActual,setScoreActual]=React.useState(c.scoreActual||0);
+  const [nuevoScore,setNuevoScore]=React.useState('');
+  const [showUpdateScore,setShowUpdateScore]=React.useState(false);
+  const [historial,setHistorial]=React.useState(c.historialScores||[]);
+  const [savingScore,setSavingScore]=React.useState(false);
   const t=T[lang];
   const eb=getEB(c.estado,lang);
 
@@ -584,6 +589,32 @@ function ModalCliente({c,onClose,onNota,lang}){
 
   const bureauColor={equifax:'#E74C3C',experian:'#3B82F6',transunion:'#16A34A'};
 
+  const actualizarScore=async()=>{
+    const s=parseInt(nuevoScore);
+    if(!s||s<300||s>850){alert(lang==='es'?'Score debe estar entre 300 y 850':'Score must be between 300 and 850');return;}
+    setSavingScore(true);
+    const entrada={
+      scoreAnterior:scoreActual,
+      scoreNuevo:s,
+      fecha:new Date().toISOString().slice(0,10),
+      agente:lang==='es'?'Agente':'Agent',
+      diferencia:s-scoreActual
+    };
+    const nuevoHistorial=[...historial,entrada];
+    try{
+      await db.collection('cp_clients').doc(c.id).update({
+        scoreActual:s,
+        historialScores:nuevoHistorial
+      });
+    }catch(e){}
+    setScoreActual(s);
+    setHistorial(nuevoHistorial);
+    setNuevoScore('');
+    setShowUpdateScore(false);
+    if(onScoreUpdate)onScoreUpdate(c.id,s);
+    setSavingScore(false);
+  };
+
   return React.createElement('div',{className:'mbg',onClick:e=>e.target===e.currentTarget&&onClose()},
     React.createElement('div',{className:'md'},
       React.createElement('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:16}},
@@ -600,10 +631,41 @@ function ModalCliente({c,onClose,onNota,lang}){
 
       // TAB RESUMEN
       tab==='resumen'&&React.createElement('div',null,
-        React.createElement(Dial,{score:c.scoreActual,lang}),
-        React.createElement('div',{style:{textAlign:'center',marginBottom:16,fontSize:13,color:'var(--t2)'}},
-          `${t.meta}: ${c.scoreMeta} pts (+${c.scoreMeta-c.scoreActual})`
+        React.createElement(Dial,{score:scoreActual,lang}),
+        React.createElement('div',{style:{textAlign:'center',marginBottom:12,fontSize:13,color:'var(--t2)'}},
+          `${t.meta}: ${c.scoreMeta} pts (+${c.scoreMeta-scoreActual})`
         ),
+
+        // Botón actualizar score
+        showUpdateScore
+          ?React.createElement('div',{style:{background:'var(--navy3)',borderRadius:8,padding:14,marginBottom:14,border:'1px solid var(--b)'}},
+              React.createElement('div',{style:{fontSize:13,fontWeight:600,marginBottom:10,color:'var(--t)'}},
+                lang==='es'?'📊 Actualizar Puntaje':'📊 Update Score'
+              ),
+              React.createElement('div',{style:{display:'flex',gap:8,alignItems:'center'}},
+                React.createElement('div',{style:{flex:1}},
+                  React.createElement('input',{
+                    className:'fi',type:'number',
+                    placeholder:lang==='es'?'Nuevo score (300-850)':'New score (300-850)',
+                    value:nuevoScore,
+                    onChange:e=>setNuevoScore(e.target.value),
+                    min:300,max:850
+                  })
+                ),
+                React.createElement('button',{className:'btn btn-gold',onClick:actualizarScore,disabled:savingScore},
+                  savingScore?'...':(lang==='es'?'💾 Guardar':'💾 Save')
+                ),
+                React.createElement('button',{className:'btn btn-ghost',onClick:()=>setShowUpdateScore(false)},'✕')
+              )
+            )
+          :React.createElement('div',{style:{textAlign:'center',marginBottom:14}},
+              React.createElement('button',{
+                className:'btn btn-gold',
+                style:{fontSize:12},
+                onClick:()=>setShowUpdateScore(true)
+              },lang==='es'?'📊 Actualizar Score':'📊 Update Score')
+            ),
+
         React.createElement('div',{style:{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:8,marginBottom:12}},
           [{l:t.estado,v:React.createElement('span',{className:`bgg ${eb.c}`},eb.l)},{l:t.items,v:c.items},{l:t.pago,v:fm(c.pago)+'/mo'}]
           .map(s=>React.createElement('div',{key:s.l,style:{background:'var(--navy3)',borderRadius:8,padding:'10px 8px',textAlign:'center'}},
@@ -611,9 +673,32 @@ function ModalCliente({c,onClose,onNota,lang}){
             React.createElement('div',{style:{fontWeight:700,fontSize:14}},s.v)
           ))
         ),
-        React.createElement('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center',background:'var(--navy3)',borderRadius:8,padding:'10px 14px'}},
+        React.createElement('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center',background:'var(--navy3)',borderRadius:8,padding:'10px 14px',marginBottom:historial.length>0?12:0}},
           React.createElement('span',{style:{fontSize:13,color:'var(--t2)'}},t.pagoDel),
           c.pagado?React.createElement('span',{className:'bgg bg-green'},t.pagado):React.createElement('span',{className:'bgg bg-red'},t.pendiente)
+        ),
+
+        // Historial de scores
+        historial.length>0&&React.createElement('div',null,
+          React.createElement('div',{style:{fontSize:12,fontWeight:700,textTransform:'uppercase',letterSpacing:'0.8px',color:'var(--t3)',marginBottom:8}},
+            lang==='es'?'📈 Historial de Puntaje':'📈 Score History'
+          ),
+          React.createElement('div',{style:{background:'var(--navy3)',borderRadius:8,padding:'8px 0',overflow:'hidden'}},
+            historial.slice().reverse().map((h,i)=>React.createElement('div',{key:i,style:{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'8px 14px',borderBottom:i<historial.length-1?'1px solid var(--b2)':'none'}},
+              React.createElement('div',null,
+                React.createElement('div',{style:{fontSize:12,color:'var(--t3)'}},h.fecha),
+                React.createElement('div',{style:{fontSize:13,fontWeight:600,color:'var(--t)'}},
+                  `${h.scoreAnterior} → ${h.scoreNuevo}`
+                )
+              ),
+              React.createElement('span',{
+                style:{
+                  fontSize:13,fontWeight:800,
+                  color:h.diferencia>0?'var(--green)':h.diferencia<0?'var(--red)':'var(--t3)'
+                }
+              },h.diferencia>0?`+${h.diferencia}`:h.diferencia.toString())
+            ))
+          )
         )
       ),
 
@@ -1531,7 +1616,9 @@ function App(){
 
   const handleNota=(id,nota)=>setClientes(p=>p.map(c=>c.id===id?{...c,notas:[...(c.notas||[]),{f:'Today',a:user?.email?.split('@')[0]||'Admin',t:nota}]}:c));
 
-  const handleEliminar=async(c)=>{
+  const handleScoreUpdate=(id,nuevoScore)=>{
+    setClientes(prev=>prev.map(c=>c.id===id?{...c,scoreActual:nuevoScore}:c));
+  };
     const confirmar=window.confirm(lang==='es'
       ?`¿Eliminar a ${c.nombre}?\n\nEsta acción no se puede deshacer.`
       :`Delete ${c.nombre}?\n\nThis action cannot be undone.`
@@ -1610,7 +1697,7 @@ function App(){
         page==='portal'&&React.createElement(PortalView,{clientes,lang})
       )
     ),
-    cSel&&React.createElement(ModalCliente,{c:cSel,onClose:()=>setCSel(null),onNota:handleNota,lang}),
+    cSel&&React.createElement(ModalCliente,{c:cSel,onClose:()=>setCSel(null),onNota:handleNota,lang,onScoreUpdate:handleScoreUpdate}),
     showNuevo&&React.createElement(ModalNuevo,{onClose:()=>{setShowNuevo(false);},onSave:()=>{cargarClientes(user?.email);},lang,oficinaNombre,oficinaId})
   );
 }
