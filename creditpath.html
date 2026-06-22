@@ -1009,7 +1009,7 @@ function KanbanView({clientes,onVer,lang}){
 }
 
 // ── CLIENTES ──────────────────────────────────────────────────────────────────
-function ClientesView({clientes,onVer,onNuevo,lang}){
+function ClientesView({clientes,onVer,onNuevo,lang,onEliminar}){
   const [buscar,setBuscar]=React.useState('');
   const t=T[lang];
   const fil=clientes.filter(c=>c.nombre.toLowerCase().includes(buscar.toLowerCase()));
@@ -1047,7 +1047,13 @@ function ClientesView({clientes,onVer,onNuevo,lang}){
                       prompt('Copia este link y mándaselo al cliente:',link);
                     });
                   }
-                },'🔗 '+(lang==='es'?'Link':'Link'))
+                },'🔗 '+(lang==='es'?'Link':'Link')),
+                React.createElement('button',{
+                  className:'btn btn-sm',
+                  style:{background:'#FEE2E2',color:'#DC2626',fontWeight:600},
+                  title:lang==='es'?'Eliminar cliente':'Delete client',
+                  onClick:()=>onEliminar(c)
+                },'🗑️')
               ))
             );
           }))
@@ -1351,6 +1357,25 @@ function App(){
   };
 
   const handleNota=(id,nota)=>setClientes(p=>p.map(c=>c.id===id?{...c,notas:[...(c.notas||[]),{f:'Today',a:user?.email?.split('@')[0]||'Admin',t:nota}]}:c));
+
+  const handleEliminar=async(c)=>{
+    const confirmar=window.confirm(lang==='es'
+      ?`¿Eliminar a ${c.nombre}?\n\nEsta acción no se puede deshacer.`
+      :`Delete ${c.nombre}?\n\nThis action cannot be undone.`
+    );
+    if(!confirmar)return;
+    try{
+      // Eliminar de Firestore si tiene ID real
+      if(c.id&&!['c1','c2','c3','c4','c5'].includes(c.id)){
+        await db.collection('cp_clients').doc(c.id).delete();
+      }
+      // Quitar de la lista local
+      setClientes(prev=>prev.filter(x=>x.id!==c.id));
+    }catch(e){
+      // Si falla Firestore, solo quitar localmente
+      setClientes(prev=>prev.filter(x=>x.id!==c.id));
+    }
+  };
   const t=T[lang];
 
   if(checking)return React.createElement('div',{style:{display:'flex',alignItems:'center',justifyContent:'center',height:'100vh',color:'var(--t3)'}},null);
@@ -1406,7 +1431,7 @@ function App(){
       React.createElement('div',{className:'ct'},
         page==='panel'&&React.createElement(PanelView,{clientes,onVer:setCSel,onNuevo:()=>setShowNuevo(true),lang}),
         page==='kanban'&&React.createElement(KanbanView,{clientes,onVer:setCSel,lang}),
-        page==='clientes'&&React.createElement(ClientesView,{clientes,onVer:setCSel,onNuevo:()=>setShowNuevo(true),lang}),
+        page==='clientes'&&React.createElement(ClientesView,{clientes,onVer:setCSel,onNuevo:()=>setShowNuevo(true),lang,onEliminar:handleEliminar}),
         page==='cobros'&&React.createElement(CobrosView,{clientes,lang}),
         page==='herramientas'&&React.createElement(HerramientasView,{clientes,lang,oficinaNombre}),
         page==='portal'&&React.createElement(PortalView,{clientes,lang})
