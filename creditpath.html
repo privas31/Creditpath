@@ -552,8 +552,38 @@ function Dial({score,lang='es'}){
 function ModalCliente({c,onClose,onNota,lang}){
   const [tab,setTab]=React.useState('resumen');
   const [nota,setNota]=React.useState('');
+  const [cartas,setCartas]=React.useState(c.cartas||[]);
+  const [showAddCarta,setShowAddCarta]=React.useState(false);
+  const [nuevaCarta,setNuevaCarta]=React.useState({bureau:'equifax',numero:1,fecha:new Date().toISOString().slice(0,10),tracking:'',estado:'enviada'});
   const t=T[lang];
   const eb=getEB(c.estado,lang);
+
+  const hoy=new Date();
+  const diasDesde=(fecha)=>{
+    const d=new Date(fecha);
+    return Math.floor((hoy-d)/86400000);
+  };
+
+  const agregarCarta=async()=>{
+    const carta={...nuevaCarta,id:Date.now().toString(),agente:lang==='es'?'Agente':'Agent'};
+    const nuevasCartas=[...cartas,carta];
+    setCartas(nuevasCartas);
+    // Guardar en Firestore
+    try{
+      await db.collection('cp_clients').doc(c.id).update({cartas:nuevasCartas});
+    }catch(e){}
+    setShowAddCarta(false);
+    setNuevaCarta({bureau:'equifax',numero:1,fecha:new Date().toISOString().slice(0,10),tracking:'',estado:'enviada'});
+  };
+
+  const marcarRespondida=async(cartaId)=>{
+    const nuevasCartas=cartas.map(carta=>carta.id===cartaId?{...carta,estado:'respondida',fechaRespuesta:new Date().toISOString().slice(0,10)}:carta);
+    setCartas(nuevasCartas);
+    try{await db.collection('cp_clients').doc(c.id).update({cartas:nuevasCartas});}catch(e){}
+  };
+
+  const bureauColor={equifax:'#E74C3C',experian:'#3B82F6',transunion:'#16A34A'};
+
   return React.createElement('div',{className:'mbg',onClick:e=>e.target===e.currentTarget&&onClose()},
     React.createElement('div',{className:'md'},
       React.createElement('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:16}},
@@ -564,9 +594,11 @@ function ModalCliente({c,onClose,onNota,lang}){
         React.createElement('button',{className:'btn btn-ghost btn-sm',onClick:onClose},'✕')
       ),
       React.createElement('div',{className:'tabs'},
-        [{k:'resumen',l:t.resumen},{k:'disputas',l:t.disputas},{k:'notas',l:t.notas}]
+        [{k:'resumen',l:t.resumen},{k:'disputas',l:t.disputas},{k:'cartas',l:lang==='es'?'Cartas':'Letters'},{k:'notas',l:t.notas}]
         .map(tb=>React.createElement('div',{key:tb.k,className:`tab ${tab===tb.k?'active':''}`,onClick:()=>setTab(tb.k)},tb.l))
       ),
+
+      // TAB RESUMEN
       tab==='resumen'&&React.createElement('div',null,
         React.createElement(Dial,{score:c.scoreActual,lang}),
         React.createElement('div',{style:{textAlign:'center',marginBottom:16,fontSize:13,color:'var(--t2)'}},
@@ -584,6 +616,8 @@ function ModalCliente({c,onClose,onNota,lang}){
           c.pagado?React.createElement('span',{className:'bgg bg-green'},t.pagado):React.createElement('span',{className:'bgg bg-red'},t.pendiente)
         )
       ),
+
+      // TAB DISPUTAS
       tab==='disputas'&&React.createElement('div',null,
         React.createElement('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:14}},
           React.createElement('span',{style:{fontSize:13,color:'var(--t2)'}},`${c.disputas.length} ${t.items}`),
@@ -597,6 +631,115 @@ function ModalCliente({c,onClose,onNota,lang}){
             )),
         React.createElement('button',{className:'btn btn-gold',style:{width:'100%',marginTop:12,justifyContent:'center'}},'✉️ Generate Dispute Letter')
       ),
+
+      // TAB CARTAS
+      tab==='cartas'&&React.createElement('div',null,
+        // Stats rápidos
+        React.createElement('div',{style:{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:8,marginBottom:16}},
+          [
+            {l:lang==='es'?'Cartas Enviadas':'Letters Sent',v:cartas.length,c:'var(--blue)'},
+            {l:lang==='es'?'Respondidas':'Responded',v:cartas.filter(c=>c.estado==='respondida').length,c:'var(--green)'},
+            {l:lang==='es'?'Sin Respuesta':'No Response',v:cartas.filter(c=>c.estado==='enviada'&&diasDesde(c.fecha)>30).length,c:'var(--red)'},
+          ].map(s=>React.createElement('div',{key:s.l,style:{background:'var(--navy3)',borderRadius:8,padding:'10px 8px',textAlign:'center'}},
+            React.createElement('div',{style:{fontSize:20,fontWeight:800,color:s.c}},s.v),
+            React.createElement('div',{style:{fontSize:10,color:'var(--t3)',marginTop:3,textTransform:'uppercase',letterSpacing:'0.5px'}},s.l)
+          ))
+        ),
+
+        // Alerta 30 días
+        cartas.some(carta=>carta.estado==='enviada'&&diasDesde(carta.fecha)>30)&&
+        React.createElement('div',{style:{background:'#FEF2F2',border:'1px solid #FECACA',borderRadius:8,padding:'10px 14px',marginBottom:12,fontSize:13,color:'#B91C1C'}},
+          '⚠️ '+(lang==='es'?'Hay cartas sin respuesta por más de 30 días — el bureau está en violación de la FCRA':'Some letters have no response for over 30 days — the bureau is in violation of the FCRA')
+        ),
+
+        // Lista de cartas
+        cartas.length===0
+          ?React.createElement('div',{className:'empty',style:{paddingBottom:20}},
+              React.createElement('div',{style:{fontSize:24,marginBottom:8}},'✉️'),
+              React.createElement('div',null,lang==='es'?'No hay cartas registradas':'No letters registered yet')
+            )
+          :cartas.map((carta,i)=>{
+              const dias=diasDesde(carta.fecha);
+              const vencida=carta.estado==='enviada'&&dias>30;
+              return React.createElement('div',{key:carta.id||i,style:{
+                background:'var(--navy3)',borderRadius:8,padding:'14px',marginBottom:10,
+                borderLeft:`3px solid ${carta.estado==='respondida'?'var(--green)':vencida?'var(--red)':'var(--yellow)'}`
+              }},
+                React.createElement('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:8}},
+                  React.createElement('div',null,
+                    React.createElement('div',{style:{display:'flex',alignItems:'center',gap:8,marginBottom:4}},
+                      React.createElement('span',{style:{fontSize:13,fontWeight:700,color:bureauColor[carta.bureau]||'var(--t)'}},
+                        carta.bureau.charAt(0).toUpperCase()+carta.bureau.slice(1)
+                      ),
+                      React.createElement('span',{className:`bgg ${carta.numero===1?'bg-blue':carta.numero===2?'bg-yellow':'bg-red'}`,style:{fontSize:10}},
+                        lang==='es'?`Carta #${carta.numero}`:`Letter #${carta.numero}`
+                      ),
+                      carta.estado==='respondida'
+                        ?React.createElement('span',{className:'bgg bg-green',style:{fontSize:10}},lang==='es'?'✓ Respondida':'✓ Responded')
+                        :vencida
+                          ?React.createElement('span',{className:'bgg bg-red',style:{fontSize:10}},lang==='es'?`⚠ ${dias}d sin respuesta`:`⚠ ${dias}d no response`)
+                          :React.createElement('span',{className:'bgg bg-yellow',style:{fontSize:10}},lang==='es'?`${dias}d enviada`:`${dias}d sent`)
+                    ),
+                    React.createElement('div',{style:{fontSize:11,color:'var(--t3)'}},
+                      (lang==='es'?'Enviada: ':'Sent: ')+carta.fecha+
+                      (carta.tracking?' · Tracking: '+carta.tracking:'')+
+                      (carta.fechaRespuesta?(lang==='es'?' · Respuesta: ':' · Response: ')+carta.fechaRespuesta:'')
+                    )
+                  ),
+                  carta.estado==='enviada'&&React.createElement('button',{
+                    className:'btn btn-sm',
+                    style:{background:'#DCFCE7',color:'#15803D',fontSize:11},
+                    onClick:()=>marcarRespondida(carta.id||i.toString())
+                  },lang==='es'?'✓ Marcar Respondida':'✓ Mark Responded')
+                )
+              );
+            }),
+
+        // Formulario agregar carta
+        showAddCarta
+          ?React.createElement('div',{style:{background:'var(--navy3)',borderRadius:8,padding:16,marginTop:12,border:'1px solid var(--b)'}},
+              React.createElement('div',{style:{fontSize:13,fontWeight:600,marginBottom:12,color:'var(--t)'}},lang==='es'?'+ Registrar Carta Enviada':'+ Register Sent Letter'),
+              React.createElement('div',{className:'fr',style:{marginBottom:10}},
+                React.createElement('div',null,
+                  React.createElement('label',{className:'fl'},lang==='es'?'Bureau':'Bureau'),
+                  React.createElement('select',{className:'fi',value:nuevaCarta.bureau,onChange:e=>setNuevaCarta(p=>({...p,bureau:e.target.value}))},
+                    React.createElement('option',{value:'equifax'},'Equifax'),
+                    React.createElement('option',{value:'experian'},'Experian'),
+                    React.createElement('option',{value:'transunion'},'TransUnion')
+                  )
+                ),
+                React.createElement('div',null,
+                  React.createElement('label',{className:'fl'},lang==='es'?'Número de Carta':'Letter Number'),
+                  React.createElement('select',{className:'fi',value:nuevaCarta.numero,onChange:e=>setNuevaCarta(p=>({...p,numero:parseInt(e.target.value)}))},
+                    React.createElement('option',{value:1},lang==='es'?'#1 — Primera Disputa':'#1 — First Dispute'),
+                    React.createElement('option',{value:2},lang==='es'?'#2 — Seguimiento 30 días':'#2 — 30-Day Follow Up'),
+                    React.createElement('option',{value:3},lang==='es'?'#3 — Escalada Final':'#3 — Final Escalation')
+                  )
+                )
+              ),
+              React.createElement('div',{className:'fr',style:{marginBottom:12}},
+                React.createElement('div',null,
+                  React.createElement('label',{className:'fl'},lang==='es'?'Fecha de Envío':'Send Date'),
+                  React.createElement('input',{className:'fi',type:'date',value:nuevaCarta.fecha,onChange:e=>setNuevaCarta(p=>({...p,fecha:e.target.value}))})
+                ),
+                React.createElement('div',null,
+                  React.createElement('label',{className:'fl'},'Tracking # (Certified Mail)'),
+                  React.createElement('input',{className:'fi',placeholder:'9400111899...',value:nuevaCarta.tracking,onChange:e=>setNuevaCarta(p=>({...p,tracking:e.target.value}))})
+                )
+              ),
+              React.createElement('div',{style:{display:'flex',gap:8}},
+                React.createElement('button',{className:'btn btn-ghost btn-sm',onClick:()=>setShowAddCarta(false)},lang==='es'?'Cancelar':'Cancel'),
+                React.createElement('button',{className:'btn btn-gold btn-sm',onClick:agregarCarta},lang==='es'?'💾 Guardar Carta':'💾 Save Letter')
+              )
+            )
+          :React.createElement('button',{
+              className:'btn btn-gold',
+              style:{width:'100%',marginTop:12,justifyContent:'center'},
+              onClick:()=>setShowAddCarta(true)
+            },lang==='es'?'+ Registrar Carta Enviada':'+ Register Sent Letter')
+      ),
+
+      // TAB NOTAS
       tab==='notas'&&React.createElement('div',null,
         c.notas.length===0
           ?React.createElement('div',{className:'empty',style:{paddingBottom:20}},'No notes yet')
