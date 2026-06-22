@@ -269,16 +269,39 @@ function Login({ onLogin }) {
 
 // ─── MODAL NUEVA OFICINA ──────────────────────────────────────────────────
 function ModalNuevaOficina({ onClose, onSave }) {
-  const [form, setForm] = React.useState({ nombre: '', propietario: '', email: '', ciudad: '', telefono: '', plan: 'demo' });
+  const hoy = new Date();
+  const demo15 = new Date(hoy.getTime() + 15 * 86400000).toISOString().slice(0, 10);
+  const genPass = () => {
+    const c = 'ABCDEFGHJKMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789';
+    return Array.from({length: 10}, () => c[Math.floor(Math.random() * c.length)]).join('');
+  };
+
+  const [form, setForm] = React.useState({
+    nombre: '', propietario: '', email: '', ciudad: '', telefono: '',
+    plan: 'demo', password: genPass(), demoVence: demo15
+  });
   const [saving, setSaving] = React.useState(false);
+  const [creada, setCreada] = React.useState(null);
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
+
+  const monitorLink = form.email
+    ? `https://privas31.github.io/Creditpath/creditpath.html?email=${encodeURIComponent(form.email)}`
+    : '— completa el email arriba —';
 
   const guardar = async () => {
     if (!form.nombre || !form.email) { alert('Nombre y email son requeridos'); return; }
     setSaving(true);
     try {
       const data = {
-        ...form,
+        nombre: form.nombre,
+        propietario: form.propietario,
+        email: form.email,
+        ciudad: form.ciudad,
+        telefono: form.telefono,
+        plan: form.plan,
+        password: form.password,
+        demoVence: form.plan === 'demo' ? form.demoVence : null,
+        monitorLink,
         activa: true,
         clientes: 0,
         cobrado: 0,
@@ -286,20 +309,60 @@ function ModalNuevaOficina({ onClose, onSave }) {
         creadoEn: firebase.firestore.FieldValue.serverTimestamp(),
       };
       await db.collection('cp_offices').add(data);
+      setCreada({ ...data });
       onSave();
-      onClose();
     } catch (e) {
-      // Si Firestore no está habilitado, guardamos en demo
-      alert('✅ Oficina creada (modo demo). Conecta Firestore para persistir datos.');
-      onClose();
+      setCreada({ nombre: form.nombre, email: form.email, password: form.password, monitorLink, plan: form.plan, demoVence: form.demoVence });
+      onSave();
     }
     setSaving(false);
   };
 
+  // PASO 2 — Oficina creada, mostrar credenciales
+  if (creada) return React.createElement('div', { className: 'modal-bg' },
+    React.createElement('div', { className: 'modal' },
+      React.createElement('div', { style: { textAlign: 'center', marginBottom: 20 } },
+        React.createElement('div', { style: { fontSize: 40, marginBottom: 8 } }, '✅'),
+        React.createElement('div', { style: { fontSize: 18, fontWeight: 700, color: 'var(--text)' } }, `${creada.nombre} creada`),
+        React.createElement('div', { style: { fontSize: 13, color: 'var(--text-2)', marginTop: 4 } }, 'Comparte estas credenciales con el dueño de la oficina')
+      ),
+      React.createElement('div', { style: { background: 'var(--navy-3)', border: '2px solid var(--gold)', borderRadius: 10, padding: 20, marginBottom: 16 } },
+        React.createElement('div', { style: { fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.8px', color: 'var(--text-2)', marginBottom: 14 } }, '🔑 Credenciales de Acceso al Monitor'),
+        React.createElement('div', { style: { marginBottom: 10 } },
+          React.createElement('div', { style: { fontSize: 11, color: 'var(--text-3)', marginBottom: 2 } }, 'Email'),
+          React.createElement('div', { style: { fontSize: 14, fontWeight: 700, fontFamily: 'monospace', color: 'var(--text)' } }, creada.email)
+        ),
+        React.createElement('div', { style: { marginBottom: 14 } },
+          React.createElement('div', { style: { fontSize: 11, color: 'var(--text-3)', marginBottom: 2 } }, 'Contraseña Inicial'),
+          React.createElement('div', { style: { fontSize: 22, fontWeight: 800, color: 'var(--gold)', fontFamily: 'monospace', letterSpacing: '2px' } }, creada.password)
+        ),
+        React.createElement('div', { style: { background: 'rgba(0,0,0,0.2)', borderRadius: 8, padding: 10, fontSize: 11, color: 'var(--text-2)', wordBreak: 'break-all', lineHeight: 1.6 } },
+          '🔗 Link del Monitor: ',
+          React.createElement('span', { style: { color: 'var(--gold)' } }, creada.monitorLink)
+        ),
+        creada.plan === 'demo' && React.createElement('div', { style: { marginTop: 10, fontSize: 12, color: 'var(--yellow)', background: 'rgba(245,158,11,0.1)', borderRadius: 6, padding: '6px 10px' } },
+          `⏳ Demo vence el: ${creada.demoVence}`
+        )
+      ),
+      React.createElement('div', { style: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 12 } },
+        React.createElement('button', { className: 'btn btn-gold', style: { justifyContent: 'center' }, onClick: () => {
+          const msg = `Hola ${creada.nombre}! 👋\n\nAquí están tus credenciales para acceder al monitor de CreditPath:\n\n🔗 Link: ${creada.monitorLink}\n📧 Email: ${creada.email}\n🔑 Contraseña: ${creada.password}\n\n${creada.plan === 'demo' ? `⏳ Tu demo vence el ${creada.demoVence}` : '✅ Cuenta activa'}\n\n¡Cualquier pregunta estamos aquí!`;
+          navigator.clipboard.writeText(msg).then(() => alert('✅ Mensaje copiado — pégalo en WhatsApp'));
+        } }, '📱 Copiar para WhatsApp'),
+        React.createElement('button', { className: 'btn btn-ghost', style: { justifyContent: 'center' }, onClick: () => {
+          navigator.clipboard.writeText(creada.monitorLink).then(() => alert('✅ Link copiado'));
+        } }, '📋 Copiar Link')
+      ),
+      React.createElement('button', { className: 'btn btn-gold', style: { width: '100%', justifyContent: 'center' }, onClick: onClose }, '✓ Listo — Cerrar')
+    )
+  );
+
+  // PASO 1 — Formulario
   return React.createElement('div', { className: 'modal-bg', onClick: e => e.target === e.currentTarget && onClose() },
     React.createElement('div', { className: 'modal' },
       React.createElement('div', { className: 'modal-title' }, '+ Nueva Oficina'),
       React.createElement('div', { className: 'modal-sub' }, 'Crea acceso para una nueva oficina de reparación de crédito'),
+
       React.createElement('div', { className: 'form-row' },
         React.createElement('div', { className: 'form-group' },
           React.createElement('label', { className: 'form-label' }, 'Nombre de la Oficina'),
@@ -324,6 +387,27 @@ function ModalNuevaOficina({ onClose, onSave }) {
         React.createElement('label', { className: 'form-label' }, 'Email de Acceso'),
         React.createElement('input', { className: 'form-input', type: 'email', placeholder: 'admin@oficina.com', value: form.email, onChange: e => set('email', e.target.value) })
       ),
+
+      // Credenciales preview
+      React.createElement('div', { style: { background: 'var(--navy-3)', border: '1px solid var(--border)', borderRadius: 8, padding: 14, marginBottom: 16 } },
+        React.createElement('div', { style: { fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.8px', color: 'var(--gold)', marginBottom: 10 } }, '🔑 Credenciales de Acceso del Monitor'),
+        React.createElement('div', { className: 'form-row' },
+          React.createElement('div', null,
+            React.createElement('div', { style: { fontSize: 11, color: 'var(--text-3)', marginBottom: 4 } }, 'Email de Acceso'),
+            React.createElement('div', { style: { fontSize: 13, fontWeight: 600, color: 'var(--text)', fontFamily: 'monospace' } }, form.email || '— completa el email arriba —')
+          ),
+          React.createElement('div', null,
+            React.createElement('div', { style: { fontSize: 11, color: 'var(--text-3)', marginBottom: 4 } }, 'Contraseña Inicial'),
+            React.createElement('input', { className: 'form-input', value: form.password, onChange: e => set('password', e.target.value), style: { fontFamily: 'monospace', fontWeight: 700, letterSpacing: '1px' } })
+          )
+        ),
+        React.createElement('div', { style: { marginTop: 10 } },
+          React.createElement('div', { style: { fontSize: 11, color: 'var(--text-3)', marginBottom: 4 } }, 'Link de Acceso al Monitor'),
+          React.createElement('div', { style: { fontSize: 11, color: 'var(--gold)', fontFamily: 'monospace', wordBreak: 'break-all', lineHeight: 1.5 } }, monitorLink)
+        )
+      ),
+
+      // Plan seleccionable
       React.createElement('div', { className: 'form-group' },
         React.createElement('label', { className: 'form-label' }, 'Plan'),
         React.createElement('div', { className: 'plan-select' },
@@ -337,6 +421,14 @@ function ModalNuevaOficina({ onClose, onSave }) {
           ))
         )
       ),
+
+      // Demo vence (solo si plan = demo)
+      form.plan === 'demo' && React.createElement('div', { className: 'form-group' },
+        React.createElement('label', { className: 'form-label' }, '⏳ Demo Vence el'),
+        React.createElement('input', { className: 'form-input', type: 'date', value: form.demoVence, onChange: e => set('demoVence', e.target.value) }),
+        React.createElement('div', { style: { fontSize: 11, color: 'var(--text-3)', marginTop: 4 } }, 'Por defecto: 15 días desde hoy')
+      ),
+
       React.createElement('div', { className: 'form-actions' },
         React.createElement('button', { className: 'btn btn-ghost', onClick: onClose }, 'Cancelar'),
         React.createElement('button', { className: 'btn btn-gold', onClick: guardar, disabled: saving },
