@@ -1619,20 +1619,19 @@ function App(){
   const handleScoreUpdate=(id,nuevoScore)=>{
     setClientes(prev=>prev.map(c=>c.id===id?{...c,scoreActual:nuevoScore}:c));
   };
+
+  const handleEliminar=async(c)=>{
     const confirmar=window.confirm(lang==='es'
       ?`¿Eliminar a ${c.nombre}?\n\nEsta acción no se puede deshacer.`
       :`Delete ${c.nombre}?\n\nThis action cannot be undone.`
     );
     if(!confirmar)return;
     try{
-      // Eliminar de Firestore si tiene ID real
       if(c.id&&!['c1','c2','c3','c4','c5'].includes(c.id)){
         await db.collection('cp_clients').doc(c.id).delete();
       }
-      // Quitar de la lista local
       setClientes(prev=>prev.filter(x=>x.id!==c.id));
     }catch(e){
-      // Si falla Firestore, solo quitar localmente
       setClientes(prev=>prev.filter(x=>x.id!==c.id));
     }
   };
