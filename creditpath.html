@@ -589,6 +589,129 @@ function ModalCliente({c,onClose,onNota,lang,onScoreUpdate}){
 
   const bureauColor={equifax:'#E74C3C',experian:'#3B82F6',transunion:'#16A34A'};
 
+  const generarPDF=()=>{
+    const fecha=new Date().toLocaleDateString('es-US',{year:'numeric',month:'long',day:'numeric'});
+    const scoreZone=scoreActual<580?'Malo (Poor)':scoreActual<670?'Regular (Fair)':scoreActual<740?'Bueno (Good)':scoreActual<800?'Muy Bueno (Very Good)':'Excepcional (Exceptional)';
+    const progPct=Math.min(100,Math.round(((scoreActual-300)/(c.scoreMeta-300))*100));
+
+    const html=`<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<title>Reporte CreditPath — ${c.nombre}</title>
+<style>
+  body{font-family:Arial,sans-serif;color:#0A1628;margin:0;padding:0;background:#fff;}
+  .page{max-width:750px;margin:0 auto;padding:40px;}
+  .header{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:3px solid #D4A843;padding-bottom:20px;margin-bottom:28px;}
+  .logo{font-size:28px;font-weight:900;color:#0A1628;}
+  .logo span{color:#D4A843;}
+  .header-info{text-align:right;font-size:13px;color:#718096;}
+  .client-name{font-size:22px;font-weight:700;margin-bottom:4px;}
+  .client-meta{font-size:13px;color:#718096;margin-bottom:20px;}
+  .section{margin-bottom:28px;}
+  .section-title{font-size:14px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#D4A843;border-bottom:1px solid #E2E8F0;padding-bottom:6px;margin-bottom:14px;}
+  .score-box{display:flex;gap:20px;align-items:center;background:#F8F5EE;border-radius:12px;padding:20px;margin-bottom:16px;}
+  .score-num{font-size:52px;font-weight:900;color:#D4A843;line-height:1;}
+  .score-details{flex:1;}
+  .score-zone{font-size:16px;font-weight:700;margin-bottom:4px;}
+  .score-meta{font-size:13px;color:#718096;}
+  .progress-bar{background:#E2E8F0;border-radius:10px;height:10px;margin:8px 0;overflow:hidden;}
+  .progress-fill{height:100%;border-radius:10px;background:linear-gradient(90deg,#DC2626,#D97706,#16A34A);}
+  .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px;}
+  .stat{background:#F8F5EE;border-radius:8px;padding:12px;text-align:center;}
+  .stat-val{font-size:20px;font-weight:800;}
+  .stat-lbl{font-size:11px;color:#718096;text-transform:uppercase;letter-spacing:0.5px;margin-top:2px;}
+  .item{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #E2E8F0;}
+  .item:last-child{border-bottom:none;}
+  .badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;}
+  .badge-yellow{background:#FEF3C7;color:#92400E;}
+  .badge-green{background:#DCFCE7;color:#15803D;}
+  .badge-blue{background:#DBEAFE;color:#1D4ED8;}
+  .badge-red{background:#FEE2E2;color:#B91C1C;}
+  .hist-item{display:flex;justify-content:space-between;padding:8px 12px;background:#F8F5EE;border-radius:6px;margin-bottom:6px;}
+  .hist-up{color:#16A34A;font-weight:700;}
+  .hist-down{color:#DC2626;font-weight:700;}
+  .footer{margin-top:40px;border-top:1px solid #E2E8F0;padding-top:16px;text-align:center;font-size:11px;color:#718096;}
+  @media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact;}}
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="header">
+    <div><div class="logo">Credit<span>Path</span></div><div style="font-size:12px;color:#718096;margin-top:2px;">Plataforma de Reparación de Crédito</div></div>
+    <div class="header-info"><div>Reporte generado: ${fecha}</div><div>Oficina: ${c.oficinaNombre||'CreditPath'}</div></div>
+  </div>
+
+  <div class="client-name">${c.nombre}</div>
+  <div class="client-meta">${c.email||''} ${c.tel||c.telefono?'· '+(c.tel||c.telefono):''} · Inicio: ${c.inicio||'—'}</div>
+
+  <div class="section">
+    <div class="section-title">📊 Puntaje de Crédito</div>
+    <div class="score-box">
+      <div class="score-num">${scoreActual}</div>
+      <div class="score-details">
+        <div class="score-zone">${scoreZone}</div>
+        <div class="score-meta">Meta: ${c.scoreMeta} pts · Diferencia: +${c.scoreMeta-scoreActual} pts</div>
+        <div class="progress-bar"><div class="progress-fill" style="width:${progPct}%"></div></div>
+        <div style="font-size:11px;color:#718096">Progreso: ${progPct}% hacia la meta</div>
+      </div>
+    </div>
+    <div class="grid">
+      <div class="stat"><div class="stat-val">${c.items||0}</div><div class="stat-lbl">Ítems en Disputa</div></div>
+      <div class="stat"><div class="stat-val">${cartas.length}</div><div class="stat-lbl">Cartas Enviadas</div></div>
+      <div class="stat"><div class="stat-val">${cartas.filter(x=>x.estado==='respondida').length}</div><div class="stat-lbl">Respondidas</div></div>
+    </div>
+  </div>
+
+  ${historial.length>0?`
+  <div class="section">
+    <div class="section-title">📈 Historial de Puntaje</div>
+    ${historial.map(h=>`
+    <div class="hist-item">
+      <div><strong>${h.scoreAnterior} → ${h.scoreNuevo}</strong><span style="font-size:12px;color:#718096;margin-left:10px">${h.fecha}</span></div>
+      <div class="${h.diferencia>=0?'hist-up':'hist-down'}">${h.diferencia>=0?'+':''}${h.diferencia} pts</div>
+    </div>`).join('')}
+  </div>`:''}
+
+  ${(c.disputas||[]).length>0?`
+  <div class="section">
+    <div class="section-title">⚡ Disputas Activas</div>
+    ${(c.disputas||[]).map(d=>`<div class="item"><span>${d}</span><span class="badge badge-yellow">En Disputa</span></div>`).join('')}
+  </div>`:''}
+
+  ${cartas.length>0?`
+  <div class="section">
+    <div class="section-title">✉️ Cartas Enviadas</div>
+    ${cartas.map(carta=>`
+    <div class="item">
+      <div>
+        <strong>${carta.bureau.charAt(0).toUpperCase()+carta.bureau.slice(1)}</strong>
+        — Carta #${carta.numero} · ${carta.fecha}
+        ${carta.tracking?'· Tracking: '+carta.tracking:''}
+      </div>
+      <span class="badge ${carta.estado==='respondida'?'badge-green':'badge-yellow'}">${carta.estado==='respondida'?'Respondida':'Enviada'}</span>
+    </div>`).join('')}
+  </div>`:''}
+
+  ${(c.notas||[]).length>0?`
+  <div class="section">
+    <div class="section-title">📝 Notas del Agente</div>
+    ${(c.notas||[]).map(n=>`<div class="item"><div><span style="font-size:12px;color:#718096">${n.f} · ${n.a}</span><br/>${n.t}</div></div>`).join('')}
+  </div>`:''}
+
+  <div class="footer">
+    CreditPath — Plataforma de Gestión para Oficinas de Reparación de Crédito<br/>
+    Este reporte es confidencial y de uso interno. Generado el ${fecha}.
+  </div>
+</div>
+<script>window.onload=()=>window.print();</script>
+</body></html>`;
+
+    const ventana=window.open('','_blank');
+    ventana.document.write(html);
+    ventana.document.close();
+  };
+
   const actualizarScore=async()=>{
     const s=parseInt(nuevoScore);
     if(!s||s<300||s>850){alert(lang==='es'?'Score debe estar entre 300 y 850':'Score must be between 300 and 850');return;}
@@ -622,7 +745,10 @@ function ModalCliente({c,onClose,onNota,lang,onScoreUpdate}){
           React.createElement('div',{style:{fontSize:18,fontWeight:700}},c.nombre),
           React.createElement('div',{style:{fontSize:13,color:'var(--t2)',marginTop:2}},c.email+' · '+c.tel)
         ),
-        React.createElement('button',{className:'btn btn-ghost btn-sm',onClick:onClose},'✕')
+        React.createElement('div',{style:{display:'flex',gap:8}},
+          React.createElement('button',{className:'btn btn-gold btn-sm',onClick:generarPDF},'📄 PDF'),
+          React.createElement('button',{className:'btn btn-ghost btn-sm',onClick:onClose},'✕')
+        )
       ),
       React.createElement('div',{className:'tabs'},
         [{k:'resumen',l:t.resumen},{k:'disputas',l:t.disputas},{k:'cartas',l:lang==='es'?'Cartas':'Letters'},{k:'notas',l:t.notas}]
