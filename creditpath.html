@@ -1161,37 +1161,35 @@ function ModalNuevo({onClose,onSave,lang,oficinaNombre,oficinaId}){
     if(!f.nombre||!f.email){alert('Nombre y email son requeridos');return;}
     setSaving(true);
     const tempPass=genPass();
+    const data={
+      nombre:f.nombre+' '+f.apellido,
+      email:f.email,
+      telefono:f.tel,
+      scoreActual:parseInt(f.scoreActual)||0,
+      scoreMeta:parseInt(f.scoreMeta)||700,
+      planTipo,
+      pago:parseInt(monto)||0,
+      estado:'nuevo',
+      items:0,
+      pagado:false,
+      disputas:f.disputas?f.disputas.split('\n').filter(Boolean):[],
+      notas:[],
+      actividad:[],
+      inicio:new Date().toISOString().slice(0,10),
+      oficinaNombre:oficinaNombre||'',
+      oficinaId:oficinaId||'',
+      tempPassword:tempPass,
+      creadoEn:firebase.firestore.FieldValue.serverTimestamp()
+    };
     try{
-      // Guardar en Firestore
-      const data={
-        nombre:f.nombre+' '+f.apellido,
-        email:f.email,
-        telefono:f.tel,
-        scoreActual:parseInt(f.scoreActual)||0,
-        scoreMeta:parseInt(f.scoreMeta)||700,
-        planTipo,
-        pago:parseInt(monto)||0,
-        estado:'nuevo',
-        items:0,
-        pagado:false,
-        disputas:f.disputas?f.disputas.split('\n').filter(Boolean):[],
-        notas:[],
-        inicio:new Date().toISOString().slice(0,10),
-        oficina:oficinaNombre||'',
-        oficinaId:oficinaId||'',
-        tempPassword:tempPass,
-        creadoEn:firebase.firestore.FieldValue.serverTimestamp()
-      };
       await db.collection('cp_clients').add(data);
-      setCredenciales({email:f.email,pass:tempPass,nombre:f.nombre});
-      setStep(4); // paso de credenciales
-      onSave();
     }catch(e){
-      // Si Firestore falla, igual mostrar credenciales
-      setCredenciales({email:f.email,pass:tempPass,nombre:f.nombre});
-      setStep(4);
-      onSave();
+      console.log('Firestore error (continuing):', e.message);
     }
+    // Siempre mostrar credenciales al finalizar
+    setCredenciales({email:f.email,pass:tempPass,nombre:f.nombre});
+    setStep(4);
+    onSave();
     setSaving(false);
   };
 
@@ -1408,7 +1406,7 @@ function App(){
       )
     ),
     cSel&&React.createElement(ModalCliente,{c:cSel,onClose:()=>setCSel(null),onNota:handleNota,lang}),
-    showNuevo&&React.createElement(ModalNuevo,{onClose:()=>setShowNuevo(false),onSave:()=>{cargarClientes(user?.email);setShowNuevo(false);},lang,oficinaNombre,oficinaId})
+    showNuevo&&React.createElement(ModalNuevo,{onClose:()=>{setShowNuevo(false);},onSave:()=>{cargarClientes(user?.email);},lang,oficinaNombre,oficinaId})
   );
 }
 
