@@ -1089,7 +1089,8 @@ function PanelView({clientes,onVer,onNuevo,lang}){
   const act=clientes.filter(c=>c.estado==='activo'||c.estado==='en_proceso');
   const cobrado=clientes.filter(c=>c.pagado).reduce((s,c)=>s+(c.pago||0),0);
   const pend=clientes.filter(c=>!c.pagado).reduce((s,c)=>s+(c.pago||0),0);
-  const avg=clientes.length?Math.round(clientes.reduce((s,c)=>s+c.scoreActual,0)/clientes.length):0;
+  const clientesConScore=clientes.filter(c=>c.scoreActual>0);
+  const avg=clientesConScore.length?Math.round(clientesConScore.reduce((s,c)=>s+(c.scoreActual||0),0)/clientesConScore.length):0;
   return React.createElement('div',null,
     React.createElement('div',{className:'sg'},
       [{l:t.clientesActivos,v:act.length,c:'',n:`de ${clientes.length} total`},{l:t.scorePromedio,v:avg,c:'',n:scZone(avg,lang)},{l:t.cobradoMes,v:fm(cobrado),c:'green',n:'received'},{l:t.porCobrar,v:fm(pend),c:pend>0?'yellow':'',n:`${clientes.filter(c=>!c.pagado).length} pending`}]
@@ -1157,7 +1158,20 @@ function KanbanView({clientes,onVer,lang}){
 function ClientesView({clientes,onVer,onNuevo,lang,onEliminar}){
   const [buscar,setBuscar]=React.useState('');
   const t=T[lang];
-  const fil=clientes.filter(c=>c.nombre.toLowerCase().includes(buscar.toLowerCase()));
+  // Proteger contra datos undefined
+  const clientesSeguros=clientes.map(c=>({
+    ...c,
+    nombre:c.nombre||c.email||'Sin nombre',
+    scoreActual:c.scoreActual||0,
+    scoreMeta:c.scoreMeta||700,
+    tel:c.tel||c.telefono||'—',
+    pago:c.pago||0,
+    estado:c.estado||'nuevo',
+    disputas:c.disputas||[],
+    notas:c.notas||[],
+    cartas:c.cartas||[],
+  }));
+  const fil=clientesSeguros.filter(c=>c.nombre.toLowerCase().includes(buscar.toLowerCase()));
   return React.createElement('div',null,
     React.createElement('div',{style:{display:'flex',gap:10,marginBottom:20,alignItems:'center'}},
       React.createElement('input',{className:'fi',style:{maxWidth:240},placeholder:'🔍 Search...',value:buscar,onChange:e=>setBuscar(e.target.value)}),
@@ -1482,18 +1496,28 @@ function App(){
     try{
       const snap=await db.collection('cp_clients').get();
       if(!snap.empty){
-        const real=snap.docs.map(d=>({id:d.id,...d.data()}));
+        const real=snap.docs.map(d=>{
+          const data=d.data();
+          return {
+            id:d.id,
+            ...data,
+            nombre:data.nombre||data.email||'Sin nombre',
+            scoreActual:data.scoreActual||0,
+            scoreMeta:data.scoreMeta||700,
+            tel:data.tel||data.telefono||'—',
+            pago:data.pago||0,
+            estado:data.estado||'nuevo',
+            disputas:data.disputas||[],
+            notas:data.notas||[],
+            cartas:data.cartas||[],
+          };
+        });
         setClientes(real);
       } else {
         setClientes([]);
       }
     }catch(e){
-      try{
-        const snap2=await db.collection('cp_clients').get();
-        if(!snap2.empty){
-          setClientes(snap2.docs.map(d=>({id:d.id,...d.data()})));
-        }
-      }catch(e2){setClientes([]);}
+      setClientes([]);
     }
   };
 
