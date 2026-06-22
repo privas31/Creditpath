@@ -1038,9 +1038,11 @@ function ClientesView({clientes,onVer,onNuevo,lang}){
                   className:'btn btn-ghost btn-sm',
                   title: lang==='es'?'Copiar link del portal para el cliente':'Copy client portal link',
                   onClick:()=>{
-                    const link='https://privas31.github.io/Creditpath/cliente.html';
+                    const link=c.token
+                      ?`https://privas31.github.io/Creditpath/cliente.html?token=${c.token}`
+                      :'https://privas31.github.io/Creditpath/cliente.html';
                     navigator.clipboard.writeText(link).then(()=>{
-                      alert(`✅ Link copiado para ${c.nombre}\n\nMándaselo por WhatsApp o email:\n${link}`);
+                      alert(`✅ Link copiado para ${c.nombre}\n\nMándaselo por WhatsApp:\n${link}`);
                     }).catch(()=>{
                       prompt('Copia este link y mándaselo al cliente:',link);
                     });
@@ -1151,16 +1153,15 @@ function ModalNuevo({onClose,onSave,lang,oficinaNombre,oficinaId}){
     {id:'personalizado',tk:'planPersonalizado',dk:'planPersonalizadoDesc',icon:'✏️'},
   ];
 
-  // Genera contraseña temporal
-  const genPass=()=>{
-    const chars='ABCDEFGHJKMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789';
-    return Array.from({length:8},()=>chars[Math.floor(Math.random()*chars.length)]).join('');
-  };
+  // Generar token único para el link del cliente
+  const genToken=(nombre)=>nombre.toLowerCase().replace(/\s+/g,'')+'-'+Math.random().toString(36).substr(2,8);
 
   const guardar=async()=>{
     if(!f.nombre||!f.email){alert('Nombre y email son requeridos');return;}
     setSaving(true);
-    const tempPass=genPass();
+    // Generar token único para el link del cliente
+    const token=genToken(f.nombre);
+    const link=`https://privas31.github.io/Creditpath/cliente.html?token=${token}`;
     const data={
       nombre:f.nombre+' '+f.apellido,
       email:f.email,
@@ -1178,16 +1179,15 @@ function ModalNuevo({onClose,onSave,lang,oficinaNombre,oficinaId}){
       inicio:new Date().toISOString().slice(0,10),
       oficinaNombre:oficinaNombre||'',
       oficinaId:oficinaId||'',
-      tempPassword:tempPass,
+      token,
       creadoEn:firebase.firestore.FieldValue.serverTimestamp()
     };
     try{
       await db.collection('cp_clients').add(data);
     }catch(e){
-      console.log('Firestore error (continuing):', e.message);
+      console.log('Firestore error:', e.message);
     }
-    // Siempre mostrar credenciales al finalizar
-    setCredenciales({email:f.email,pass:tempPass,nombre:f.nombre});
+    setCredenciales({email:f.email,nombre:f.nombre,token,link});
     setStep(4);
     onSave();
     setSaving(false);
@@ -1237,36 +1237,33 @@ function ModalNuevo({onClose,onSave,lang,oficinaNombre,oficinaId}){
       // PASO 4 — CREDENCIALES DEL CLIENTE
       step===4&&credenciales&&React.createElement('div',null,
         React.createElement('div',{style:{textAlign:'center',marginBottom:20}},
-          React.createElement('div',{style:{fontSize:32,marginBottom:8}},'✅'),
+          React.createElement('div',{style:{fontSize:40,marginBottom:8}},'✅'),
           React.createElement('div',{style:{fontSize:18,fontWeight:700,color:'var(--t)'}},`${credenciales.nombre} creado exitosamente`),
-          React.createElement('div',{style:{fontSize:13,color:'var(--t2)',marginTop:4}},'Comparte estas credenciales con el cliente')
+          React.createElement('div',{style:{fontSize:13,color:'var(--t2)',marginTop:4}},'Mándale este link por WhatsApp — abre directo su portal')
         ),
         React.createElement('div',{style:{background:'var(--navy3)',border:'2px solid var(--gold)',borderRadius:12,padding:20,marginBottom:16}},
-          React.createElement('div',{style:{fontSize:12,fontWeight:700,textTransform:'uppercase',letterSpacing:'0.8px',color:'var(--t3)',marginBottom:12}},'🔑 Credenciales de Acceso'),
-          React.createElement('div',{style:{marginBottom:10}},
-            React.createElement('div',{style:{fontSize:11,color:'var(--t3)',marginBottom:2}},'Email'),
-            React.createElement('div',{style:{fontSize:15,fontWeight:700,color:'var(--t)',fontFamily:'monospace'}},credenciales.email)
-          ),
-          React.createElement('div',{style:{marginBottom:16}},
-            React.createElement('div',{style:{fontSize:11,color:'var(--t3)',marginBottom:2}},'Contraseña Temporal'),
-            React.createElement('div',{style:{fontSize:22,fontWeight:800,color:'var(--gold)',fontFamily:'monospace',letterSpacing:'2px'}},credenciales.pass)
-          ),
-          React.createElement('div',{style:{background:'var(--navy)',borderRadius:8,padding:12,fontSize:12,color:'var(--t2)',lineHeight:1.6}},
-            '🔗 Link del portal: ',
-            React.createElement('span',{style:{color:'var(--gold)',fontWeight:600}},'https://privas31.github.io/Creditpath/cliente.html')
-          )
+          React.createElement('div',{style:{fontSize:12,fontWeight:700,textTransform:'uppercase',letterSpacing:'0.8px',color:'var(--t3)',marginBottom:12}},'🔗 Link Personal del Cliente'),
+          React.createElement('div',{style:{background:'var(--navy)',borderRadius:8,padding:12,fontSize:12,color:'var(--gold)',fontFamily:'monospace',wordBreak:'break-all',lineHeight:1.6,marginBottom:12}},credenciales.link),
+          React.createElement('div',{style:{fontSize:12,color:'var(--t3)',lineHeight:1.6}},'✅ Sin contraseña — el cliente abre el link y ve su información directo\n📱 Funciona en celular y computadora')
         ),
         React.createElement('div',{style:{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8,marginBottom:16}},
-          React.createElement('button',{className:'btn btn-ghost',style:{justifyContent:'center'},onClick:()=>{
-            const msg=`Hola ${credenciales.nombre}! 👋\n\nTus credenciales para acceder a tu portal de crédito:\n\n🌐 Link: https://privas31.github.io/Creditpath/cliente.html\n📧 Email: ${credenciales.email}\n🔑 Contraseña: ${credenciales.pass}\n\nPor favor cambia tu contraseña cuando entres por primera vez.`;
-            navigator.clipboard.writeText(msg);
-            alert('✅ Mensaje copiado — pégalo en WhatsApp');
+          React.createElement('button',{className:'btn btn-gold',style:{justifyContent:'center'},onClick:()=>{
+            const msg=`Hola ${credenciales.nombre}! 👋\n\nAquí está el link para ver el progreso de tu crédito:\n\n🌐 ${credenciales.link}\n\nAbre el link en tu celular o computadora para ver:\n✅ Tu puntaje actual\n📋 El estado de tus disputas\n📈 Tu progreso hacia la meta\n\n¡Cualquier pregunta estamos aquí para ayudarte! 💪`;
+            navigator.clipboard.writeText(msg).then(()=>{
+              alert('✅ Mensaje copiado — pégalo en WhatsApp');
+            }).catch(()=>{
+              prompt('Copia este link:',credenciales.link);
+            });
           }},'📱 Copiar para WhatsApp'),
           React.createElement('button',{className:'btn btn-ghost',style:{justifyContent:'center'},onClick:()=>{
-            // Crear en Firebase Auth manualmente
-            alert('Para crear la cuenta del cliente en Firebase:\n\n1. Ve a console.firebase.google.com\n2. Authentication → Users → Add user\n3. Email: '+credenciales.email+'\n4. Password: '+credenciales.pass+'\n\nO el cliente puede crear su cuenta directo en el portal.');
-          }},'🔧 Instrucciones Firebase')
+            navigator.clipboard.writeText(credenciales.link).then(()=>{
+              alert('✅ Link copiado al portapapeles');
+            }).catch(()=>{
+              prompt('Copia este link:',credenciales.link);
+            });
+          }},'📋 Copiar Solo el Link')
         ),
+        React.createElement('button',{className:'btn btn-ghost',style:{width:'100%',justifyContent:'center',marginBottom:8},onClick:()=>window.open(credenciales.link,'_blank')},'👁️ Ver Portal del Cliente'),
         React.createElement('button',{className:'btn btn-gold',style:{width:'100%',justifyContent:'center'},onClick:onClose},'✓ Listo — Cerrar')
       ),
 
