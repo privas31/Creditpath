@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>CreditPath — Mi Portal de Crédito</title>
+<script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
+<style>
+:root{
+  --navy:#0A1628;--navy2:#FFFFFF;--navy3:#F8F5EE;
+  --gold:#D4A843;--gold2:#F0C865;
+  --green:#16A34A;--red:#DC2626;--yellow:#D97706;--blue:#2563EB;
+  --cream:#F8F5EE;--cream2:#EDE9DF;
+  --t:#0A1628;--t2:#4A5568;--t3:#718096;
+  --b:#E2E8F0;--b2:#EDF2F7;
+  --r:16px;--rs:10px;
+  --shadow:0 4px 24px rgba(0,0,0,0.25);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--navy3);color:var(--t);min-height:100vh;}
+button{cursor:pointer;border:none;outline:none;font-family:inherit;}
+input{font-family:inherit;outline:none;}
+
+/* LOGIN */
+.lw{min-height:100vh;display:flex;align-items:center;justify-content:center;background:var(--navy);padding:20px;}
+.lb{background:#FFFFFF;border:1px solid #E2E8F0;border-radius:20px;padding:44px 40px;width:100%;max-width:380px;box-shadow:0 20px 60px rgba(0,0,0,0.3);}
+.ll{font-size:28px;font-weight:800;color:#0A1628;text-align:center;margin-bottom:4px;}
+.ll span{color:var(--gold);}
+.ls{text-align:center;font-size:13px;color:#4A5568;margin-bottom:28px;}
+.llab{font-size:12px;font-weight:600;color:#4A5568;margin-bottom:6px;display:block;text-transform:uppercase;letter-spacing:0.5px;}
+.li{width:100%;background:#F8F5EE;border:1px solid #E2E8F0;border-radius:var(--rs);padding:13px 16px;color:#0A1628;font-size:14px;margin-bottom:14px;transition:border-color 0.2s;}
+.li:focus{border-color:var(--gold);}
+.li::placeholder{color:#A0AEC0;}
+.lbtn{width:100%;background:var(--gold);color:var(--navy);font-size:15px;font-weight:700;padding:14px;border-radius:var(--rs);margin-top:8px;transition:all 0.15s;}
+.lbtn:hover{background:var(--gold2);transform:translateY(-1px);}
+.lerr{background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.3);border-radius:var(--rs);padding:10px 14px;font-size:13px;color:#FCA5A5;margin-bottom:14px;}
+
+/* HEADER */
+.hdr{background:#FFFFFF;border-bottom:1px solid #E2E8F0;padding:0 24px;height:60px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:10;box-shadow:0 1px 3px rgba(10,22,40,0.06);}
+.hdr-logo{font-size:20px;font-weight:800;color:#0A1628;}
+.hdr-logo span{color:var(--gold);}
+.hdr-right{display:flex;align-items:center;gap:12px;}
+.hdr-name{font-size:13px;color:#4A5568;}
+.btn-lang{background:#F8F5EE;color:#4A5568;border:1px solid #E2E8F0;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer;transition:all 0.15s;}
+.btn-lang:hover{border-color:var(--gold);color:var(--gold);}
+.btn-out{background:transparent;color:#718096;font-size:13px;padding:6px 12px;border-radius:6px;border:1px solid #E2E8F0;transition:all 0.15s;}
+.btn-out:hover{color:var(--red);border-color:rgba(239,68,68,0.3);}
+
+/* MAIN */
+.main{max-width:900px;margin:0 auto;padding:28px 20px;}
+
+/* HERO SCORE */
+.hero{background:#FFFFFF;border:1px solid #E2E8F0;border-radius:20px;padding:32px;margin-bottom:24px;text-align:center;position:relative;overflow:hidden;box-shadow:0 1px 3px rgba(10,22,40,0.08);}
+.hero::before{content:'';position:absolute;top:-60px;right:-60px;width:200px;height:200px;background:rgba(212,168,67,0.06);border-radius:50%;}
+.hero::after{content:'';position:absolute;bottom:-40px;left:-40px;width:150px;height:150px;background:rgba(212,168,67,0.04);border-radius:50%;}
+.hero-greeting{font-size:14px;color:#718096;margin-bottom:4px;}
+.hero-name{font-size:22px;font-weight:800;color:#0A1628;margin-bottom:24px;}
+
+/* PROGRESS BAR */
+.prog-wrap{background:#F8F5EE;border-radius:var(--r);padding:20px;margin-bottom:16px;position:relative;z-index:1;border:1px solid #E2E8F0;}
+.prog-labels{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
+.prog-score{font-size:42px;font-weight:900;line-height:1;}
+.prog-meta{text-align:right;}
+.prog-meta-val{font-size:22px;font-weight:700;color:var(--gold);}
+.prog-meta-lbl{font-size:11px;color:#718096;}
+.prog-bar-bg{background:#E2E8F0;border-radius:20px;height:12px;overflow:hidden;margin-bottom:8px;}
+.prog-bar-fill{height:100%;border-radius:20px;transition:width 1s ease;}
+.prog-bar-labels{display:flex;justify-content:space-between;font-size:11px;color:#718096;}
+.prog-pts{font-size:13px;color:#4A5568;margin-top:8px;}
+.prog-pts strong{color:var(--gold);}
+
+/* DIAL */
+.dial-wrap{display:flex;flex-direction:column;align-items:center;padding:0 0 8px;}
+
+/* STATS ROW */
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:24px;}
+.stat{background:#FFFFFF;border:1px solid #E2E8F0;border-radius:var(--r);padding:18px;text-align:center;box-shadow:0 1px 3px rgba(10,22,40,0.06);}
+.stat-val{font-size:28px;font-weight:800;color:#0A1628;line-height:1;}
+.stat-val.gold{color:var(--gold);}
+.stat-val.green{color:#22C55E;}
+.stat-val.red{color:var(--red);}
+.stat-lbl{font-size:11px;color:#718096;margin-top:6px;text-transform:uppercase;letter-spacing:0.5px;}
+
+/* SECTION */
+.sec{background:#FFFFFF;border:1px solid #E2E8F0;border-radius:var(--r);padding:22px;margin-bottom:16px;box-shadow:0 1px 3px rgba(10,22,40,0.06);}
+.sec-title{font-size:15px;font-weight:700;color:#0A1628;margin-bottom:16px;display:flex;align-items:center;gap:8px;}
+.sec-icon{font-size:18px;}
+
+/* DISPUTA ITEMS */
+.disp-item{display:flex;justify-content:space-between;align-items:center;padding:12px 16px;background:#FFF9EF;border-radius:var(--rs);margin-bottom:8px;border-left:3px solid #D97706;}
+.disp-item.resolved{background:#F0FFF4;border-left-color:#16A34A;}
+.disp-name{font-size:13px;color:#0A1628;}
+.disp-meta{font-size:11px;color:#718096;margin-top:2px;}
+
+/* BADGE */
+.badge{display:inline-flex;align-items:center;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;}
+.badge-yellow{background:#FEF3C7;color:#92400E;border:1px solid #FDE68A;}
+.badge-green{background:#DCFCE7;color:#15803D;border:1px solid #86EFAC;}
+.badge-blue{background:#DBEAFE;color:#1D4ED8;border:1px solid #93C5FD;}
+.badge-red{background:#FEE2E2;color:#B91C1C;border:1px solid #FECACA;}
+
+/* TIMELINE */
+.tl{position:relative;padding-left:24px;}
+.tl::before{content:'';position:absolute;left:8px;top:0;bottom:0;width:1px;background:#E2E8F0;}
+.tli{position:relative;padding-bottom:18px;}
+.tld{position:absolute;left:-19px;top:3px;width:9px;height:9px;border-radius:50%;background:var(--gold);border:2px solid #FFFFFF;}
+.tld.green{background:#22C55E;}
+.tld.blue{background:var(--blue);}
+.tldt{font-size:11px;color:#718096;}
+.tlt{font-size:13px;color:#0A1628;margin-top:2px;}
+
+/* PAGO */
+.pago-row{display:flex;justify-content:space-between;align-items:center;padding:14px 16px;background:#F8F5EE;border-radius:var(--rs);margin-bottom:8px;}
+.pago-lbl{font-size:13px;color:#4A5568;}
+.pago-val{font-size:14px;font-weight:700;color:#0A1628;}
+
+/* TIP BOX */
+.tip{background:#FFFBEB;border:1px solid #FDE68A;border-radius:var(--rs);padding:14px 16px;font-size:13px;color:#92400E;line-height:1.6;margin-bottom:16px;}
+.tip strong{color:var(--gold);}
+
+/* NEXT STEPS */
+.step-item{display:flex;gap:14px;padding:14px 0;border-bottom:1px solid #EDF2F7;}
+.step-item:last-child{border-bottom:none;}
+.step-num{width:28px;height:28px;border-radius:50%;background:rgba(212,168,67,0.12);color:#92650A;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.step-content{flex:1;}
+.step-title{font-size:13px;font-weight:600;color:#0A1628;}
+.step-desc{font-size:12px;color:#718096;margin-top:2px;line-height:1.5;}
+
+/* SCORE ZONE COLORS */
+.zone-bad{color:#EF4444;}
+.zone-fair{color:#F59E0B;}
+.zone-good{color:#84CC16;}
+.zone-vgood{color:#22C55E;}
+.zone-ex{color:#3B82F6;}
+
+.loading{display:flex;align-items:center;justify-content:center;height:100vh;color:var(--t3);font-size:14px;}
+
+@media(max-width:600px){
+  .stats{grid-template-columns:1fr 1fr;}
+  .lb{padding:32px 24px;}
+  .hero{padding:24px 20px;}
+  .prog-score{font-size:32px;}
+}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+
+const FC={
+  apiKey:"AIzaSyAnZXNV8tUCgUheOrI2p0due1Dj4S_tYCg",
+  authDomain:"immigration-platform-11380.firebaseapp.com",
+  projectId:"immigration-platform-11380",
+  storageBucket:"immigration-platform-11380.firebasestorage.app",
+  messagingSenderId:"682062748742",
+  appId:"1:682062748742:web:5b2466ddf7d8ae05a67e47"
+};
+if(!firebase.apps.length)firebase.initializeApp(FC);
+const auth=firebase.auth();
+const db=firebase.firestore();
+
+// ── TRANSLATIONS ─────────────────────────────────────────────────────────────
+const T={
+  es:{
+    bienvenido:'Bienvenido de vuelta,',
+    tuScore:'Tu Puntaje de Crédito',
+    meta:'Meta',
+    progreso:'Progreso hacia tu meta',
+    puntosRestantes:'puntos para llegar a tu meta',
+    itemsDisputa:'Ítems en Disputa',
+    cartasEnviadas:'Cartas Enviadas',
+    respuestas:'Respuestas',
+    estadoCaso:'Estado de Tu Caso',
+    disputasActivas:'Mis Disputas Activas',
+    sinDisputas:'✅ Sin disputas activas — ¡Excelente trabajo!',
+    enDisputa:'En disputa',
+    eliminado:'Eliminado ✓',
+    actividadReciente:'Actividad Reciente',
+    pagos:'Mis Pagos',
+    planCobro:'Plan de Cobro',
+    proximoPago:'Próximo Pago',
+    ultimoPago:'Último Pago',
+    estadoPago:'Estado del Mes',
+    pagado:'✓ Al día',
+    pendiente:'⚠ Pendiente',
+    proximosPasos:'Próximos Pasos',
+    tip:'💡 Consejo:',
+    tipTexto:'Sigue pagando todas tus cuentas actuales a tiempo. Es el factor más importante (35%) para subir tu puntaje de crédito.',
+    poor:'Malo',fair:'Regular',good:'Bueno',vgood:'Muy Bueno',exceptional:'Excepcional',
+    cerrar:'Salir',
+    paso1t:'Mantén tus pagos al día',paso1d:'El historial de pagos representa el 35% de tu score. Nunca pagues tarde.',
+    paso2t:'Reduce tu utilización de crédito',paso2d:'Mantén el balance de tus tarjetas por debajo del 30% del límite.',
+    paso3t:'Espera las respuestas de los bureaus',paso3d:'Los bureaus tienen 30 días para responder a cada disputa enviada.',
+    paso4t:'No abras nuevas cuentas',paso4d:'Cada solicitud de crédito baja temporalmente tu score 5-10 puntos.',
+    mensual:'Mensualidad Fija',disputa:'Por Disputa',resultado:'Por Resultado',personalizado:'Personalizado',
+    oficina:'Tu Oficina',
+  },
+  en:{
+    bienvenido:'Welcome back,',
+    tuScore:'Your Credit Score',
+    meta:'Goal',
+    progreso:'Progress toward your goal',
+    puntosRestantes:'points remaining to reach your goal',
+    itemsDisputa:'Items in Dispute',
+    cartasEnviadas:'Letters Sent',
+    respuestas:'Responses',
+    estadoCaso:'Your Case Status',
+    disputasActivas:'My Active Disputes',
+    sinDisputas:'✅ No active disputes — Great work!',
+    enDisputa:'In dispute',
+    eliminado:'Removed ✓',
+    actividadReciente:'Recent Activity',
+    pagos:'My Payments',
+    planCobro:'Billing Plan',
+    proximoPago:'Next Payment',
+    ultimoPago:'Last Payment',
+    estadoPago:'Month Status',
+    pagado:'✓ Current',
+    pendiente:'⚠ Pending',
+    proximosPasos:'Next Steps',
+    tip:'💡 Tip:',
+    tipTexto:'Keep paying all your current accounts on time. It\'s the most important factor (35%) for raising your credit score.',
+    poor:'Poor',fair:'Fair',good:'Good',vgood:'Very Good',exceptional:'Exceptional',
+    cerrar:'Sign Out',
+    paso1t:'Keep your payments current',paso1d:'Payment history represents 35% of your score. Never pay late.',
+    paso2t:'Reduce your credit utilization',paso2d:'Keep your card balances below 30% of the credit limit.',
+    paso3t:'Wait for bureau responses',paso3d:'Bureaus have 30 days to respond to each dispute submitted.',
+    paso4t:'Don\'t open new accounts',paso4d:'Each credit inquiry temporarily lowers your score 5-10 points.',
+    mensual:'Fixed Monthly',disputa:'Per Dispute',resultado:'Per Result',personalizado:'Custom',
+    oficina:'Your Office',
+  }
+};
+
+// ── DEMO CLIENTE DATA ─────────────────────────────────────────────────────────
+const DEMO_CLIENTE={
+  nombre:'María García',
+  email:'maria@email.com',
+  scoreActual:542,
+  scoreMeta:700,
+  estado:'en_proceso',
+  items:7,
+  cartasEnviadas:2,
+  respuestas:1,
+  planTipo:'mensual',
+  pago:150,
+  pagado:true,
+  proximoPago:'Ene 1, 2025',
+  ultimoPago:'Dic 1, 2024',
+  oficina:'Crédito Nuevo Tampa',
+  disputas:[
+    {nombre:'Colección médica — $2,100',bureau:'Experian',fecha:'Dic 15, 2024',estado:'disputa'},
+    {nombre:'Pago tardío Chase — Nov 2023',bureau:'Equifax',fecha:'Dic 15, 2024',estado:'disputa'},
+    {nombre:'Capital One en colecciones',bureau:'TransUnion',fecha:'Dic 15, 2024',estado:'disputa'},
+    {nombre:'Consulta no autorizada — Sep 2023',bureau:'Experian',fecha:'Dic 10, 2024',estado:'eliminado'},
+  ],
+  actividad:[
+    {fecha:'Dic 15, 2024',texto:'Carta #2 enviada a Experian — Colección médica',tipo:'carta'},
+    {fecha:'Dic 10, 2024',texto:'Consulta no autorizada eliminada de Experian ✓',tipo:'green'},
+    {fecha:'Dic 05, 2024',texto:'Respuesta recibida de Equifax — En revisión',tipo:'blue'},
+    {fecha:'Dic 01, 2024',texto:'Pago recibido — $150',tipo:'green'},
+    {fecha:'Nov 15, 2024',texto:'Primera carta de disputa enviada a los 3 bureaus',tipo:'carta'},
+    {fecha:'Nov 01, 2024',texto:'Caso abierto — Consulta inicial completada',tipo:'blue'},
+  ]
+};
+
+// ── HELPERS ───────────────────────────────────────────────────────────────────
+const scColor=s=>s<580?'#EF4444':s<670?'#F59E0B':s<740?'#84CC16':s<800?'#22C55E':'#3B82F6';
+const scZone=(s,l)=>{
+  const t=T[l];
+  return s<580?t.poor:s<670?t.fair:s<740?t.good:s<800?t.vgood:t.exceptional;
+};
+const scClass=s=>s<580?'zone-bad':s<670?'zone-fair':s<740?'zone-good':s<800?'zone-vgood':'zone-ex';
+
+// ── SCORE DIAL ────────────────────────────────────────────────────────────────
+function Dial({score,lang}){
+  const cx=100,cy=90,r=76;
+  const toXY=(deg,rd)=>({x:cx+rd*Math.cos(deg*Math.PI/180),y:cy+rd*Math.sin(deg*Math.PI/180)});
+  const zones=[
+    {min:300,max:580,color:'#EF4444'},
+    {min:580,max:670,color:'#F59E0B'},
+    {min:670,max:740,color:'#84CC16'},
+    {min:740,max:800,color:'#22C55E'},
+    {min:800,max:850,color:'#3B82F6'},
+  ];
+  const scoreToAngle=s=>-180+((s-300)/550)*180;
+  const arcPath=(a1,a2,rd)=>{
+    const s=toXY(a1,rd),e=toXY(a2,rd);
+    const large=a2-a1>180?1:0;
+    return `M${s.x},${s.y} A${rd},${rd} 0 ${large} 1 ${e.x},${e.y}`;
+  };
+  const needleAng=scoreToAngle(Math.min(850,Math.max(300,score)));
+  const needleTip=toXY(needleAng,62);
+  const needleBase1=toXY(needleAng+90,8);
+  const needleBase2=toXY(needleAng-90,8);
+  const color=scColor(score);
+
+  return React.createElement('div',{className:'dial-wrap'},
+    React.createElement('svg',{width:200,height:105,viewBox:'0 0 200 105'},
+      React.createElement('path',{d:arcPath(-180,0,r),fill:'none',stroke:'rgba(255,255,255,0.08)',strokeWidth:14,strokeLinecap:'round'}),
+      ...zones.map((z,i)=>{
+        if(score<z.min)return null;
+        const a1=scoreToAngle(z.min);
+        const a2=scoreToAngle(Math.min(z.max,score));
+        return React.createElement('path',{key:i,d:arcPath(a1,a2,r),fill:'none',stroke:z.color,strokeWidth:14,strokeLinecap:i===0?'round':'butt'});
+      }).filter(Boolean),
+      React.createElement('polygon',{points:`${needleTip.x},${needleTip.y} ${needleBase1.x},${needleBase1.y} ${needleBase2.x},${needleBase2.y}`,fill:'#E2E8F0'}),
+      React.createElement('circle',{cx,cy,r:10,fill:'#1E293B'}),
+      React.createElement('circle',{cx,cy,r:5,fill:'#fff'})
+    ),
+    React.createElement('div',{style:{fontSize:48,fontWeight:900,color,lineHeight:1,marginTop:4,letterSpacing:'-2px'}},score),
+    React.createElement('div',{className:scClass(score),style:{fontSize:16,fontWeight:700,marginTop:4}},scZone(score,lang)),
+    React.createElement('div',{style:{fontSize:10,color:'#718096',marginTop:6,letterSpacing:'0.3px'}},'300 Poor · 580 Fair · 670 Good · 740 Very Good · 800 Exceptional')
+  );
+}
+
+// ── PORTAL ────────────────────────────────────────────────────────────────────
+function Portal({cliente,lang}){
+  const t=T[lang];
+  const pct=Math.min(100,Math.max(0,((cliente.scoreActual-300)/(cliente.scoreMeta-300))*100));
+  const color=scColor(cliente.scoreActual);
+  const planLabel={mensual:t.mensual,disputa:t.disputa,resultado:t.resultado,personalizado:t.personalizado};
+
+  return React.createElement('div',{className:'main'},
+
+    // Hero Score Section
+    React.createElement('div',{className:'hero'},
+      React.createElement('div',{className:'hero-greeting'},t.bienvenido),
+      React.createElement('div',{className:'hero-name'},cliente.nombre),
+      React.createElement(Dial,{score:cliente.scoreActual,lang}),
+      React.createElement('div',{className:'prog-wrap',style:{marginTop:20}},
+        React.createElement('div',{className:'prog-labels'},
+          React.createElement('div',null,
+            React.createElement('div',{style:{fontSize:12,color:'var(--t3)',marginBottom:4}},t.tuScore),
+            React.createElement('div',{className:'prog-score',style:{color}},cliente.scoreActual)
+          ),
+          React.createElement('div',{className:'prog-meta'},
+            React.createElement('div',{className:'prog-meta-lbl'},t.meta),
+            React.createElement('div',{className:'prog-meta-val'},cliente.scoreMeta)
+          )
+        ),
+        React.createElement('div',{className:'prog-bar-bg'},
+          React.createElement('div',{className:'prog-bar-fill',style:{width:`${pct}%`,background:`linear-gradient(90deg, ${color}, ${scColor(cliente.scoreMeta)})`}})
+        ),
+        React.createElement('div',{className:'prog-bar-labels'},
+          React.createElement('span',null,'300'),
+          React.createElement('span',null,cliente.scoreMeta)
+        ),
+        React.createElement('div',{className:'prog-pts'},
+          React.createElement('strong',null,`+${cliente.scoreMeta-cliente.scoreActual}`),
+          ' '+t.puntosRestantes
+        )
+      )
+    ),
+
+    // Stats
+    React.createElement('div',{className:'stats'},
+      [
+        {l:t.itemsDisputa,v:cliente.items,c:''},
+        {l:t.cartasEnviadas,v:cliente.cartasEnviadas,c:'gold'},
+        {l:t.respuestas,v:cliente.respuestas,c:'green'},
+      ].map(s=>React.createElement('div',{key:s.l,className:'stat'},
+        React.createElement('div',{className:`stat-val ${s.c}`},s.v),
+        React.createElement('div',{className:'stat-lbl'},s.l)
+      ))
+    ),
+
+    // Tip
+    React.createElement('div',{className:'tip'},
+      React.createElement('strong',null,t.tip+' '),t.tipTexto
+    ),
+
+    // Disputas
+    React.createElement('div',{className:'sec'},
+      React.createElement('div',{className:'sec-title'},
+        React.createElement('span',{className:'sec-icon'},'⚡'),t.disputasActivas
+      ),
+      cliente.disputas.length===0
+        ?React.createElement('p',{style:{color:'var(--t3)',fontSize:14}},t.sinDisputas)
+        :cliente.disputas.map((d,i)=>React.createElement('div',{key:i,className:`disp-item ${d.estado==='eliminado'?'resolved':''}`},
+            React.createElement('div',null,
+              React.createElement('div',{className:'disp-name'},d.nombre),
+              React.createElement('div',{className:'disp-meta'},d.bureau+' · '+d.fecha)
+            ),
+            d.estado==='eliminado'
+              ?React.createElement('span',{className:'badge badge-green'},t.eliminado)
+              :React.createElement('span',{className:'badge badge-yellow'},t.enDisputa)
+          ))
+    ),
+
+    // Actividad
+    React.createElement('div',{className:'sec'},
+      React.createElement('div',{className:'sec-title'},
+        React.createElement('span',{className:'sec-icon'},'📋'),t.actividadReciente
+      ),
+      React.createElement('div',{className:'tl'},
+        cliente.actividad.map((a,i)=>React.createElement('div',{key:i,className:'tli'},
+          React.createElement('div',{className:`tld ${a.tipo==='green'?'green':a.tipo==='blue'?'blue':''}`}),
+          React.createElement('div',{className:'tldt'},a.fecha),
+          React.createElement('div',{className:'tlt'},a.texto)
+        ))
+      )
+    ),
+
+    // Pagos
+    React.createElement('div',{className:'sec'},
+      React.createElement('div',{className:'sec-title'},
+        React.createElement('span',{className:'sec-icon'},'💳'),t.pagos
+      ),
+      [
+        {l:t.planCobro,v:planLabel[cliente.planTipo]||cliente.planTipo},
+        {l:t.estadoPago,v:cliente.pagado?t.pagado:t.pendiente,color:cliente.pagado?'#4ADE80':'#FCA5A5'},
+        {l:t.proximoPago,v:cliente.proximoPago},
+        {l:t.ultimoPago,v:cliente.ultimoPago},
+      ].map(p=>React.createElement('div',{key:p.l,className:'pago-row'},
+        React.createElement('span',{className:'pago-lbl'},p.l),
+        React.createElement('span',{className:'pago-val',style:p.color?{color:p.color}:{}},p.v)
+      ))
+    ),
+
+    // Proximos pasos
+    React.createElement('div',{className:'sec'},
+      React.createElement('div',{className:'sec-title'},
+        React.createElement('span',{className:'sec-icon'},'🎯'),t.proximosPasos
+      ),
+      [
+        {t:t.paso1t,d:t.paso1d},
+        {t:t.paso2t,d:t.paso2d},
+        {t:t.paso3t,d:t.paso3d},
+        {t:t.paso4t,d:t.paso4d},
+      ].map((s,i)=>React.createElement('div',{key:i,className:'step-item'},
+        React.createElement('div',{className:'step-num'},i+1),
+        React.createElement('div',{className:'step-content'},
+          React.createElement('div',{className:'step-title'},s.t),
+          React.createElement('div',{className:'step-desc'},s.d)
+        )
+      ))
+    ),
+
+    // Footer
+    React.createElement('div',{style:{textAlign:'center',padding:'20px 0',fontSize:12,color:'var(--t3)'}},
+      t.oficina+': '+cliente.oficina+' · Powered by CreditPath'
+    )
+  );
+}
+
+// ── APP ────────────────────────────────────────────────────────────────────────
+function App(){
+  const [user,setUser]=React.useState(null);
+  const [checking,setChecking]=React.useState(true);
+  const [email,setEmail]=React.useState('');
+  const [pass,setPass]=React.useState('');
+  const [err,setErr]=React.useState('');
+  const [loading,setLoading]=React.useState(false);
+  const [lang,setLang]=React.useState('es');
+  const [cliente,setCliente]=React.useState(DEMO_CLIENTE);
+
+  React.useEffect(()=>{
+    const unsub=auth.onAuthStateChanged(async u=>{
+      setUser(u);
+      setChecking(false);
+      if(u){
+        try{
+          const snap=await db.collection('cp_clients').where('email','==',u.email).limit(1).get();
+          if(!snap.empty){
+            const data=snap.docs[0].data();
+            setCliente({...DEMO_CLIENTE,...data,nombre:data.nombre||DEMO_CLIENTE.nombre});
+          }
+        }catch(e){}
+      }
+    });
+    return unsub;
+  },[]);
+
+  const handleLogin=async()=>{
+    if(!email||!pass){setErr(lang==='es'?'Completa todos los campos':'Fill in all fields');return;}
+    setLoading(true);setErr('');
+    try{const c=await auth.signInWithEmailAndPassword(email,pass);setUser(c.user);}
+    catch(e){setErr(lang==='es'?'Email o contraseña incorrectos.':'Incorrect email or password.');}
+    setLoading(false);
+  };
+
+  const t=T[lang];
+
+  if(checking)return React.createElement('div',{className:'loading'},'');
+
+  if(!user)return React.createElement('div',{className:'lw'},
+    React.createElement('div',{className:'lb'},
+      React.createElement('div',{className:'ll'},'Credit',React.createElement('span',null,'Path')),
+      React.createElement('div',{className:'ls'},lang==='es'?'Portal del Cliente · Tu progreso de crédito':'Client Portal · Your credit progress'),
+      err&&React.createElement('div',{className:'lerr'},err),
+      React.createElement('label',{className:'llab'},lang==='es'?'Email':'Email'),
+      React.createElement('input',{className:'li',type:'email',placeholder:'tu@email.com',value:email,onChange:e=>setEmail(e.target.value),onKeyDown:e=>e.key==='Enter'&&handleLogin()}),
+      React.createElement('label',{className:'llab'},lang==='es'?'Contraseña':'Password'),
+      React.createElement('input',{className:'li',type:'password',placeholder:'••••••••',value:pass,onChange:e=>setPass(e.target.value),onKeyDown:e=>e.key==='Enter'&&handleLogin()}),
+      React.createElement('button',{className:'lbtn',onClick:handleLogin,disabled:loading},loading?'...':lang==='es'?'Entrar a Mi Portal':'Enter My Portal'),
+      React.createElement('div',{style:{textAlign:'center',marginTop:16}},
+        React.createElement('button',{className:'btn-lang',onClick:()=>setLang(l=>l==='es'?'en':'es')},lang==='es'?'EN':'ES')
+      )
+    )
+  );
+
+  return React.createElement('div',null,
+    React.createElement('div',{className:'hdr'},
+      React.createElement('div',{className:'hdr-logo'},'Credit',React.createElement('span',null,'Path')),
+      React.createElement('div',{className:'hdr-right'},
+        React.createElement('span',{className:'hdr-name'},cliente.nombre),
+        React.createElement('button',{className:'btn-lang',onClick:()=>setLang(l=>l==='es'?'en':'es')},lang==='es'?'EN':'ES'),
+        React.createElement('button',{className:'btn-out',onClick:()=>auth.signOut()},t.cerrar)
+      )
+    ),
+    React.createElement(Portal,{cliente,lang})
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(React.createElement(App));
+</script>
+</body>
+</html>
