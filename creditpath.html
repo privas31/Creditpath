@@ -1323,13 +1323,23 @@ function App(){
 
   const cargarClientes=async(emailOficina)=>{
     try{
-      const snap=await db.collection('cp_clients').where('oficina','==',emailOficina||'').get();
+      // Busca clientes por email de oficina O todos si no hay filtro
+      let snap=await db.collection('cp_clients').orderBy('creadoEn','desc').get();
       if(!snap.empty){
         const real=snap.docs.map(d=>({id:d.id,...d.data()}));
-        setClientes(real);
+        // Mezcla demo + reales, los reales primero
+        setClientes([...real,...DEMO]);
       }
-      // Si no hay clientes reales, mantiene el demo
-    }catch(e){}
+    }catch(e){
+      // Si falla por índice, carga sin ordenar
+      try{
+        const snap2=await db.collection('cp_clients').get();
+        if(!snap2.empty){
+          const real=snap2.docs.map(d=>({id:d.id,...d.data()}));
+          setClientes([...real,...DEMO]);
+        }
+      }catch(e2){}
+    }
   };
 
   const handleLogin=async()=>{
